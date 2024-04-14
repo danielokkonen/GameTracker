@@ -1,12 +1,12 @@
 export default class Game {
-  public id: string;
+  public id: number;
   public name: string;
   public status: string;
   public started: Date;
   public completed: Date;
 
   constructor(
-    id: string,
+    id: number,
     name: string,
     status: string,
     started: Date,

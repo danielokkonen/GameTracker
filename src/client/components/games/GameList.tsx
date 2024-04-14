@@ -27,10 +27,10 @@ const GameList = ({ items }: GameListProps) => {
         </TableHead>
         <TableBody>
           {items.map((item) => (
-            <TableRow>
+            <TableRow key={item.name}>
               <TableCell>{item.name}</TableCell>
               <TableCell>{item.status}</TableCell>
-              <TableCell>{item.started.toLocaleString()}</TableCell>
+              <TableCell>{item.started?.toLocaleString()}</TableCell>
               <TableCell>{item.completed?.toLocaleString()}</TableCell>
             </TableRow>
           ))}
