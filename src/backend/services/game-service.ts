@@ -1,17 +1,20 @@
-import { PrismaClient } from "@prisma/client";
-import Game from "../models/game";
+/* eslint-disable @typescript-eslint/no-var-requires */
+const { PrismaClient } = require("@prisma/client");
+
+import { Game } from "@prisma/client";
+import GameDto from "../dtos/game-dto";
 
 export default class GameService {
-  prisma: PrismaClient;
+  prisma: typeof PrismaClient;
 
   constructor() {
     this.prisma = new PrismaClient();
   }
 
-  listAllGames = async (): Promise<Game[]> => {
+  listAllGames = async (): Promise<GameDto[]> => {
     const results = (await this.prisma.game.findMany()).map(
-      (g) =>
-        new Game(
+      (g: Game) =>
+        new GameDto(
           g.id,
           g.name,
           "Started",

@@ -7,10 +7,10 @@ import {
   TableRow,
 } from "@mui/material";
 import React from "react";
-import Game from "../../../backend/models/game";
+import GameDto from "../../../backend/dtos/game-dto";
 
 interface GameListProps {
-  items: Game[];
+  items: GameDto[];
 }
 
 const GameList = ({ items }: GameListProps) => {

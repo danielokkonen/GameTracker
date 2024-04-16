@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
-import Game from "./backend/models/game";
-
-const { PrismaClient } = require("@prisma/client");
+import GameService from "./backend/services/game-service";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -60,11 +57,7 @@ app.on("activate", () => {
 // code. You can also put them in separate files and import them here.
 
 ipcMain.on("list-games", async (event) => {
-  console.log('get');
-  const prisma = new PrismaClient();
-  const result = (await prisma.Game.findMany()).map(
-    (g: any) =>
-      new Game(g.id, g.name, "Started", new Date(g.start), new Date(g.end))
-  );
+  const service = new GameService();
+  const result = await service.listAllGames();
   event.reply("list-games-success", result);
 });

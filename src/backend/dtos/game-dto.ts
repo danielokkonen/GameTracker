@@ -1,4 +1,4 @@
-export default class Game {
+export default class GameDto {
   public id: number;
   public name: string;
   public status: string;
