@@ -1,6 +1,8 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
+import GameDto from "./backend/dtos/game-dto";
+
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronApi", {
@@ -16,5 +18,10 @@ contextBridge.exposeInMainWorld("electronApi", {
 });
 
 contextBridge.exposeInMainWorld("gameService", {
-  listGames: () => ipcRenderer.send("list-games"),
+  list: () => ipcRenderer.send("list-games"),
+  get: (id: number) => ipcRenderer.send("get-game", id),
+  create: (entity: GameDto) => ipcRenderer.send("create-game", entity),
+  update: (entity: GameDto) => ipcRenderer.send("update-game", entity),
+  delete: (id: number) => ipcRenderer.send("delete-game", id),
 });
+

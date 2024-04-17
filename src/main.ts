@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 import GameService from "./backend/services/game-service";
+import GameDto from "./backend/dtos/game-dto";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -58,6 +59,30 @@ app.on("activate", () => {
 
 ipcMain.on("list-games", async (event) => {
   const service = new GameService();
-  const result = await service.listAllGames();
+  const result = await service.list();
   event.reply("list-games-success", result);
+});
+
+ipcMain.on("get-game", async (event, data: number) => {
+  const service = new GameService();
+  const result = await service.get(data);
+  event.reply("get-game-success", result);
+});
+
+ipcMain.on("create-game", async (event, data: GameDto) => {
+  const service = new GameService();
+  const result = await service.create(data);
+  event.reply("create-game-success", result);
+});
+
+ipcMain.on("update-game", async (event, data: GameDto) => {
+  const service = new GameService();
+  const result = await service.update(data);
+  event.reply("update-game-success", result);
+});
+
+ipcMain.on("delete-game", async (event, data: number) => {
+  const service = new GameService();
+  await service.delete(data);
+  event.reply("delete-game-success");
 });
