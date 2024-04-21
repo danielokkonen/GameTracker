@@ -11,10 +11,9 @@ contextBridge.exposeInMainWorld("electronApi", {
       channel: string,
       listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void
     ) => ipcRenderer.on(channel, listener),
-    removeAllListeners: (
-      channel: string
-    ) => ipcRenderer.removeAllListeners(channel),
-  },
+    removeAllListeners: (channel: string) =>
+      ipcRenderer.removeAllListeners(channel),
+  }
 });
 
 contextBridge.exposeInMainWorld("gameService", {
@@ -23,5 +22,5 @@ contextBridge.exposeInMainWorld("gameService", {
   create: (entity: GameDto) => ipcRenderer.send("create-game", entity),
   update: (entity: GameDto) => ipcRenderer.send("update-game", entity),
   delete: (id: number) => ipcRenderer.send("delete-game", id),
+  import: (path: string) => ipcRenderer.send("import-games", path),
 });
-

@@ -1,9 +1,9 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 
 const Home = () => (
   <Box>
-    <Typography variant="h4">Home</Typography>
+    
   </Box>
 );
 

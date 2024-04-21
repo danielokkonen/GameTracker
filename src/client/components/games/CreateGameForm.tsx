@@ -1,75 +1,125 @@
-import { Box, Button, TextField } from "@mui/material";
-import React from "react";
+import { Autocomplete, Box, Button, TextField } from "@mui/material";
+import React, { useContext, useEffect, useRef } from "react";
 import GameDto from "../../../backend/dtos/game-dto";
 import SaveIcon from "@mui/icons-material/Save";
 import { LoadingButton } from "@mui/lab";
+import { useFormik } from "formik";
+import { ObjectSchema, date, number, object, string } from "yup";
+import SettingsContext from "../../../client/context/SettingsContext";
+import dayjs from "dayjs";
 
 interface CreateGameFormProps {
   value: GameDto;
   onSubmit: any;
-  onChange: any;
   onClose: any;
-  loading: boolean;
+  franchises?: string[];
 }
 
 const CreateGameForm = ({
-  value: values,
+  value,
   onSubmit,
-  onChange,
   onClose,
-  loading,
+  franchises,
 }: CreateGameFormProps) => {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit();
+  const { state } = useContext(SettingsContext);
+
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
+
+  const handleSubmit = (values: GameDto) => {
+    onSubmit(values);
   };
+
+  const schema: ObjectSchema<GameDto> = object({
+    id: number().optional(),
+    name: string().required(),
+    franchise: string().required(),
+    status: string().optional(),
+    started: date().optional().nullable(),
+    completed: date().optional().nullable(),
+    created: date().optional(),
+    updated: date().optional().nullable(),
+  });
+
+  const formik = useFormik({
+    initialValues: value ?? new GameDto(0, "", ""),
+    onSubmit: handleSubmit,
+    validationSchema: schema,
+  });
 
   return (
     <Box
       component="form"
+      ref={ref}
       sx={(theme) => ({
         display: "flex",
         flexDirection: "column",
-        ".MuiInputBase-root > *": { marginBottom: theme.spacing(1) },
+        scrollMarginTop: "100px",
+        "> div": { marginTop: theme.spacing(2) },
       })}
-      onSubmit={handleSubmit}
+      onSubmit={formik.handleSubmit}
     >
       <TextField
         name="name"
         label="Name"
-        value={values.name}
-        onChange={onChange}
+        value={formik.values.name}
+        onChange={formik.handleChange}
+        helperText={formik.touched.name && formik.errors.name}
+        error={formik.touched.name && !!formik.errors.name}
+      />
+      <Autocomplete
+        disablePortal
+        options={franchises}
+        value={formik.values.franchise}
+        freeSolo
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            name="franchise"
+            label="Franchise"
+            onChange={formik.handleChange}
+            helperText={formik.touched.franchise && formik.errors.franchise}
+            error={formik.touched.franchise && !!formik.errors.franchise}
+          />
+        )}
       />
       <TextField
-        name="franchise"
-        label="Franchise"
-        value={values.franchise}
-        onChange={onChange}
-      />
-      <TextField
-        name="status"
-        label="Status"
-        value={values.status}
-        onChange={onChange}
-      />
-      <TextField
+        type="date"
         name="started"
         label="Started"
-        value={values.started}
-        onChange={onChange}
+        value={
+          formik.values.started
+            ? dayjs(formik.values.started).format("YYYY-MM-DD")
+            : " "
+        }
+        onChange={formik.handleChange}
+        helperText={formik.touched.started && <>{formik.errors.started}</>}
+        error={formik.touched.started && !!formik.errors.started}
       />
       <TextField
-        name="end"
+        type="date"
+        name="completed"
         label="Completed"
-        value={values.completed}
-        onChange={onChange}
+        value={
+          formik.values.completed
+            ? dayjs(formik.values.completed).format("YYYY-MM-DD")
+            : " "
+        }
+        onChange={formik.handleChange}
+        helperText={formik.touched.completed && <>{formik.errors.completed}</>}
+        error={formik.touched.completed && !!formik.errors.completed}
       />
       <Box
         sx={(theme) => ({
           display: "flex",
           justifyContent: "flex-end",
+          marginTop: theme.spacing(2),
           ".MuiButton-root": {
-            marginLeft: theme.spacing(1),
+            marginLeft: theme.spacing(2),
           },
         })}
       >
@@ -80,11 +130,16 @@ const CreateGameForm = ({
           type="submit"
           variant="contained"
           startIcon={<SaveIcon />}
-          loading={loading}
+          loading={formik.isSubmitting}
         >
           Submit
         </LoadingButton>
       </Box>
+      {state.developerMode && (
+        <Box component="pre" sx={{}}>
+          {JSON.stringify(formik, null, 2)}
+        </Box>
+      )}
     </Box>
   );
 };

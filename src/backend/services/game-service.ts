@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { PrismaClient } = require("@prisma/client");
+const fs = require("node:fs/promises");
 
 import { Game } from "@prisma/client";
 import GameDto from "../dtos/game-dto";
@@ -56,24 +57,58 @@ export default class GameService {
     });
   };
 
+  import = async (path: string): Promise<void> => {
+    const file = await fs.open(path);
+
+    for await (const item of file.readLines()) {
+      const columns = item.split(";");
+
+      if (columns[1] === "Franchise") {
+        continue;
+      }
+
+      const game = new GameDto(
+        0,
+        columns[0],
+        columns[1],
+        "",
+        columns[3] ? new Date(columns[3]) : null,
+        columns[4] ? new Date(columns[4]) : null
+      );
+
+      console.log(game);
+
+      await this.create(game);
+    }
+  };
+
   private toDbEntity = (g: GameDto) => ({
     name: g.name,
     franchise: g.franchise,
-    start: new Date(g.started).toISOString(),
+    start: g.started ? new Date(g.started).toISOString() : null,
     end: g.completed ? new Date(g.completed).toISOString() : null,
     created: g.created ? new Date(g.created).toISOString() : null,
     updated: g.updated ? new Date(g.updated).toISOString() : null,
   });
 
-  private toDto = (g: Game) =>
-    new GameDto(
+  private toDto = (g: Game) => {
+    let status = "Not started";
+
+    if (g.end) {
+      status = "Completed";
+    } else if (g.start) {
+      status = "Started";
+    }
+
+    return new GameDto(
       g.id,
       g.name,
       g.franchise,
-      "Started",
+      status,
       g.start ? new Date(g.start) : null,
       g.end ? new Date(g.end) : null,
       g.created ? new Date(g.created) : null,
       g.updated ? new Date(g.updated) : null
     );
+  };
 }

@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 import GameService from "./backend/services/game-service";
 import GameDto from "./backend/dtos/game-dto";
+const dialog = require("electron").dialog;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -11,8 +12,8 @@ if (require("electron-squirrel-startup")) {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 1920,
-    height: 1080,
+    width: 1400,
+    height: 900,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: true,
@@ -85,4 +86,20 @@ ipcMain.on("delete-game", async (event, data: number) => {
   const service = new GameService();
   await service.delete(data);
   event.reply("delete-game-success");
+});
+
+ipcMain.on("import-games", async (event) => {
+  const service = new GameService();
+  dialog
+    .showOpenDialog({
+      properties: ["openFile"],
+      filters: [{ name: "", extensions: ["csv"] }],
+    })
+    .then((value) => {
+      const path = value.filePaths[0];
+      if (path) {
+        return service.import(path);
+      }
+    })
+    .then(() => event.reply("import-game-success"));
 });

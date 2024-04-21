@@ -1,10 +1,13 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import SettingsForm from "../components/settings/SettingsForm";
 
-const About = () => (
-  <Box>
-    <Typography variant="h4">About</Typography>
-  </Box>
-);
+const About = () => {
+  return (
+    <Box>
+      <SettingsForm />
+    </Box>
+  );
+};
 
 export default About;

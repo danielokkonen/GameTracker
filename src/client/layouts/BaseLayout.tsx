@@ -5,13 +5,14 @@ import { Container as ContainerBase, styled } from "@mui/material";
 
 const Container = styled(ContainerBase)(({ theme }) => ({
   paddingTop: theme.spacing(2),
+  overflowY: "auto",
 }));
 
 const BaseLayout = () => {
   return (
     <>
       <Navigation open={true} />
-      <Container>
+      <Container maxWidth="xl">
         <Outlet />
       </Container>
     </>

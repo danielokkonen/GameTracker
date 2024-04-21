@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Box, IconButton, Typography } from "@mui/material";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { Box, CircularProgress, IconButton } from "@mui/material";
 import GameList from "../components/games/GameList";
 import GameDto from "../../backend/dtos/game-dto";
 import { IpcRendererEvent } from "electron";
@@ -7,21 +7,30 @@ import { Channels } from "../constants/channels";
 import CreateGameForm from "../components/games/CreateGameForm";
 import AddIcon from "@mui/icons-material/Add";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import SnackbarContext from "../context/SnackbarContext";
+import MenuButton from "../components/common/MenuButton";
 
 const Games = () => {
-  const [games, setGames] = useState([]);
+  const [games, setGames] = useState<GameDto[]>([]);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     show: false,
-    loading: false,
     value: null,
   });
+
+  const franchises = useMemo(
+    () => Array.from(new Set(games?.map((g) => g.franchise))).sort(),
+    [games]
+  );
+
+  const snackbarDispatch = useContext(SnackbarContext);
 
   const showForm = () => {
     setForm({
       ...form,
       show: true,
-      loading: false,
-      value: new GameDto(0, "", "", "", null, null, null, null),
+      value: null,
     });
   };
 
@@ -29,32 +38,15 @@ const Games = () => {
     setForm({
       ...form,
       show: false,
-      loading: false,
     });
   };
 
-  const submitForm = () => {
-    setForm({
-      ...form,
-      loading: true,
-    });
-
-    if (form.value.id) {
-      (window as any).gameService.update(form.value);
+  const submitForm = (game: GameDto) => {
+    if (game.id) {
+      (window as any).gameService.update(game);
     } else {
-      (window as any).gameService.create(form.value);
+      (window as any).gameService.create(game);
     }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e);
-    setForm({
-      ...form,
-      value: {
-        ...form.value,
-        [e.currentTarget.name]: e.currentTarget.value,
-      },
-    });
   };
 
   const handleEdit = (game: GameDto) => {
@@ -70,8 +62,10 @@ const Games = () => {
   };
 
   useEffect(() => {
-    // TODO: Type/Interface
-    (window as any).gameService.list();
+    // FIXME: Type/Interface
+    setTimeout(() => {
+      (window as any).gameService.list();
+    }, 1000);
   }, []);
 
   const handleListGamesSuccess = (
@@ -79,6 +73,7 @@ const Games = () => {
     payload: GameDto[]
   ) => {
     setGames(payload);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -94,8 +89,13 @@ const Games = () => {
   }, []);
 
   const handleCreateSuccess = () => {
+    // FIXME: Type/Interface
     (window as any).gameService.list();
     hideForm();
+    snackbarDispatch({
+      type: "show_message",
+      payload: "Game added",
+    });
   };
 
   useEffect(() => {
@@ -111,8 +111,13 @@ const Games = () => {
   }, []);
 
   const handleUpdateSuccess = () => {
+    // FIXME: Type/Interface
     (window as any).gameService.list();
     hideForm();
+    snackbarDispatch({
+      type: "show_message",
+      payload: "Game updated",
+    });
   };
 
   useEffect(() => {
@@ -128,7 +133,12 @@ const Games = () => {
   }, []);
 
   const handleDeleteSuccess = () => {
+    // FIXME: Type/Interface
     (window as any).gameService.list();
+    snackbarDispatch({
+      type: "show_message",
+      payload: "Game deleted",
+    });
   };
 
   useEffect(() => {
@@ -143,40 +153,74 @@ const Games = () => {
     };
   }, []);
 
+  const handleImportSuccess = () => {
+    // FIXME: Type/Interface
+    (window as any).gameService.list();
+    snackbarDispatch({
+      type: "show_message",
+      payload: "Games imported",
+    });
+  };
+
+  useEffect(() => {
+    window.electronApi.ipcRenderer.on(
+      Channels.GAMES_IMPORT_SUCCESS,
+      handleImportSuccess
+    );
+    return () => {
+      window.electronApi.ipcRenderer.removeAllListeners(
+        Channels.GAMES_IMPORT_SUCCESS
+      );
+    };
+  }, []);
+
   return (
     <Box>
+      {form.show && (
+        <CreateGameForm
+          value={form.value}
+          onSubmit={submitForm}
+          onClose={hideForm}
+          franchises={franchises}
+        />
+      )}
       <Box
         sx={(theme) => ({
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: "flex-end",
           marginBottom: theme.spacing(1),
         })}
       >
-        <Typography variant="h4">Games </Typography>
         <Box
           sx={(theme) => ({
             ".MuiButton-root": { marginLeft: theme.spacing(1) },
           })}
         >
+          <MenuButton
+            component={IconButton}
+            icon={AddIcon}
+            items={[
+              {
+                name: "New",
+                onClick: showForm,
+              },
+              {
+                name: "Import from CSV",
+                onClick: () => (window as any).gameService.import(),
+              },
+            ]}
+          />
           <IconButton>
             <FilterListIcon />
           </IconButton>
-          <IconButton onClick={showForm}>
-            <AddIcon />
-          </IconButton>
         </Box>
       </Box>
-      {form.show && (
-        <CreateGameForm
-          value={form.value}
-          onSubmit={submitForm}
-          onChange={handleChange}
-          onClose={hideForm}
-          loading={form.loading}
-        />
+      {loading ? (
+        <CircularProgress />
+      ) : (
+        <GameList items={games} onEdit={handleEdit} onDelete={handleDelete} />
       )}
-      <GameList items={games} onEdit={handleEdit} onDelete={handleDelete} />
     </Box>
   );
 };

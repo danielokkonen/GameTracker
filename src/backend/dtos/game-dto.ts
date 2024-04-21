@@ -9,14 +9,14 @@ export default class GameDto {
   public updated: Date;
 
   constructor(
-    id: number,
-    name: string,
-    franchise: string,
-    status: string,
-    started: Date,
-    completed: Date,
-    created: Date,
-    updated: Date
+    id?: number,
+    name?: string,
+    franchise?: string,
+    status?: string,
+    started?: Date,
+    completed?: Date,
+    created?: Date,
+    updated?: Date
   ) {
     this.id = id;
     this.name = name;
