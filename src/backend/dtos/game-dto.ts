@@ -8,6 +8,8 @@ export default class GameDto {
   public created: Date;
   public updated: Date;
 
+  [key: string]: string | number| Date;
+
   constructor(
     id?: number,
     name?: string,

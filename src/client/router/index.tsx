@@ -5,7 +5,7 @@ import {
   Route,
 } from "react-router-dom";
 import Home from "../views/Home";
-import About from "../views/About";
+import Settings from "../views/Settings";
 import Games from "../views/Games";
 import BaseLayout from "../layouts/BaseLayout";
 
@@ -13,7 +13,7 @@ const routes = [
   <Route path="/" element={<BaseLayout />}>
     <Route index element={<Home />} />,
     <Route path="/games" element={<Games />} />,
-    <Route path="/about" element={<About />} />,
+    <Route path="/settings" element={<Settings />} />,
   </Route>,
 ];
 

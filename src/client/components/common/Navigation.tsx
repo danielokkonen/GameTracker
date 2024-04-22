@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import GamesIcon from "@mui/icons-material/List";
-import AboutIcon from "@mui/icons-material/QuestionMark";
+import AboutIcon from "@mui/icons-material/Settings";
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import useRouteMatch from "../../../client/hooks/UseRouteMatch";
@@ -33,8 +33,8 @@ const Navigation = ({ open }: NavigationProps) => {
       },
       {
         icon: <AboutIcon />,
-        route: "/about",
-        label: "About",
+        route: "/settings",
+        label: "Settings",
       },
     ],
     []
@@ -69,6 +69,7 @@ const Navigation = ({ open }: NavigationProps) => {
       <List disablePadding>
         {links.map((l) => (
           <ListItem
+            key={l.label}
             disablePadding
             sx={(theme) => ({
               ".MuiSvgIcon-root": { marginRight: theme.spacing(2) },

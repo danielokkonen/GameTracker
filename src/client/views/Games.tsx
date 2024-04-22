@@ -7,7 +7,6 @@ import { Channels } from "../constants/channels";
 import CreateGameForm from "../components/games/CreateGameForm";
 import AddIcon from "@mui/icons-material/Add";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SnackbarContext from "../context/SnackbarContext";
 import MenuButton from "../components/common/MenuButton";
 

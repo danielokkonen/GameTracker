@@ -2,7 +2,7 @@ import React from "react";
 import { Box } from "@mui/material";
 import SettingsForm from "../components/settings/SettingsForm";
 
-const About = () => {
+const Settings = () => {
   return (
     <Box>
       <SettingsForm />
@@ -10,4 +10,4 @@ const About = () => {
   );
 };
 
-export default About;
+export default Settings;
