@@ -4,6 +4,8 @@ const fs = require("node:fs/promises");
 
 import { Game } from "@prisma/client";
 import GameDto from "../dtos/game-dto";
+import DashboardDto from "../dtos/dashboard";
+import dayjs from "dayjs";
 
 export default class GameService {
   prisma: typeof PrismaClient;
@@ -57,6 +59,30 @@ export default class GameService {
     });
   };
 
+  dashboard = async (): Promise<DashboardDto> => {
+    const data: Game[] = await this.prisma.game.findMany();
+
+    const filter = dayjs().add(-30, "days").toDate().getTime();
+
+    const results = new DashboardDto();
+
+    results.notStarted = data.filter((d) => !d.start && !d.end).length;
+
+    results.started = data.filter((d) => d.start && !d.end).length;
+
+    results.completed = data.filter((d) => d.start && d.end).length;
+
+    results.startedLast30Days = data.filter(
+      (d) => d.start && !d.end && new Date(d.start).getTime() >= filter
+    ).length;
+
+    results.completedLast30Days = data.filter(
+      (d) => d.start && new Date(d.end).getTime() >= filter
+    ).length;
+
+    return results;
+  };
+
   import = async (path: string): Promise<void> => {
     const file = await fs.open(path);
 
@@ -76,8 +102,6 @@ export default class GameService {
         columns[4] ? new Date(columns[4]) : null
       );
 
-      console.log(game);
-
       await this.create(game);
     }
   };
@@ -94,7 +118,7 @@ export default class GameService {
   private toDto = (g: Game) => {
     let status = "Not started";
 
-    if (g.end) {
+    if (g.start && g.end) {
       status = "Completed";
     } else if (g.start) {
       status = "Started";

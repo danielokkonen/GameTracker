@@ -22,5 +22,6 @@ contextBridge.exposeInMainWorld("gameService", {
   create: (entity: GameDto) => ipcRenderer.send("create-game", entity),
   update: (entity: GameDto) => ipcRenderer.send("update-game", entity),
   delete: (id: number) => ipcRenderer.send("delete-game", id),
+  dashboard: () => ipcRenderer.send("dashboard-games"),
   import: (path: string) => ipcRenderer.send("import-games", path),
 });

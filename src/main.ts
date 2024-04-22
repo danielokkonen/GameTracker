@@ -88,6 +88,12 @@ ipcMain.on("delete-game", async (event, data: number) => {
   event.reply("delete-game-success");
 });
 
+ipcMain.on("dashboard-games", async (event) => {
+  const service = new GameService();
+  const result = await service.dashboard();
+  event.reply("dashboard-games-success", result);
+});
+
 ipcMain.on("import-games", async (event) => {
   const service = new GameService();
   dialog
@@ -101,5 +107,5 @@ ipcMain.on("import-games", async (event) => {
         return service.import(path);
       }
     })
-    .then(() => event.reply("import-game-success"));
+    .then(() => event.reply("import-games-success"));
 });
