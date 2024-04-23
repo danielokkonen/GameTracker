@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
-  Box,
   Card,
   CardContent,
   CircularProgress,
+  Stack,
   Typography,
 } from "@mui/material";
 import DashboardDto from "../../backend/dtos/dashboard";
@@ -21,7 +21,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    (window as any).gameService.dashboard();
+    window.gameService.dashboard();
   }, []);
 
   useEffect(() => {
@@ -52,19 +52,13 @@ const Home = () => {
   );
 
   return (
-    <Box
-      sx={(theme) => ({
-        ".MuiPaper-root": {
-          mb: theme.spacing(2),
-        },
-      })}
-    >
+    <Stack spacing={2}>
       {getCard("Not started", dashboard?.notStarted)}
       {getCard("Started", dashboard?.started)}
       {getCard("Completed", dashboard?.completed)}
       {getCard("Started last 30 days", dashboard?.startedLast30Days)}
       {getCard("Completed last 30 days", dashboard?.completedLast30Days)}
-    </Box>
+    </Stack>
   );
 };
 

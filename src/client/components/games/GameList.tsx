@@ -78,6 +78,7 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
     [sortOptions]
   );
 
+  // TODO: Refactor this mess    
   const sortedItems = useMemo(() => {
     if (sortOptions.orderBy) {
       return Array.from(items).sort((a, b) => {

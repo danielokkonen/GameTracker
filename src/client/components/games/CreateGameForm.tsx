@@ -1,4 +1,4 @@
-import { Autocomplete, Box, Button, TextField } from "@mui/material";
+import { Autocomplete, Box, Button, Stack, TextField } from "@mui/material";
 import React, { useContext, useEffect, useRef } from "react";
 import GameDto from "../../../backend/dtos/game-dto";
 import SaveIcon from "@mui/icons-material/Save";
@@ -15,6 +15,17 @@ interface CreateGameFormProps {
   franchises?: string[];
 }
 
+const validationSchema: ObjectSchema<GameDto> = object({
+  id: number().optional(),
+  name: string().required(),
+  franchise: string().required(),
+  status: string().optional(),
+  started: date().optional().nullable(),
+  completed: date().optional().nullable(),
+  created: date().optional(),
+  updated: date().optional().nullable(),
+});
+
 const CreateGameForm = ({
   value,
   onSubmit,
@@ -23,10 +34,11 @@ const CreateGameForm = ({
 }: CreateGameFormProps) => {
   const { state } = useContext(SettingsContext);
 
-  const ref = useRef<HTMLDivElement>(null);
+  const refEl = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (ref.current) {
-      ref.current.scrollIntoView({ behavior: "smooth" });
+    if (refEl.current) {
+      refEl.current.scrollIntoView({ behavior: "smooth" });
     }
   }, []);
 
@@ -34,27 +46,16 @@ const CreateGameForm = ({
     onSubmit(values);
   };
 
-  const schema: ObjectSchema<GameDto> = object({
-    id: number().optional(),
-    name: string().required(),
-    franchise: string().required(),
-    status: string().optional(),
-    started: date().optional().nullable(),
-    completed: date().optional().nullable(),
-    created: date().optional(),
-    updated: date().optional().nullable(),
-  });
-
   const formik = useFormik({
     initialValues: value ?? new GameDto(0, "", ""),
     onSubmit: handleSubmit,
-    validationSchema: schema,
+    validationSchema: validationSchema,
   });
 
   return (
     <Box
       component="form"
-      ref={ref}
+      ref={refEl}
       sx={(theme) => ({
         display: "flex",
         flexDirection: "column",
@@ -113,16 +114,7 @@ const CreateGameForm = ({
         helperText={formik.touched.completed && <>{formik.errors.completed}</>}
         error={formik.touched.completed && !!formik.errors.completed}
       />
-      <Box
-        sx={(theme) => ({
-          display: "flex",
-          justifyContent: "flex-end",
-          marginTop: theme.spacing(2),
-          ".MuiButton-root": {
-            marginLeft: theme.spacing(2),
-          },
-        })}
-      >
+      <Stack direction="row" justifyContent="flex-end" spacing={2}>
         <Button variant="text" onClick={onClose}>
           Close
         </Button>
@@ -134,7 +126,7 @@ const CreateGameForm = ({
         >
           Submit
         </LoadingButton>
-      </Box>
+      </Stack>
       {state.developerMode && (
         <Box component="pre" sx={{}}>
           {JSON.stringify(formik, null, 2)}

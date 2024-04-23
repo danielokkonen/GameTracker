@@ -86,10 +86,11 @@ export default class GameService {
   import = async (path: string): Promise<void> => {
     const file = await fs.open(path);
 
+    let i = 0;
     for await (const item of file.readLines()) {
       const columns = item.split(";");
 
-      if (columns[1] === "Franchise") {
+      if (i === 0) {
         continue;
       }
 
@@ -103,6 +104,7 @@ export default class GameService {
       );
 
       await this.create(game);
+      i++
     }
   };
 

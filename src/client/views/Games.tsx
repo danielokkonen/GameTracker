@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Box, CircularProgress, IconButton } from "@mui/material";
+import { Box, CircularProgress, IconButton, Stack } from "@mui/material";
 import GameList from "../components/games/GameList";
 import GameDto from "../../backend/dtos/game-dto";
 import { IpcRendererEvent } from "electron";
@@ -18,12 +18,21 @@ const Games = () => {
     value: null,
   });
 
+  const snackbarDispatch = useContext(SnackbarContext);
+
   const franchises = useMemo(
     () => Array.from(new Set(games?.map((g) => g.franchise))).sort(),
     [games]
   );
 
-  const snackbarDispatch = useContext(SnackbarContext);
+  const refreshTable = () => {
+    setLoading(true);
+    window.gameService.list();
+  };
+
+  useEffect(() => {
+    refreshTable();
+  }, []);
 
   const showForm = () => {
     setForm({
@@ -42,9 +51,9 @@ const Games = () => {
 
   const submitForm = (game: GameDto) => {
     if (game.id) {
-      (window as any).gameService.update(game);
+      window.gameService.update(game);
     } else {
-      (window as any).gameService.create(game);
+      window.gameService.create(game);
     }
   };
 
@@ -57,22 +66,17 @@ const Games = () => {
   };
 
   const handleDelete = (id: number) => {
-    (window as any).gameService.delete(id);
+    window.gameService.delete(id);
   };
-
-  useEffect(() => {
-    // FIXME: Type/Interface
-    setTimeout(() => {
-      (window as any).gameService.list();
-    }, 1000);
-  }, []);
 
   const handleListGamesSuccess = (
     event: IpcRendererEvent,
     payload: GameDto[]
   ) => {
     setGames(payload);
-    setLoading(false);
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
   };
 
   useEffect(() => {
@@ -88,9 +92,8 @@ const Games = () => {
   }, []);
 
   const handleCreateSuccess = () => {
-    // FIXME: Type/Interface
-    (window as any).gameService.list();
     hideForm();
+    refreshTable();
     snackbarDispatch({
       type: "show_message",
       payload: "Game added",
@@ -110,9 +113,8 @@ const Games = () => {
   }, []);
 
   const handleUpdateSuccess = () => {
-    // FIXME: Type/Interface
-    (window as any).gameService.list();
     hideForm();
+    refreshTable();
     snackbarDispatch({
       type: "show_message",
       payload: "Game updated",
@@ -132,8 +134,7 @@ const Games = () => {
   }, []);
 
   const handleDeleteSuccess = () => {
-    // FIXME: Type/Interface
-    (window as any).gameService.list();
+    refreshTable();
     snackbarDispatch({
       type: "show_message",
       payload: "Game deleted",
@@ -153,8 +154,7 @@ const Games = () => {
   }, []);
 
   const handleImportSuccess = () => {
-    // FIXME: Type/Interface
-    (window as any).gameService.list();
+    refreshTable();
     snackbarDispatch({
       type: "show_message",
       payload: "Games imported",
@@ -183,38 +183,25 @@ const Games = () => {
           franchises={franchises}
         />
       )}
-      <Box
-        sx={(theme) => ({
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          marginBottom: theme.spacing(1),
-        })}
-      >
-        <Box
-          sx={(theme) => ({
-            ".MuiButton-root": { marginLeft: theme.spacing(1) },
-          })}
-        >
-          <MenuButton
-            component={IconButton}
-            icon={AddIcon}
-            items={[
-              {
-                name: "New",
-                onClick: showForm,
-              },
-              {
-                name: "Import from CSV",
-                onClick: () => (window as any).gameService.import(),
-              },
-            ]}
-          />
-          <IconButton>
-            <FilterListIcon />
-          </IconButton>
-        </Box>
-      </Box>
+      <Stack direction="row">
+        <MenuButton
+          component={IconButton}
+          icon={AddIcon}
+          items={[
+            {
+              name: "New",
+              onClick: showForm,
+            },
+            {
+              name: "Import from CSV",
+              onClick: () => window.gameService.import(),
+            },
+          ]}
+        />
+        <IconButton>
+          <FilterListIcon />
+        </IconButton>
+      </Stack>
       {loading ? (
         <CircularProgress />
       ) : (
