@@ -1,5 +1,5 @@
+import React, { useMemo, useState } from "react";
 import {
-  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -7,15 +7,9 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
-  Theme,
 } from "@mui/material";
-import React, { useMemo, useState } from "react";
 import GameDto from "../../../backend/dtos/game";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CircleIcon from "@mui/icons-material/Circle";
-import dayjs from "dayjs";
+import GameListRow from "./GameListRow";
 
 interface GameListProps {
   items: GameDto[];
@@ -78,7 +72,7 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
     [sortOptions]
   );
 
-  // TODO: Refactor this mess    
+  // TODO: Refactor this mess
   const sortedItems = useMemo(() => {
     if (sortOptions.orderBy) {
       return Array.from(items).sort((a, b) => {
@@ -113,27 +107,7 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
       });
     }
     return items;
-  }, [sortOptions]);
-
-  const getStatus = (game: GameDto) => {
-    const iconProps = (theme: Theme) => ({
-      fontSize: "inherit",
-      marginRight: theme.spacing(1),
-    });
-
-    let icon = <CircleIcon color="disabled" sx={iconProps} />;
-    if (game.started && game.completed) {
-      icon = <CheckCircleIcon color="success" sx={iconProps} />;
-    } else if (game.started) {
-      icon = <CircleIcon color="warning" sx={iconProps} />;
-    }
-    return (
-      <>
-        {icon}
-        {game.status}
-      </>
-    );
-  };
+  }, [sortOptions, items]);
 
   return (
     <TableContainer sx={{ td: { userSelect: "none" } }}>
@@ -143,25 +117,7 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
         </TableHead>
         <TableBody>
           {sortedItems.map((item) => (
-            <TableRow key={item.name}>
-              <TableCell>{item.name}</TableCell>
-              <TableCell>{item.franchise}</TableCell>
-              <TableCell>{getStatus(item)}</TableCell>
-              <TableCell>
-                {item.started && dayjs(item.started).format("YYYY-MM-DD")}
-              </TableCell>
-              <TableCell>
-                {item.completed && dayjs(item.completed).format("YYYY-MM-DD")}
-              </TableCell>
-              <TableCell align="right">
-                <IconButton onClick={() => onEdit(item)}>
-                  <EditIcon />
-                </IconButton>
-                <IconButton onClick={() => onDelete(item.id)}>
-                  <DeleteIcon />
-                </IconButton>
-              </TableCell>
-            </TableRow>
+            <GameListRow game={item} onEdit={onEdit} onDelete={onDelete} />
           ))}
         </TableBody>
       </Table>

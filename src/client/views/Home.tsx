@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
-  CircularProgress,
   Stack,
   Typography,
 } from "@mui/material";
 import DashboardDto from "../../backend/dtos/dashboard";
 import { Channels } from "../constants/channels";
 import { IpcRendererEvent } from "electron";
+import Spinner from "../components/common/Spinner";
 
 const Home = () => {
   const [dashboard, setDashboard] = useState<DashboardDto>(null);
@@ -45,7 +45,7 @@ const Home = () => {
         {data !== undefined ? (
           <Typography variant="body1">{data}</Typography>
         ) : (
-          <CircularProgress />
+          <Spinner />
         )}
       </CardContent>
     </Card>

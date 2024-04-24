@@ -1,5 +1,5 @@
-import { Autocomplete, Box, Button, Stack, TextField } from "@mui/material";
 import React, { useContext, useEffect, useRef } from "react";
+import { Autocomplete, Box, Button, Stack, TextField } from "@mui/material";
 import GameDto from "../../../backend/dtos/game";
 import SaveIcon from "@mui/icons-material/Save";
 import { LoadingButton } from "@mui/lab";
@@ -56,12 +56,12 @@ const CreateGameForm = ({
     <Box
       component="form"
       ref={refEl}
-      sx={(theme) => ({
+      sx={{
         display: "flex",
         flexDirection: "column",
         scrollMarginTop: "100px",
-        "> div": { marginTop: theme.spacing(2) },
-      })}
+        "> div": { mt: 2 },
+      }}
       onSubmit={formik.handleSubmit}
     >
       <TextField
@@ -115,7 +115,7 @@ const CreateGameForm = ({
         error={formik.touched.completed && !!formik.errors.completed}
       />
       <Stack direction="row" justifyContent="flex-end" spacing={2}>
-        <Button variant="text" onClick={onClose}>
+        <Button variant="outlined" onClick={onClose}>
           Close
         </Button>
         <LoadingButton

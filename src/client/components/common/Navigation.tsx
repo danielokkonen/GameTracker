@@ -1,3 +1,4 @@
+import React, { useMemo } from "react";
 import {
   Box,
   Drawer,
@@ -10,7 +11,6 @@ import {
 import HomeIcon from "@mui/icons-material/Home";
 import GamesIcon from "@mui/icons-material/List";
 import AboutIcon from "@mui/icons-material/Settings";
-import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import useRouteMatch from "../../../client/hooks/UseRouteMatch";
 
@@ -57,11 +57,7 @@ const Navigation = ({ open }: NavigationProps) => {
       anchor="left"
       open={open}
     >
-      <Box
-        display="flex"
-        justifyContent="center"
-        padding={(theme) => theme.spacing(2)}
-      >
+      <Box display="flex" justifyContent="center" padding={2}>
         <Typography variant="h5" sx={{ userSelect: "none" }}>
           Game Tracker
         </Typography>
@@ -71,9 +67,9 @@ const Navigation = ({ open }: NavigationProps) => {
           <ListItem
             key={l.label}
             disablePadding
-            sx={(theme) => ({
-              ".MuiSvgIcon-root": { marginRight: theme.spacing(2) },
-            })}
+            sx={{
+              ".MuiSvgIcon-root": { mr: 2 },
+            }}
           >
             <ListItemButton
               component={Link}
