@@ -1,6 +1,6 @@
 import { Autocomplete, Box, Button, Stack, TextField } from "@mui/material";
 import React, { useContext, useEffect, useRef } from "react";
-import GameDto from "../../../backend/dtos/game-dto";
+import GameDto from "../../../backend/dtos/game";
 import SaveIcon from "@mui/icons-material/Save";
 import { LoadingButton } from "@mui/lab";
 import { useFormik } from "formik";

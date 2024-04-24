@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 import GameService from "./backend/services/game-service";
-import GameDto from "./backend/dtos/game-dto";
+import GameDto from "./backend/dtos/game";
 const dialog = require("electron").dialog;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -58,44 +58,39 @@ app.on("activate", () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 
+const gameService = new GameService();
+
 ipcMain.on("list-games", async (event) => {
-  const service = new GameService();
-  const result = await service.list();
+  const result = await gameService.list();
   event.reply("list-games-success", result);
 });
 
 ipcMain.on("get-game", async (event, data: number) => {
-  const service = new GameService();
-  const result = await service.get(data);
+  const result = await gameService.get(data);
   event.reply("get-game-success", result);
 });
 
 ipcMain.on("create-game", async (event, data: GameDto) => {
-  const service = new GameService();
-  const result = await service.create(data);
+  const result = await gameService.create(data);
   event.reply("create-game-success", result);
 });
 
 ipcMain.on("update-game", async (event, data: GameDto) => {
-  const service = new GameService();
-  const result = await service.update(data);
+  const result = await gameService.update(data);
   event.reply("update-game-success", result);
 });
 
 ipcMain.on("delete-game", async (event, data: number) => {
-  const service = new GameService();
-  await service.delete(data);
+  await gameService.delete(data);
   event.reply("delete-game-success");
 });
 
 ipcMain.on("dashboard-games", async (event) => {
-  const service = new GameService();
-  const result = await service.dashboard();
+  const result = await gameService.dashboard();
   event.reply("dashboard-games-success", result);
 });
 
 ipcMain.on("import-games", async (event) => {
-  const service = new GameService();
   dialog
     .showOpenDialog({
       properties: ["openFile"],
@@ -103,9 +98,10 @@ ipcMain.on("import-games", async (event) => {
     })
     .then((value) => {
       const path = value.filePaths[0];
-      if (path) {
-        return service.import(path);
+      if (!path) {
+        throw new Error("Parameter path cannot be empty");
       }
+      return gameService.import(path);
     })
     .then(() => event.reply("import-games-success"));
 });

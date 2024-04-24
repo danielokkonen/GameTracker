@@ -1,4 +1,4 @@
-import GameDto from "../backend/dtos/game-dto";
+import GameDto from "../backend/dtos/game";
 
 export {};
 

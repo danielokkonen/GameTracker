@@ -3,7 +3,7 @@ const { PrismaClient } = require("@prisma/client");
 const fs = require("node:fs/promises");
 
 import { Game } from "@prisma/client";
-import GameDto from "../dtos/game-dto";
+import GameDto from "../dtos/game";
 import DashboardDto from "../dtos/dashboard";
 import dayjs from "dayjs";
 
@@ -62,22 +62,19 @@ export default class GameService {
   dashboard = async (): Promise<DashboardDto> => {
     const data: Game[] = await this.prisma.game.findMany();
 
-    const filter = dayjs().add(-30, "days").toDate().getTime();
-
     const results = new DashboardDto();
-
+    
     results.notStarted = data.filter((d) => !d.start && !d.end).length;
-
     results.started = data.filter((d) => d.start && !d.end).length;
-
     results.completed = data.filter((d) => d.start && d.end).length;
-
+    
+    const threshold = dayjs().add(-30, "days").toDate().getTime();
     results.startedLast30Days = data.filter(
-      (d) => d.start && !d.end && new Date(d.start).getTime() >= filter
+      (d) => d.start && !d.end && new Date(d.start).getTime() >= threshold
     ).length;
 
     results.completedLast30Days = data.filter(
-      (d) => d.start && new Date(d.end).getTime() >= filter
+      (d) => d.start && new Date(d.end).getTime() >= threshold
     ).length;
 
     return results;

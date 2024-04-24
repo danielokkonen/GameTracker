@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Box, CircularProgress, IconButton, Stack } from "@mui/material";
 import GameList from "../components/games/GameList";
-import GameDto from "../../backend/dtos/game-dto";
+import GameDto from "../../backend/dtos/game";
 import { IpcRendererEvent } from "electron";
 import { Channels } from "../constants/channels";
 import CreateGameForm from "../components/games/CreateGameForm";

@@ -10,7 +10,7 @@ import {
   Theme,
 } from "@mui/material";
 import React, { useMemo, useState } from "react";
-import GameDto from "../../../backend/dtos/game-dto";
+import GameDto from "../../../backend/dtos/game";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
