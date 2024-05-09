@@ -8,13 +8,14 @@ import dayjs from "dayjs";
 
 interface GameListRowProps {
   game: GameDto;
+  onClick: (event: React.MouseEvent) => void;
   onEdit: (game: GameDto) => void;
   onDelete: (id: number) => void;
 }
 
-const GameListRow = ({ game, onEdit, onDelete }: GameListRowProps) => {
+const GameListRow = ({ game, onClick, onEdit, onDelete }: GameListRowProps) => {
   return (
-    <TableRow key={game.name}>
+    <TableRow key={game.name} hover onClick={onClick}>
       <TableCell width={"35%"}>{game.name}</TableCell>
       <TableCell width={"18%"}>{game.franchise}</TableCell>
       <TableCell width={"15%"}>{<StatusIcon game={game} />}</TableCell>

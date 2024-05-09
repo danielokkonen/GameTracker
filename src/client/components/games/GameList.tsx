@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import GameDto from "../../../backend/dtos/game";
 import GameListRow from "./GameListRow";
+import { useNavigate } from "react-router-dom";
 
 interface GameListProps {
   items: GameDto[];
@@ -32,6 +33,8 @@ const headers = [
 ];
 
 const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
+  const navgiate = useNavigate();
+
   const [sortOptions, setSortOptions] = useState<HeaderSortProps>({
     orderBy: "",
     order: "asc",
@@ -50,6 +53,15 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
             : "asc"
           : "asc",
     });
+  };
+
+  const onRowClick = (event: React.MouseEvent, id: number) => {
+    const target = event.target as HTMLInputElement;
+    const tag = target.nodeName.toLowerCase();
+
+    if (tag !== "button" && tag !== "svg") {
+      navgiate(`/game/${id}`);
+    }
   };
 
   const headerCells = useMemo(
@@ -117,7 +129,12 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
         </TableHead>
         <TableBody>
           {sortedItems.map((item) => (
-            <GameListRow game={item} onEdit={onEdit} onDelete={onDelete} />
+            <GameListRow
+              onClick={(e: React.MouseEvent) => onRowClick(e, item.id)}
+              game={item}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
           ))}
         </TableBody>
       </Table>

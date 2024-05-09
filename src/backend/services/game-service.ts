@@ -15,8 +15,16 @@ export default class GameService {
   }
 
   list = async (): Promise<GameDto[]> => {
-    const results = (await this.prisma.game.findMany()).map((g: Game) =>
-      this.toDto(g)
+    const options = {
+      orderBy: [
+        {
+          created: "desc",
+        },
+      ],
+    };
+
+    const results: GameDto[] = (await this.prisma.game.findMany(options)).map(
+      (g: Game) => this.toDto(g)
     );
 
     return results;
@@ -63,11 +71,11 @@ export default class GameService {
     const data: Game[] = await this.prisma.game.findMany();
 
     const results = new DashboardDto();
-    
+
     results.notStarted = data.filter((d) => !d.start && !d.end).length;
     results.started = data.filter((d) => d.start && !d.end).length;
     results.completed = data.filter((d) => d.start && d.end).length;
-    
+
     const threshold = dayjs().add(-30, "days").toDate().getTime();
     results.startedLast30Days = data.filter(
       (d) => d.start && !d.end && new Date(d.start).getTime() >= threshold
@@ -101,7 +109,7 @@ export default class GameService {
       );
 
       await this.create(game);
-      i++
+      i++;
     }
   };
 

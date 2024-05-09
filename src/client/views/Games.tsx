@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   Box,
-  CircularProgress,
   Divider,
   IconButton,
   MenuItem,

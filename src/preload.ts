@@ -13,7 +13,7 @@ contextBridge.exposeInMainWorld("electronApi", {
     ) => ipcRenderer.on(channel, listener),
     removeAllListeners: (channel: string) =>
       ipcRenderer.removeAllListeners(channel),
-  }
+  },
 });
 
 contextBridge.exposeInMainWorld("gameService", {
@@ -24,4 +24,8 @@ contextBridge.exposeInMainWorld("gameService", {
   delete: (id: number) => ipcRenderer.send("delete-game", id),
   dashboard: () => ipcRenderer.send("dashboard-games"),
   import: (path: string) => ipcRenderer.send("import-games", path),
+});
+
+contextBridge.exposeInMainWorld("igdbService", {
+  getGameDetails: (title: string) => ipcRenderer.send("igdb-get-game", title),
 });

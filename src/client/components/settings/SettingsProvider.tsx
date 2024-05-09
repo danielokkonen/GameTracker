@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer } from "react";
+import React, { useReducer } from "react";
 import SettingsContext from "../../../client/context/SettingsContext";
 
 export interface ISettingsState {

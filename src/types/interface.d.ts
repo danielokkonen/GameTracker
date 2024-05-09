@@ -6,6 +6,7 @@ declare global {
   interface Window {
     electronApi: IElectronApi;
     gameService: IGameService;
+    igdbService: IIgdbService;
   }
 }
 
@@ -29,4 +30,8 @@ interface IGameService {
   delete: (id: number) => void;
   dashboard: () => void;
   import: () => void;
+}
+
+interface IIgdbService {
+  getGameDetails: (title: string) => string;
 }

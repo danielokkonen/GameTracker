@@ -19,3 +19,10 @@ model Game {
   created String
   updated String?
 }
+
+model Tokens {
+  service String @id
+  token String
+  type String
+  expires_at Int
+}
