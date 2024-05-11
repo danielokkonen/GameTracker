@@ -12,14 +12,14 @@ import "@fontsource/roboto/700.css";
 
 const App = () => {
   return (
-    <React.StrictMode>
+    <>
       <CssBaseline />
       <SettingsProvider>
         <SnackbarProvider>
           <RouterProvider router={router} />
         </SnackbarProvider>
       </SettingsProvider>
-    </React.StrictMode>
+    </>
   );
 };
 

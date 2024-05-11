@@ -3,18 +3,35 @@ import GameDto from "../../backend/dtos/game";
 import { useParams } from "react-router-dom";
 import { Channels } from "../constants/channels";
 import { IpcRendererEvent } from "electron";
-import { Box, Chip, Paper, Stack, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Chip,
+  Grid,
+  IconButton,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import Spinner from "../components/common/Spinner";
 import dayjs from "dayjs";
 import StatusIcon from "../components/games/StatusIcon";
+import MenuButton from "../components/common/MenuButton";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 const GameDetails = () => {
   const { id } = useParams();
+
   const [game, setGame] = useState<GameDto>(null);
-  const [gameDetails, setGameDetails] = useState(null);
+  const [gameDetails, setGameDetails] = useState<any[]>([]);
+  const [gameDetailsIndex, setGameDetailsIndex] = useState<number>(0);
 
   useEffect(() => {
-    window.gameService.get(parseInt(id));
+    if (id) {
+      window.gameService.get(parseInt(id));
+    }
   }, [id]);
 
   const handleGetGameSuccess = async (
@@ -27,17 +44,9 @@ const GameDetails = () => {
 
   const handleGetGameDetailsSuccess = async (
     event: IpcRendererEvent,
-    result: string
+    result: any
   ) => {
-    const array = JSON.parse(result);
-
-    for (let i = 0; i < array.length; i++) {
-      const element = array[i];
-      if (element?.artworks?.length > 0 && element?.genres?.length > 0) {
-        setGameDetails(array[i]);
-        return;
-      }
-    }
+    setGameDetails(result.filter((r: any) => !!r.cover));
   };
 
   useEffect(() => {
@@ -45,6 +54,7 @@ const GameDetails = () => {
       Channels.IGDB_GET_GAME,
       handleGetGameDetailsSuccess
     );
+
     return () => {
       window.electronApi.ipcRenderer.removeAllListeners(Channels.IGDB_GET_GAME);
     };
@@ -55,6 +65,7 @@ const GameDetails = () => {
       Channels.GAMES_GET_SUCCESS,
       handleGetGameSuccess
     );
+
     return () => {
       window.electronApi.ipcRenderer.removeAllListeners(
         Channels.GAMES_GET_SUCCESS
@@ -68,11 +79,37 @@ const GameDetails = () => {
 
   return (
     <Box>
-      <Box>
-        <Typography variant="h5" display="inline-block" mb={2} mr={2}>
-          {game.name}
-        </Typography>
-        <StatusIcon game={game} />
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        <Box>
+          <Typography variant="h5" display="inline-block" mr={2}>
+            {game.name}
+          </Typography>
+          <StatusIcon game={game} />
+        </Box>
+        <Box>
+          <IconButton
+            disabled={gameDetailsIndex <= 0}
+            onClick={() => setGameDetailsIndex(gameDetailsIndex - 1)}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+          <IconButton
+            disabled={gameDetailsIndex >= gameDetails.length}
+            onClick={() => setGameDetailsIndex(gameDetailsIndex + 1)}
+          >
+            <ArrowForwardIcon />
+          </IconButton>
+          <MenuButton
+            component={IconButton}
+            icon={MoreVertIcon}
+            items={[
+              {
+                name: "Add details from IGDB",
+                onClick: () => window.igdbService.getGameDetails(game.name),
+              },
+            ]}
+          />
+        </Box>
       </Box>
       <Box
         sx={{
@@ -113,23 +150,55 @@ const GameDetails = () => {
               disabled
             />
           </Box>
+          <Grid container>
+            <Grid item xs={6}>
+              <Typography variant="h6">Developer</Typography>
+              <Typography>
+                {
+                  gameDetails[gameDetailsIndex]?.involved_companies?.find(
+                    (i: any) => i.developer
+                  )?.company.name
+                }
+              </Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="h6">Publisher</Typography>
+              <Typography>
+                {
+                  gameDetails[gameDetailsIndex]?.involved_companies?.find(
+                    (i: any) => i.publisher
+                  )?.company.name
+                }
+              </Typography>
+            </Grid>
+          </Grid>
           <Typography variant="h6">Genres</Typography>
-          <Stack direction="row" spacing={1}>
-            {gameDetails?.genres?.map((g: any) => (
-              <Chip label={g.name} variant="outlined" />
-            ))}
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            {gameDetails &&
+              gameDetails[gameDetailsIndex]?.genres?.map((g: any) => (
+                <Chip label={g.name} variant="outlined" />
+              ))}
           </Stack>
           <Typography variant="h6">Description</Typography>
-          <Typography>{gameDetails?.summary}</Typography>
+          <Typography>
+            {gameDetails && gameDetails[gameDetailsIndex]?.summary}
+          </Typography>
+          <Typography variant="h6">Platforms</Typography>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            {gameDetails &&
+              gameDetails[gameDetailsIndex]?.platforms?.map((p: any) => (
+                <Chip label={p.name} variant="outlined" />
+              ))}
+          </Stack>
         </Box>
         <Paper
           component="img"
           width={400}
           src={
-            gameDetails?.artworks
-              ? gameDetails.artworks[0].url.replace(
+            gameDetails && gameDetails[gameDetailsIndex]?.cover
+              ? gameDetails[gameDetailsIndex].cover?.url.replace(
                   "t_thumb",
-                  "t_screenshot_med"
+                  "t_720p"
                 )
               : ""
           }

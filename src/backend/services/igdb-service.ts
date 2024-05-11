@@ -27,14 +27,15 @@ export class IgdbService {
         Authorization: `Bearer ${token.access_token}`,
         "Client-ID": clientId,
       },
-      body: `fields name, artworks.url, genres.name, release_dates.date, release_dates.platform, summary; search "${title}";`,
+      body: `fields name, cover.url, genres.name, release_dates.date, release_dates.platform, platforms.name, game_engines.name, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, involved_companies.supporting;
+      search "${title}";`,
     });
 
     if (!response.ok) {
       throw new Error(`Could not get game details: ${response.status} ${response.statusText}: ${await response.text()}`);
     }
 
-    const body = await response.text();
+    const body = await response.json();
 
     return body;
   };
@@ -64,7 +65,7 @@ export class IgdbService {
         throw new Error(`Could not get access token: ${response.status} ${response.statusText}: ${await response.text()}`);
       }
 
-      token = JSON.parse(await response.text());
+      token = await response.json();
 
       await this.prisma.tokens.upsert({
         where: {

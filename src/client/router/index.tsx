@@ -14,7 +14,7 @@ const routes = [
   <Route path="/" element={<BaseLayout />}>
     <Route index element={<Home />} />,
     <Route path="/games" element={<Games />} />,
-    <Route path="/game/:id" element={<GameDetails />} />,
+    <Route path="/games/:id" element={<GameDetails />} />,
     <Route path="/settings" element={<Settings />} />,
   </Route>,
 ];

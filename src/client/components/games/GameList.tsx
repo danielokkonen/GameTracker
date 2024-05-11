@@ -60,7 +60,7 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
     const tag = target.nodeName.toLowerCase();
 
     if (tag !== "button" && tag !== "svg") {
-      navgiate(`/game/${id}`);
+      navgiate(`/games/${id}`);
     }
   };
 
