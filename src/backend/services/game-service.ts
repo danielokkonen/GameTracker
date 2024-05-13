@@ -99,14 +99,12 @@ export default class GameService {
         continue;
       }
 
-      const game = new GameDto(
-        0,
-        columns[0],
-        columns[1],
-        "",
-        columns[3] ? new Date(columns[3]) : null,
-        columns[4] ? new Date(columns[4]) : null
-      );
+      const game = new GameDto();
+      game.id = 0;
+      game.name = columns[0];
+      game.franchise = columns[1];
+      game.started = columns[3] ? new Date(columns[3]) : null;
+      game.completed = columns[4] ? new Date(columns[4]) : null;
 
       await this.create(game);
       i++;
@@ -120,6 +118,12 @@ export default class GameService {
     end: g.completed ? new Date(g.completed).toISOString() : null,
     created: g.created ? new Date(g.created).toISOString() : null,
     updated: g.updated ? new Date(g.updated).toISOString() : null,
+    summary: g.summary,
+    developer: g.developer,
+    publisher: g.publisher,
+    genres: g.genres?.join(";"),
+    platforms: g.platforms?.join(";"),
+    coverImage: g.coverImage,
   });
 
   private toDto = (g: Game) => {
@@ -131,15 +135,22 @@ export default class GameService {
       status = "Started";
     }
 
-    return new GameDto(
-      g.id,
-      g.name,
-      g.franchise,
-      status,
-      g.start ? new Date(g.start) : null,
-      g.end ? new Date(g.end) : null,
-      g.created ? new Date(g.created) : null,
-      g.updated ? new Date(g.updated) : null
-    );
+    const dto = new GameDto();
+    dto.id = g.id;
+    dto.name = g.name;
+    dto.franchise = g.franchise;
+    dto.status = status;
+    dto.started = g.start ? new Date(g.start) : null;
+    dto.completed = g.end ? new Date(g.end) : null;
+    dto.summary = g.summary;
+    dto.developer = g.developer;
+    dto.publisher = g.publisher;
+    dto.genres = g.genres?.split(";")?.map((genre) => genre);
+    dto.platforms = g.platforms?.split(";")?.map((platform) => platform);
+    dto.coverImage = g.coverImage;
+    dto.created = g.created ? new Date(g.created) : null;
+    dto.updated = g.updated ? new Date(g.updated) : null;
+
+    return dto;
   };
 }

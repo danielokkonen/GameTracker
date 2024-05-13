@@ -19,7 +19,7 @@ export class IgdbService {
   }
 
   getGameDetails = async (title: string): Promise<string> => {
-    const token = await this.getAccessToken();
+    let token = await this.getAccessToken();
 
     const response = await fetch("https://api.igdb.com/v4/games", {
       method: "POST",
@@ -27,12 +27,21 @@ export class IgdbService {
         Authorization: `Bearer ${token.access_token}`,
         "Client-ID": clientId,
       },
-      body: `fields name, cover.url, genres.name, release_dates.date, release_dates.platform, platforms.name, game_engines.name, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, involved_companies.supporting;
+      body: `fields name, cover.url, genres.name, release_dates.date, release_dates.platform, platforms.name, game_engines.name, 
+        summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, involved_companies.supporting;
       search "${title}";`,
     });
 
     if (!response.ok) {
-      throw new Error(`Could not get game details: ${response.status} ${response.statusText}: ${await response.text()}`);
+      if (response.status === 401 || response.status === 403) {
+        token = await this.getAccessToken(true);
+      } else {
+        throw new Error(
+          `Could not get game details: ${response.status} ${
+            response.statusText
+          }: ${await response.text()}`
+        );
+      }
     }
 
     const body = await response.json();
@@ -40,12 +49,14 @@ export class IgdbService {
     return body;
   };
 
-  private getAccessToken = async (): Promise<AccessToken> => {
-    let token = await this.prisma.tokens.findFirst({ where: { service: "IGDB" } });
+  private getAccessToken = async (force = false): Promise<AccessToken> => {
+    let token = await this.prisma.tokens.findFirst({
+      where: { service: "IGDB" },
+    });
 
     const now = dayjs().subtract(2, "hour").unix();
 
-    if (!token || now >= token?.expires_at) {
+    if (!token || now >= token?.expires_at || force) {
       console.log("Renew token");
 
       const response = await fetch("https://id.twitch.tv/oauth2/token", {
@@ -62,7 +73,11 @@ export class IgdbService {
       });
 
       if (!response.ok) {
-        throw new Error(`Could not get access token: ${response.status} ${response.statusText}: ${await response.text()}`);
+        throw new Error(
+          `Could not get access token: ${response.status} ${
+            response.statusText
+          }: ${await response.text()}`
+        );
       }
 
       token = await response.json();

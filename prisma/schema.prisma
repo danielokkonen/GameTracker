@@ -16,6 +16,12 @@ model Game {
   franchise String
   start String?
   end String?
+  summary String?
+  developer String?
+  publisher String?
+  genres String?
+  platforms String?
+  coverImage String?
   created String
   updated String?
 }

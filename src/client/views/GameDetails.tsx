@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import GameDto from "../../backend/dtos/game";
 import { useParams } from "react-router-dom";
 import { Channels } from "../constants/channels";
 import { IpcRendererEvent } from "electron";
 import {
   Box,
+  Button,
   Chip,
   Grid,
   IconButton,
   Paper,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -26,7 +28,48 @@ const GameDetails = () => {
 
   const [game, setGame] = useState<GameDto>(null);
   const [gameDetails, setGameDetails] = useState<any[]>([]);
-  const [gameDetailsIndex, setGameDetailsIndex] = useState<number>(0);
+  const [gameDetailsIndex, setGameDetailsIndex] = useState(0);
+  const [gameDetailsLoading, setGameDetailsLoading] = useState(false);
+
+  useEffect(() => {
+    const selectedGameDetails = gameDetails[gameDetailsIndex];
+    if (!selectedGameDetails) {
+      return;
+    }
+
+    const reader = new FileReader();
+
+    fetch(selectedGameDetails.cover.url.replace("t_thumb", "t_720p"))
+      .then((response) => response.blob())
+      .then((blob) => {
+        return new Promise((resolve, reject) => {
+          reader.onload = resolve;
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      })
+      .then(() => {
+        const coverImage = reader.result.toString();
+
+        const updatedGame: GameDto = { ...game };
+        updatedGame.summary = selectedGameDetails.summary;
+        updatedGame.developer = selectedGameDetails?.involved_companies?.find(
+          (i: any) => i.developer
+        )?.company.name;
+        updatedGame.publisher = selectedGameDetails?.involved_companies?.find(
+          (i: any) => i.publisher
+        )?.company.name;
+        updatedGame.genres = selectedGameDetails.genres?.map(
+          (g: any) => g.name
+        );
+        updatedGame.platforms = selectedGameDetails.platforms?.map(
+          (p: any) => p.name
+        );
+        updatedGame.coverImage = coverImage;
+
+        setGame(updatedGame);
+      });
+  }, [gameDetails, gameDetailsIndex]);
 
   useEffect(() => {
     if (id) {
@@ -34,12 +77,13 @@ const GameDetails = () => {
     }
   }, [id]);
 
-  const handleGetGameSuccess = async (
-    event: IpcRendererEvent,
-    result: GameDto
-  ) => {
-    setGame(result);
-    window.igdbService.getGameDetails(result.name);
+  const getGameDetails = (name: string) => {
+    setGameDetailsLoading(true);
+    window.igdbService.getGameDetails(name);
+  };
+
+  const saveGameDetails = async () => {
+    window.gameService.update(game);
   };
 
   const handleGetGameDetailsSuccess = async (
@@ -47,6 +91,7 @@ const GameDetails = () => {
     result: any
   ) => {
     setGameDetails(result.filter((r: any) => !!r.cover));
+    setGameDetailsLoading(false);
   };
 
   useEffect(() => {
@@ -60,6 +105,14 @@ const GameDetails = () => {
     };
   }, []);
 
+  const handleGetGameSuccess = async (
+    event: IpcRendererEvent,
+    result: GameDto
+  ) => {
+    setGame(result);
+    setGameDetails([]);
+  };
+
   useEffect(() => {
     window.electronApi.ipcRenderer.on(
       Channels.GAMES_GET_SUCCESS,
@@ -69,6 +122,23 @@ const GameDetails = () => {
     return () => {
       window.electronApi.ipcRenderer.removeAllListeners(
         Channels.GAMES_GET_SUCCESS
+      );
+    };
+  }, []);
+
+  const handleUpdateGameSuccess = async () => {
+    window.gameService.get(parseInt(id));
+  };
+
+  useEffect(() => {
+    window.electronApi.ipcRenderer.on(
+      Channels.GAMES_UPDATE_SUCCESS,
+      handleUpdateGameSuccess
+    );
+
+    return () => {
+      window.electronApi.ipcRenderer.removeAllListeners(
+        Channels.GAMES_UPDATE_SUCCESS
       );
     };
   }, []);
@@ -86,7 +156,14 @@ const GameDetails = () => {
           </Typography>
           <StatusIcon game={game} />
         </Box>
-        <Box>
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="contained"
+            disabled={!gameDetails.length}
+            onClick={saveGameDetails}
+          >
+            Save
+          </Button>
           <IconButton
             disabled={gameDetailsIndex <= 0}
             onClick={() => setGameDetailsIndex(gameDetailsIndex - 1)}
@@ -94,7 +171,7 @@ const GameDetails = () => {
             <ArrowBackIcon />
           </IconButton>
           <IconButton
-            disabled={gameDetailsIndex >= gameDetails.length}
+            disabled={gameDetailsIndex + 1 >= gameDetails.length}
             onClick={() => setGameDetailsIndex(gameDetailsIndex + 1)}
           >
             <ArrowForwardIcon />
@@ -105,17 +182,17 @@ const GameDetails = () => {
             items={[
               {
                 name: "Add details from IGDB",
-                onClick: () => window.igdbService.getGameDetails(game.name),
+                onClick: () => getGameDetails(game.name),
               },
             ]}
           />
-        </Box>
+        </Stack>
       </Box>
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          "& h6": { mt: 2 },
+          "& h6:not(:first-of-type)": { mt: 2 },
         }}
       >
         <Box flex={1} mr={2}>
@@ -150,60 +227,68 @@ const GameDetails = () => {
               disabled
             />
           </Box>
-          <Grid container>
+          <Grid container mt={2}>
             <Grid item xs={6}>
               <Typography variant="h6">Developer</Typography>
               <Typography>
-                {
-                  gameDetails[gameDetailsIndex]?.involved_companies?.find(
-                    (i: any) => i.developer
-                  )?.company.name
-                }
+                {gameDetailsLoading ? (
+                  <Skeleton width={100} />
+                ) : (
+                  game?.developer ?? "Unknown"
+                )}
               </Typography>
             </Grid>
             <Grid item xs={6}>
               <Typography variant="h6">Publisher</Typography>
               <Typography>
-                {
-                  gameDetails[gameDetailsIndex]?.involved_companies?.find(
-                    (i: any) => i.publisher
-                  )?.company.name
-                }
+                {gameDetailsLoading ? (
+                  <Skeleton width={100} />
+                ) : (
+                  game.publisher ?? "Unknown"
+                )}
               </Typography>
             </Grid>
           </Grid>
-          <Typography variant="h6">Genres</Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            {gameDetails &&
-              gameDetails[gameDetailsIndex]?.genres?.map((g: any) => (
-                <Chip label={g.name} variant="outlined" />
-              ))}
-          </Stack>
           <Typography variant="h6">Description</Typography>
           <Typography>
-            {gameDetails && gameDetails[gameDetailsIndex]?.summary}
+            {gameDetailsLoading ? (
+              <Skeleton />
+            ) : (
+              game?.summary ?? "No description"
+            )}
           </Typography>
+          <Typography variant="h6">Genres</Typography>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            {gameDetailsLoading ? (
+              <Skeleton height={32} width={100} />
+            ) : (
+              game?.genres?.map((g) => (
+                <Chip key={g} label={g} variant="outlined" />
+              )) ?? "Unknown"
+            )}
+          </Stack>
           <Typography variant="h6">Platforms</Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap">
-            {gameDetails &&
-              gameDetails[gameDetailsIndex]?.platforms?.map((p: any) => (
-                <Chip label={p.name} variant="outlined" />
-              ))}
+            {gameDetailsLoading ? (
+              <Skeleton height={32} width={100} />
+            ) : (
+              game?.platforms?.map((p) => (
+                <Chip key={p} label={p} variant="outlined" />
+              )) ?? "Unknown"
+            )}
           </Stack>
         </Box>
-        <Paper
-          component="img"
-          width={400}
-          src={
-            gameDetails && gameDetails[gameDetailsIndex]?.cover
-              ? gameDetails[gameDetailsIndex].cover?.url.replace(
-                  "t_thumb",
-                  "t_720p"
-                )
-              : ""
-          }
-          elevation={3}
-        ></Paper>
+        {gameDetailsLoading ? (
+          <Skeleton variant="rectangular" width={400} height={500} />
+        ) : (
+          <Paper
+            component="img"
+            width={400}
+            sx={{ minHeight: 500 }}
+            src={game?.coverImage}
+            elevation={3}
+          ></Paper>
+        )}
       </Box>
     </Box>
   );
