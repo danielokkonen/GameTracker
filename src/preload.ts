@@ -2,6 +2,7 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import GameDto from "./backend/dtos/game";
+import SettingsDto from "./backend/dtos/settings";
 
 const { contextBridge, ipcRenderer } = require("electron");
 
@@ -28,4 +29,9 @@ contextBridge.exposeInMainWorld("gameService", {
 
 contextBridge.exposeInMainWorld("igdbService", {
   getGameDetails: (title: string) => ipcRenderer.send("igdb-get-game", title),
+});
+
+contextBridge.exposeInMainWorld("settingsService", {
+  get: () => ipcRenderer.send("get-settings"),
+  upsert: (entity: SettingsDto) => ipcRenderer.send("upsert-settings", entity),
 });

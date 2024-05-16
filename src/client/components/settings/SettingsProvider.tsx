@@ -3,10 +3,14 @@ import SettingsContext from "../../../client/context/SettingsContext";
 
 export interface ISettingsState {
   developerMode: boolean;
+  igdbClientId: string;
+  igdbSecret: string;
 }
 
 const initialState: ISettingsState = {
   developerMode: false,
+  igdbClientId: null,
+  igdbSecret: null,
 };
 
 export type SettingsPayload = {
@@ -16,10 +20,14 @@ export type SettingsPayload = {
 
 export type SettingsAction =
   | { type: "set_value"; payload: SettingsPayload }
-  | { type: "init"; payload?: undefined };
+  | { type: "init"; payload?: ISettingsState };
 
 const reducer = (state: ISettingsState, action: SettingsAction) => {
   switch (action.type) {
+    case "init":
+      return {
+        ...action.payload,
+      };
     case "set_value":
       return {
         ...state,

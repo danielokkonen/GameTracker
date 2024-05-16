@@ -47,7 +47,7 @@ const CreateGameForm = ({
   };
 
   const formik = useFormik({
-    initialValues: value ?? new GameDto(0, "", ""),
+    initialValues: value ?? new GameDto(),
     onSubmit: handleSubmit,
     validationSchema: validationSchema,
   });

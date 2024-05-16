@@ -1,3 +1,4 @@
+import SettingsDto from "../backend/dtos/settings";
 import GameDto from "../backend/dtos/game";
 
 export {};
@@ -7,6 +8,7 @@ declare global {
     electronApi: IElectronApi;
     gameService: IGameService;
     igdbService: IIgdbService;
+    settingsService: ISettingsService;
   }
 }
 
@@ -34,4 +36,9 @@ interface IGameService {
 
 interface IIgdbService {
   getGameDetails: (title: string) => string;
+}
+
+interface ISettingsService {
+  get: () => SettingsDto;
+  upsert: (settings: SettingsDto) => void;
 }

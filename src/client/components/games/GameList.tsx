@@ -24,6 +24,7 @@ interface HeaderSortProps {
 }
 
 const headers = [
+  { key: "coverImage", label: "" },
   { key: "name", label: "Name" },
   { key: "franchise", label: "Franchise" },
   { key: "status", label: "Status" },

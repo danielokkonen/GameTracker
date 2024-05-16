@@ -3,6 +3,8 @@ import path from "path";
 import GameService from "./backend/services/game-service";
 import GameDto from "./backend/dtos/game";
 import { IgdbService } from "./backend/services/igdb-service";
+import SettingsService from "./backend/services/settings-service";
+import SettingsDto from "./backend/dtos/settings";
 const dialog = require("electron").dialog;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -112,4 +114,17 @@ const igdbService = new IgdbService();
 ipcMain.on("igdb-get-game", async (event, title: string) => {
   const result = await igdbService.getGameDetails(title);
   event.reply("igdb-get-game-success", result);
+});
+
+
+const settingService = new SettingsService();
+
+ipcMain.on("get-settings", async (event) => {
+  const result = await settingService.get();
+  event.reply("get-settings-success", result);
+});
+
+ipcMain.on("upsert-settings", async (event, payload: SettingsDto) => {
+  await settingService.upsert(payload);
+  event.reply("upsert-settings-success");
 });

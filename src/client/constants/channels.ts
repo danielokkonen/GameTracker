@@ -8,4 +8,7 @@ export const Channels = {
   GAMES_IMPORT_SUCCESS: "import-games-success",
 
   IGDB_GET_GAME: "igdb-get-game-success",
+
+  SETTINGS_GET_SUCCESS: "get-settings-success",
+  SETTINGS_UPSERT_SUCCESS: "upsert-settings-success",
 };

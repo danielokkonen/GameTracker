@@ -32,3 +32,8 @@ model Tokens {
   type String
   expires_at Int
 }
+
+model Settings {
+  id Int @id
+  json String
+}

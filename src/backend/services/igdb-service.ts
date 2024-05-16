@@ -1,9 +1,7 @@
 import dayjs from "dayjs";
+import SettingsService from "./settings-service";
 
 const { PrismaClient } = require("@prisma/client");
-
-const clientId = "";
-const clientSecret = "";
 
 interface AccessToken {
   access_token: string;
@@ -13,19 +11,26 @@ interface AccessToken {
 
 export class IgdbService {
   prisma: typeof PrismaClient;
+  settingsService: SettingsService;
 
   constructor() {
     this.prisma = new PrismaClient();
+    this.settingsService = new SettingsService();
   }
 
   getGameDetails = async (title: string): Promise<string> => {
-    let token = await this.getAccessToken();
+    const settings = await this.settingsService.get();
+
+    let token = await this.getAccessToken(
+      settings.igdbClientId,
+      settings.igdbSecret
+    );
 
     const response = await fetch("https://api.igdb.com/v4/games", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token.access_token}`,
-        "Client-ID": clientId,
+        "Client-ID": settings.igdbClientId,
       },
       body: `fields name, cover.url, genres.name, release_dates.date, release_dates.platform, platforms.name, game_engines.name, 
         summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, involved_companies.supporting;
@@ -34,7 +39,11 @@ export class IgdbService {
 
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
-        token = await this.getAccessToken(true);
+        token = await this.getAccessToken(
+          settings.igdbClientId,
+          settings.igdbSecret,
+          true
+        );
       } else {
         throw new Error(
           `Could not get game details: ${response.status} ${
@@ -49,7 +58,11 @@ export class IgdbService {
     return body;
   };
 
-  private getAccessToken = async (force = false): Promise<AccessToken> => {
+  private getAccessToken = async (
+    clientId: string,
+    secret: string,
+    force = false
+  ): Promise<AccessToken> => {
     let token = await this.prisma.tokens.findFirst({
       where: { service: "IGDB" },
     });
@@ -67,7 +80,7 @@ export class IgdbService {
         },
         body: JSON.stringify({
           client_id: clientId,
-          client_secret: clientSecret,
+          client_secret: secret,
           grant_type: "client_credentials",
         }),
       });
