@@ -1,7 +1,8 @@
-import dayjs from "dayjs";
-import SettingsService from "./settings-service";
+/* eslint-disable @typescript-eslint/no-var-requires */
+const db = require("better-sqlite3")("dev.db");
 
-const { PrismaClient } = require("@prisma/client");
+import SettingsService from "./settings-service";
+import dayjs from "dayjs";
 
 interface AccessToken {
   access_token: string;
@@ -10,11 +11,9 @@ interface AccessToken {
 }
 
 export class IgdbService {
-  prisma: typeof PrismaClient;
   settingsService: SettingsService;
 
   constructor() {
-    this.prisma = new PrismaClient();
     this.settingsService = new SettingsService();
   }
 
@@ -63,9 +62,9 @@ export class IgdbService {
     secret: string,
     force = false
   ): Promise<AccessToken> => {
-    let token = await this.prisma.tokens.findFirst({
-      where: { service: "IGDB" },
-    });
+    let token: any = db
+      .prepare("SELECT * FROM Tokens WHERE service = @service")
+      .get({ service: "IGDB" });
 
     const now = dayjs().subtract(2, "hour").unix();
 
@@ -95,22 +94,33 @@ export class IgdbService {
 
       token = await response.json();
 
-      await this.prisma.tokens.upsert({
-        where: {
+      const existingToken = db
+        .prepare("SELECT * FROM Tokens WHERE service = @service")
+        .get({ service: "IGDB" });
+
+      if (existingToken) {
+        const statement = db.prepare(
+          "UPDATE Tokens SET token = @token, type = @type, expires_at = @expires_at WHERE service = @service"
+        );
+
+        statement.run({
           service: "IGDB",
-        },
-        update: {
           token: token.access_token,
           type: token.token_type,
           expires_at: now + token.expires_in,
-        },
-        create: {
+        });
+      } else {
+        const statement = db.prepare(
+          "INSERT INTO Tokens VALUES(@service, @token, @type, @expires_at)"
+        );
+
+        statement.run({
           service: "IGDB",
           token: token.access_token,
           type: token.token_type,
           expires_at: now + token.expires_in,
-        },
-      });
+        });
+      }
     }
 
     return {

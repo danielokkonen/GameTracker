@@ -1,88 +1,84 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { PrismaClient } = require("@prisma/client");
 const fs = require("node:fs/promises");
+const db = require("better-sqlite3")("dev.db");
 
-import { Game } from "@prisma/client";
 import GameDto from "../dtos/game";
 import DashboardDto from "../dtos/dashboard";
 import dayjs from "dayjs";
 
 export default class GameService {
-  prisma: typeof PrismaClient;
-
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
-
   list = async (): Promise<GameDto[]> => {
-    const options = {
-      orderBy: [
-        {
-          created: "desc",
-        },
-      ],
-    };
-
-    const results: GameDto[] = (await this.prisma.game.findMany(options)).map(
-      (g: Game) => this.toDto(g)
-    );
+    const results: GameDto[] = db
+      .prepare("SELECT * FROM Game")
+      .all()
+      .map((g: any) => this.toDto(g));
 
     return results;
   };
 
   get = async (id: number): Promise<GameDto> => {
-    const results = await this.prisma.game.findUnique({
-      where: { id: id },
-    });
+    const results = db.prepare("SELECT * FROM Game WHERE Id = ?").get(id);
 
     return this.toDto(results);
   };
 
-  create = async (entity: GameDto): Promise<GameDto> => {
+  create = async (entity: GameDto): Promise<void> => {
     const data = this.toDbEntity(entity);
     data.created = new Date().toISOString();
 
-    const results = await this.prisma.game.create({
-      data: data,
-    });
+    const newId = db.prepare("SELECT MAX(Id) FROM Game").get()['MAX(Id)'];
 
-    return this.toDto(results);
+    const statement = db.prepare("INSERT INTO Game VALUES(@id, @name, @franchise, @start, @end, @created, @updated, @summary, @developer, @publisher, @genres, @platforms, @coverImage)");
+    statement.run({
+      id: newId + 1,
+      ...data,
+    });
   };
 
-  update = async (entity: GameDto): Promise<GameDto> => {
+  update = async (entity: GameDto): Promise<void> => {
     const data = this.toDbEntity(entity);
     data.updated = new Date().toISOString();
 
-    const results = await this.prisma.game.update({
-      where: { id: entity.id },
-      data: data,
-    });
-
-    return this.toDto(results);
+    const statement = db.prepare(`
+      UPDATE Game 
+      SET name = @name, 
+        franchise = @franchise, 
+        start = @start, 
+        end = @end, 
+        updated = @updated, 
+        summary = @summary, 
+        developer = @developer, 
+        publisher = @publisher, 
+        genres = @genres, 
+        platforms = @platforms, 
+        coverImage = @coverImage 
+      WHERE id = @id`);
+      statement.run(data);
   };
 
   delete = async (id: number): Promise<void> => {
-    await this.prisma.game.delete({
-      where: { id: id },
-    });
+    const statement = db.prepare("DELETE FROM Game WHERE Id = @Id");
+    statement.run({ Id: id });
   };
 
   dashboard = async (): Promise<DashboardDto> => {
-    const data: Game[] = await this.prisma.game.findMany();
+    const data: any[] = db
+      .prepare("SELECT * FROM Game")
+      .all();
 
     const results = new DashboardDto();
 
-    results.notStarted = data.filter((d) => !d.start && !d.end).length;
-    results.started = data.filter((d) => d.start && !d.end).length;
-    results.completed = data.filter((d) => d.start && d.end).length;
+    results.notStarted = data.filter((d: any) => !d.start && !d.end).length;
+    results.started = data.filter((d: any) => d.start && !d.end).length;
+    results.completed = data.filter((d: any) => d.start && d.end).length;
 
     const threshold = dayjs().add(-30, "days").toDate().getTime();
     results.startedLast30Days = data.filter(
-      (d) => d.start && !d.end && new Date(d.start).getTime() >= threshold
+      (d: any) => d.start && !d.end && new Date(d.start).getTime() >= threshold
     ).length;
 
     results.completedLast30Days = data.filter(
-      (d) => d.start && new Date(d.end).getTime() >= threshold
+      (d: any) => d.start && new Date(d.end).getTime() >= threshold
     ).length;
 
     return results;
@@ -112,6 +108,7 @@ export default class GameService {
   };
 
   private toDbEntity = (g: GameDto) => ({
+    id: g.id,
     name: g.name,
     franchise: g.franchise,
     start: g.started ? new Date(g.started).toISOString() : null,
@@ -126,7 +123,7 @@ export default class GameService {
     coverImage: g.coverImage,
   });
 
-  private toDto = (g: Game) => {
+  private toDto = (g: any) => {
     let status = "Not started";
 
     if (g.start && g.end) {
@@ -145,8 +142,8 @@ export default class GameService {
     dto.summary = g.summary;
     dto.developer = g.developer;
     dto.publisher = g.publisher;
-    dto.genres = g.genres?.split(";")?.map((genre) => genre);
-    dto.platforms = g.platforms?.split(";")?.map((platform) => platform);
+    dto.genres = g.genres?.split(";")?.map((genre: any) => genre);
+    dto.platforms = g.platforms?.split(";")?.map((platform: any) => platform);
     dto.coverImage = g.coverImage;
     dto.created = g.created ? new Date(g.created) : null;
     dto.updated = g.updated ? new Date(g.updated) : null;

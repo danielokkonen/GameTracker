@@ -1,44 +1,37 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { PrismaClient } = require("@prisma/client");
+const db = require("better-sqlite3")("dev.db");
 
-import { Settings } from "@prisma/client";
 import SettingsDto from "../dtos/settings";
 
 export default class SettingsService {
-  prisma: typeof PrismaClient;
-
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
-
   get = async (): Promise<SettingsDto> => {
-    const results = await this.prisma.settings.findUnique({
-      where: { id: 1 },
-    });
-
-    return this.toDto(results);
+    const statement = db.prepare("SELECT * FROM Settings");
+    const result = statement.get();
+    return this.toDto(result);
   };
 
-  upsert = async (entity: SettingsDto): Promise<SettingsDto> => {
+  upsert = async (entity: SettingsDto): Promise<void> => {
     const data = this.toDbEntity(entity);
 
-    const results = await this.prisma.settings.upsert({
-      where: { id: 1 },
-      update: {
-        json: data.json,
-      },
-      create: data,
-    });
+    const existing = this.get();
 
-    return this.toDto(results);
+    if (existing) {
+      const statement = db.prepare("UPDATE Settings SET json = @json WHERE id = @id)");
+      statement.run(data);
+
+    }
+    else {
+      const statement = db.prepare("INSERT INTO Settings VALUES (@id, @json)");
+      statement.run(data);
+    }
   };
 
-  private toDbEntity = (s: SettingsDto): Settings => ({
+  private toDbEntity = (s: SettingsDto): any => ({
     id: 1,
     json: JSON.stringify(s),
   });
 
-  private toDto = (s: Settings): SettingsDto => {
+  private toDto = (s: any): SettingsDto => {
     if (!s) {
       return null;
     }

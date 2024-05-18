@@ -74,8 +74,8 @@ ipcMain.on("get-game", async (event, data: number) => {
 });
 
 ipcMain.on("create-game", async (event, data: GameDto) => {
-  const result = await gameService.create(data);
-  event.reply("create-game-success", result);
+  await gameService.create(data);
+  event.reply("create-game-success");
 });
 
 ipcMain.on("update-game", async (event, data: GameDto) => {
