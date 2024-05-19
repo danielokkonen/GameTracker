@@ -1,27 +1,33 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const db = require("better-sqlite3")("dev.db");
 
+import { Database } from "../database/database";
 import SettingsDto from "../dtos/settings";
 
 export default class SettingsService {
+  private database: Database;
+
+  constructor() {
+    this.database = new Database();
+  }
+
   get = async (): Promise<SettingsDto> => {
-    const statement = db.prepare("SELECT * FROM Settings");
-    const result = statement.get();
+    const statement = this.database.instance.prepare("SELECT * FROM Settings WHERE id = @id");
+    const result = statement.get({ id: 1 });
     return this.toDto(result);
   };
 
   upsert = async (entity: SettingsDto): Promise<void> => {
     const data = this.toDbEntity(entity);
 
-    const existing = this.get();
+    const existing = await this.get();
 
     if (existing) {
-      const statement = db.prepare("UPDATE Settings SET json = @json WHERE id = @id)");
+      const statement = this.database.instance.prepare("UPDATE Settings SET json = @json WHERE id = @id");
       statement.run(data);
 
     }
     else {
-      const statement = db.prepare("INSERT INTO Settings VALUES (@id, @json)");
+      const statement = this.database.instance.prepare("INSERT INTO Settings VALUES (@id, @json)");
       statement.run(data);
     }
   };

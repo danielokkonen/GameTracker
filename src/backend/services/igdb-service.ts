@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const db = require("better-sqlite3")("dev.db");
-
+import { Database } from "../database/database";
 import SettingsService from "./settings-service";
 import dayjs from "dayjs";
 
@@ -11,10 +9,12 @@ interface AccessToken {
 }
 
 export class IgdbService {
-  settingsService: SettingsService;
-
+  private settingsService: SettingsService;
+  private database: Database;
+  
   constructor() {
     this.settingsService = new SettingsService();
+    this.database = new Database();
   }
 
   getGameDetails = async (title: string): Promise<string> => {
@@ -62,7 +62,7 @@ export class IgdbService {
     secret: string,
     force = false
   ): Promise<AccessToken> => {
-    let token: any = db
+    const token: any = this.database.instance
       .prepare("SELECT * FROM Tokens WHERE service = @service")
       .get({ service: "IGDB" });
 
@@ -92,35 +92,37 @@ export class IgdbService {
         );
       }
 
-      token = await response.json();
+      const newToken = await response.json();
 
-      const existingToken = db
+      const existingToken = this.database.instance
         .prepare("SELECT * FROM Tokens WHERE service = @service")
         .get({ service: "IGDB" });
 
       if (existingToken) {
-        const statement = db.prepare(
+        const statement = this.database.instance.prepare(
           "UPDATE Tokens SET token = @token, type = @type, expires_at = @expires_at WHERE service = @service"
         );
 
         statement.run({
           service: "IGDB",
-          token: token.access_token,
-          type: token.token_type,
-          expires_at: now + token.expires_in,
+          token: newToken.access_token,
+          type: newToken.token_type,
+          expires_at: now + newToken.expires_in,
         });
       } else {
-        const statement = db.prepare(
+        const statement = this.database.instance.prepare(
           "INSERT INTO Tokens VALUES(@service, @token, @type, @expires_at)"
         );
 
         statement.run({
           service: "IGDB",
-          token: token.access_token,
-          type: token.token_type,
-          expires_at: now + token.expires_in,
+          token: newToken.access_token,
+          type: newToken.token_type,
+          expires_at: now + newToken.expires_in,
         });
       }
+
+      return newToken;
     }
 
     return {

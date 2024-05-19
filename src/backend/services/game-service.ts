@@ -1,14 +1,20 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const fs = require("node:fs/promises");
-const db = require("better-sqlite3")("dev.db");
 
+import { Database } from "../database/database";
 import GameDto from "../dtos/game";
 import DashboardDto from "../dtos/dashboard";
 import dayjs from "dayjs";
 
 export default class GameService {
+  private database: Database;
+
+  constructor() {
+    this.database = new Database();
+  }
+
   list = async (): Promise<GameDto[]> => {
-    const results: GameDto[] = db
+    const results: GameDto[] = this.database.instance
       .prepare("SELECT * FROM Game")
       .all()
       .map((g: any) => this.toDto(g));
@@ -17,7 +23,7 @@ export default class GameService {
   };
 
   get = async (id: number): Promise<GameDto> => {
-    const results = db.prepare("SELECT * FROM Game WHERE Id = ?").get(id);
+    const results = this.database.instance.prepare("SELECT * FROM Game WHERE Id = ?").get(id);
 
     return this.toDto(results);
   };
@@ -26,9 +32,13 @@ export default class GameService {
     const data = this.toDbEntity(entity);
     data.created = new Date().toISOString();
 
-    const newId = db.prepare("SELECT MAX(Id) FROM Game").get()['MAX(Id)'];
+    const newId = this.database.instance
+      .prepare("SELECT MAX(Id) FROM Game")
+      .get()["MAX(Id)"];
 
-    const statement = db.prepare("INSERT INTO Game VALUES(@id, @name, @franchise, @start, @end, @created, @updated, @summary, @developer, @publisher, @genres, @platforms, @coverImage)");
+    const statement = this.database.instance.prepare(
+      "INSERT INTO Game VALUES(@id, @name, @franchise, @start, @end, @created, @updated, @summary, @developer, @publisher, @genres, @platforms, @coverImage)"
+    );
     statement.run({
       id: newId + 1,
       ...data,
@@ -39,7 +49,7 @@ export default class GameService {
     const data = this.toDbEntity(entity);
     data.updated = new Date().toISOString();
 
-    const statement = db.prepare(`
+    const statement = this.database.instance.prepare(`
       UPDATE Game 
       SET name = @name, 
         franchise = @franchise, 
@@ -53,16 +63,18 @@ export default class GameService {
         platforms = @platforms, 
         coverImage = @coverImage 
       WHERE id = @id`);
-      statement.run(data);
+    statement.run(data);
   };
 
   delete = async (id: number): Promise<void> => {
-    const statement = db.prepare("DELETE FROM Game WHERE Id = @Id");
+    const statement = this.database.instance.prepare(
+      "DELETE FROM Game WHERE Id = @Id"
+    );
     statement.run({ Id: id });
   };
 
   dashboard = async (): Promise<DashboardDto> => {
-    const data: any[] = db
+    const data: any[] = this.database.instance
       .prepare("SELECT * FROM Game")
       .all();
 
