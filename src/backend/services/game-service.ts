@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const fs = require("node:fs/promises");
-
+import { open } from "node:fs/promises";
 import { Database } from "../database/database";
 import GameDto from "../dtos/game";
 import DashboardDto from "../dtos/dashboard";
@@ -15,7 +13,7 @@ export default class GameService {
 
   list = async (): Promise<GameDto[]> => {
     const results: GameDto[] = this.database.instance
-      .prepare("SELECT * FROM Game")
+      .prepare("SELECT * FROM Game ORDER BY created DESC")
       .all()
       .map((g: any) => this.toDto(g));
 
@@ -32,15 +30,11 @@ export default class GameService {
     const data = this.toDbEntity(entity);
     data.created = new Date().toISOString();
 
-    const newId = this.database.instance
-      .prepare("SELECT MAX(Id) FROM Game")
-      .get()["MAX(Id)"];
-
     const statement = this.database.instance.prepare(
       "INSERT INTO Game VALUES(@id, @name, @franchise, @start, @end, @created, @updated, @summary, @developer, @publisher, @genres, @platforms, @coverImage)"
     );
     statement.run({
-      id: newId + 1,
+      id: 0,
       ...data,
     });
   };
@@ -97,18 +91,18 @@ export default class GameService {
   };
 
   import = async (path: string): Promise<void> => {
-    const file = await fs.open(path);
+    const file = await open(path);
 
     let i = 0;
     for await (const item of file.readLines()) {
       const columns = item.split(";");
 
       if (i === 0) {
+        i++;
         continue;
       }
-
+      
       const game = new GameDto();
-      game.id = 0;
       game.name = columns[0];
       game.franchise = columns[1];
       game.started = columns[3] ? new Date(columns[3]) : null;

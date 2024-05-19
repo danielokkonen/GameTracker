@@ -1,10 +1,27 @@
+import { app } from "electron";
+import { mkdir } from 'node:fs';
+
 const db = require("better-sqlite3");
 
 export class Database {
   public instance: any;
   
   constructor() {
-    this.instance = db("dev.db");
+    if (app.isPackaged) {
+      const dbPath = `${app.getPath("appData").replace("Roaming", "Local")}\\GameTracker`;
+      const dbName = "GameTracker.db";
+  
+      mkdir(dbPath, (err) => {
+        if (err.code !== "EEXIST") {
+          console.log(err);
+        }
+      });
+
+      this.instance = db(`${dbPath}\\${dbName}`);
+    }
+    else {
+      this.instance = db("dev.db");
+    }
 
     console.log('Database ctor()');
 

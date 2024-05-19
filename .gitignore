@@ -90,3 +90,6 @@ typings/
 
 # Electron-Forge
 out/
+
+# Custom
+*.db

@@ -39,7 +39,14 @@ const GameDetails = () => {
 
     const reader = new FileReader();
 
-    fetch(selectedGameDetails.cover.url.replace("t_thumb", "t_720p"))
+    let imageUrl = selectedGameDetails.cover.url.replace("t_thumb", "t_720p");
+    if (!imageUrl.startsWith("https://")) {
+      imageUrl = `https:${
+        imageUrl.startsWith("//") ? imageUrl : `//${imageUrl}`
+      }`;
+    }
+
+    fetch(imageUrl)
       .then((response) => response.blob())
       .then((blob) => {
         return new Promise((resolve, reject) => {
