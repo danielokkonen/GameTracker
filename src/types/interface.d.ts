@@ -14,6 +14,7 @@ declare global {
 
 interface IElectronApi {
   ipcRenderer: IIpcRenderer;
+  theme: ITheme;
 }
 
 interface IIpcRenderer {
@@ -24,6 +25,10 @@ interface IIpcRenderer {
   removeAllListeners: (channel: string) => Electron.IpcRenderer;
 }
 
+interface ITheme {
+  darkMode: () => boolean;
+}
+
 interface IGameService {
   list: () => void;
   get: (id: number) => void;
@@ -32,6 +37,7 @@ interface IGameService {
   delete: (id: number) => void;
   dashboard: () => void;
   import: () => void;
+  addGameDetails: (id: number) => void;
 }
 
 interface IIgdbService {

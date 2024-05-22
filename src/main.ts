@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, nativeTheme } from "electron";
 import path from "path";
 import GameService from "./backend/services/game-service";
 import GameDto from "./backend/dtos/game";
@@ -15,8 +15,10 @@ if (require("electron-squirrel-startup")) {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
+    show: false,
     width: 1400,
     height: 900,
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#121212" : "#FFF",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: true,
@@ -34,6 +36,12 @@ const createWindow = () => {
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools();
+
+  mainWindow.once("ready-to-show", () => {
+    setTimeout(() => {
+      mainWindow.show();
+    }, 100);
+  });
 };
 
 // This method will be called when Electron has finished
@@ -61,7 +69,13 @@ app.on("activate", () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 
+ipcMain.handle("dark-mode", () => {
+  return nativeTheme.shouldUseDarkColors;
+});
+
 const gameService = new GameService();
+const igdbService = new IgdbService();
+const settingService = new SettingsService();
 
 ipcMain.on("list-games", async (event) => {
   const result = await gameService.list();
@@ -93,6 +107,16 @@ ipcMain.on("dashboard-games", async (event) => {
   event.reply("dashboard-games-success", result);
 });
 
+ipcMain.on("adddetails-game", async (event, id: number) => {
+  const game = await gameService.get(id);
+  const gameDetails = await igdbService.getGameDetails(game.name);
+  const result = await gameService.addGameDetails(
+    id,
+    gameDetails.filter((r: any) => !!r.cover)[0]
+  );
+  event.reply("adddetails-game-success", id);
+});
+
 ipcMain.on("import-games", async (event) => {
   dialog
     .showOpenDialog({
@@ -109,15 +133,10 @@ ipcMain.on("import-games", async (event) => {
     .then(() => event.reply("import-games-success"));
 });
 
-const igdbService = new IgdbService();
-
 ipcMain.on("igdb-get-game", async (event, title: string) => {
   const result = await igdbService.getGameDetails(title);
   event.reply("igdb-get-game-success", result);
 });
-
-
-const settingService = new SettingsService();
 
 ipcMain.on("get-settings", async (event) => {
   const result = await settingService.get();

@@ -17,7 +17,7 @@ export class IgdbService {
     this.database = new Database();
   }
 
-  getGameDetails = async (title: string): Promise<string> => {
+  getGameDetails = async (title: string): Promise<any> => {
     const settings = await this.settingsService.get();
 
     let token = await this.getAccessToken(

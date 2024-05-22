@@ -113,6 +113,48 @@ export default class GameService {
     }
   };
 
+  addGameDetails = async (id: number, gameDetails: any): Promise<GameDto> => {
+    const game = await this.get(id);
+    if (!game) {
+      throw new Error(`Game with id ${id} could not be found`);
+    }
+
+    let imageUrl = gameDetails.cover.url.replace("t_thumb", "t_720p");
+    if (!imageUrl.startsWith("https://")) {
+      imageUrl = `https:${
+        imageUrl.startsWith("//") ? imageUrl : `//${imageUrl}`
+      }`;
+    }
+
+    const updatedGame = await fetch(imageUrl)
+      .then((response) => response.arrayBuffer())
+      .then((arrayBuffer) => {
+        const coverImage = `data:image/png;base64,${Buffer.from(arrayBuffer).toString("base64")}`;
+
+        const updatedGame: GameDto = { ...game };
+        updatedGame.summary = gameDetails.summary;
+        updatedGame.developer = gameDetails?.involved_companies?.find(
+          (i: any) => i.developer
+        )?.company.name;
+        updatedGame.publisher = gameDetails?.involved_companies?.find(
+          (i: any) => i.publisher
+        )?.company.name;
+        updatedGame.genres = gameDetails.genres?.map(
+          (g: any) => g.name
+        );
+        updatedGame.platforms = gameDetails.platforms?.map(
+          (p: any) => p.name
+        );
+        updatedGame.coverImage = coverImage;
+
+        return Promise.resolve(updatedGame);
+      });
+
+      await this.update(updatedGame);
+
+      return updatedGame;
+  };
+
   private toDbEntity = (g: GameDto) => ({
     id: g.id,
     name: g.name,

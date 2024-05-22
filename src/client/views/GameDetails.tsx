@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import GameDto from "../../backend/dtos/game";
 import { useParams } from "react-router-dom";
 import { Channels } from "../constants/channels";

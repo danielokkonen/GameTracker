@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -11,6 +11,7 @@ import {
 import GameDto from "../../../backend/dtos/game";
 import GameListRow from "./GameListRow";
 import { useNavigate } from "react-router-dom";
+import GamesContext from "../../../client/context/GamesContext";
 
 interface GameListProps {
   items: GameDto[];
@@ -24,6 +25,7 @@ interface HeaderSortProps {
 }
 
 const headers = [
+  { key: "selected", label: "" },
   { key: "coverImage", label: "" },
   { key: "name", label: "Name" },
   { key: "franchise", label: "Franchise" },
@@ -34,6 +36,8 @@ const headers = [
 ];
 
 const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
+  const { state, dispatch } = useContext(GamesContext);
+
   const navgiate = useNavigate();
 
   const [sortOptions, setSortOptions] = useState<HeaderSortProps>({
@@ -60,9 +64,16 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
     const target = event.target as HTMLInputElement;
     const tag = target.nodeName.toLowerCase();
 
-    if (tag !== "button" && tag !== "svg") {
+    if (["tr", "td", "p", "img"].some((arr) => arr === tag)) {
       navgiate(`/games/${id}`);
     }
+  };
+
+  const onRowSelect = (id: number) => {
+    dispatch({
+      type: "toggle_selected_game",
+      payload: id,
+    });
   };
 
   const headerCells = useMemo(
@@ -131,6 +142,9 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
         <TableBody>
           {sortedItems.map((item) => (
             <GameListRow
+              key={item.id}
+              selected={!!state.selectedGames[item.id]}
+              onSelect={() => onRowSelect(item.id)}
               onClick={(e: React.MouseEvent) => onRowClick(e, item.id)}
               game={item}
               onEdit={onEdit}

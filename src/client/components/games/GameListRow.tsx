@@ -1,6 +1,12 @@
 import React from "react";
 import GameDto from "../../../backend/dtos/game";
-import { IconButton, Paper, TableCell, TableRow } from "@mui/material";
+import {
+  Checkbox,
+  IconButton,
+  Paper,
+  TableCell,
+  TableRow,
+} from "@mui/material";
 import StatusIcon from "./StatusIcon";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -8,12 +14,21 @@ import dayjs from "dayjs";
 
 interface GameListRowProps {
   game: GameDto;
+  selected: boolean;
+  onSelect: () => void;
   onClick: (event: React.MouseEvent) => void;
   onEdit: (game: GameDto) => void;
   onDelete: (id: number) => void;
 }
 
-const GameListRow = ({ game, onClick, onEdit, onDelete }: GameListRowProps) => {
+const GameListRow = ({
+  game,
+  selected,
+  onSelect,
+  onClick,
+  onEdit,
+  onDelete,
+}: GameListRowProps) => {
   return (
     <TableRow
       key={game.name}
@@ -21,6 +36,9 @@ const GameListRow = ({ game, onClick, onEdit, onDelete }: GameListRowProps) => {
       onClick={onClick}
       sx={{ ":hover": { cursor: "pointer" } }}
     >
+      <TableCell width={"5%"}>
+        <Checkbox onChange={onSelect} checked={selected} />
+      </TableCell>
       <TableCell width={"5%"}>
         {game.coverImage ? (
           <Paper
@@ -35,7 +53,7 @@ const GameListRow = ({ game, onClick, onEdit, onDelete }: GameListRowProps) => {
         )}
       </TableCell>
       <TableCell width={"30%"}>{game.name}</TableCell>
-      <TableCell width={"18%"}>{game.franchise}</TableCell>
+      <TableCell width={"13%"}>{game.franchise}</TableCell>
       <TableCell width={"15%"}>{<StatusIcon game={game} />}</TableCell>
       <TableCell width={"10%"}>
         {game.started && dayjs(game.started).format("YYYY-MM-DD")}

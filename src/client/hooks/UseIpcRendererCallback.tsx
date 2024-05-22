@@ -13,7 +13,9 @@ const useIpcRendererCallback = <T,>(
   useEffect(() => {
     window.electronApi.ipcRenderer.on(channel, handleEvent);
 
-    method();
+    if (method) {
+      method();
+    }
 
     return () => {
       window.electronApi.ipcRenderer.removeAllListeners(channel);

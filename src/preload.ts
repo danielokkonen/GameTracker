@@ -15,6 +15,9 @@ contextBridge.exposeInMainWorld("electronApi", {
     removeAllListeners: (channel: string) =>
       ipcRenderer.removeAllListeners(channel),
   },
+  theme: {
+    darkMode: () => ipcRenderer.invoke('dark-mode'),
+  }
 });
 
 contextBridge.exposeInMainWorld("gameService", {
@@ -25,6 +28,7 @@ contextBridge.exposeInMainWorld("gameService", {
   delete: (id: number) => ipcRenderer.send("delete-game", id),
   dashboard: () => ipcRenderer.send("dashboard-games"),
   import: (path: string) => ipcRenderer.send("import-games", path),
+  addGameDetails: (id: number) => ipcRenderer.send("adddetails-game", id),
 });
 
 contextBridge.exposeInMainWorld("igdbService", {

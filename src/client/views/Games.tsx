@@ -17,8 +17,14 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import SnackbarContext from "../context/SnackbarContext";
 import MenuButton from "../components/common/MenuButton";
 import Spinner from "../components/common/Spinner";
+import GamesProvider from "../components/games/GamesProvider";
+import GamesContext from "../context/GamesContext";
+import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
 
 const Games = () => {
+  const snackbarDispatch = useContext(SnackbarContext);
+  const gamesContext = useContext(GamesContext);
+
   const [games, setGames] = useState<GameDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
@@ -42,8 +48,6 @@ const Games = () => {
 
     return result;
   }, [games, filter]);
-
-  const snackbarDispatch = useContext(SnackbarContext);
 
   const franchises = useMemo(
     () => Array.from(new Set(games?.map((g) => g.franchise))).sort(),
@@ -98,6 +102,30 @@ const Games = () => {
   const handleDelete = (id: number) => {
     window.gameService.delete(id);
   };
+
+  const addGameDetailsToSelectedGames = async () => {
+    snackbarDispatch({
+      type: "show_message",
+      payload: "Adding game details from IGDB...",
+    });
+    
+    for (const item of Object.keys(gamesContext.state.selectedGames)) {
+      window.gameService.addGameDetails(parseInt(item));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  };
+
+  useIpcRendererCallback(
+    Channels.GAMES_ADDDETAILS_SUCCESS,
+    null,
+    (id: number) => {
+      gamesContext.dispatch({
+        type: "toggle_selected_game",
+        payload: id,
+      });
+      window.gameService.list();
+    }
+  );
 
   const handleListGamesSuccess = (
     event: IpcRendererEvent,
@@ -226,7 +254,11 @@ const Games = () => {
               },
               {
                 name: "Import from CSV",
-                onClick: () => window.gameService.import(),
+                onClick: window.gameService.import,
+              },
+              {
+                name: "Add game details from IGDB",
+                onClick: addGameDetailsToSelectedGames,
               },
             ]}
           />

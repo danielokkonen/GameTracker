@@ -3,12 +3,14 @@ import SettingsContext from "../../../client/context/SettingsContext";
 
 export interface ISettingsState {
   developerMode: boolean;
+  darkMode: boolean;
   igdbClientId: string;
   igdbSecret: string;
 }
 
 const initialState: ISettingsState = {
   developerMode: false,
+  darkMode: null,
   igdbClientId: null,
   igdbSecret: null,
 };

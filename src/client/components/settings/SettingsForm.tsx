@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Box,
   Button,
@@ -21,9 +21,11 @@ const SettingsForm = ({ value, onSubmit }: ISettingsFormProps) => {
     onSubmit(values);
   };
 
+  const shouldUseDarkMode = useMemo(() => window.electronApi.theme.darkMode(), []);
+
   const formik = useFormik({
     enableReinitialize: true,
-    initialValues: value ?? new SettingsDto(),
+    initialValues: value ?? new SettingsDto(shouldUseDarkMode),
     onSubmit: handleSubmit,
   });
 
@@ -34,6 +36,17 @@ const SettingsForm = ({ value, onSubmit }: ISettingsFormProps) => {
       <Box component="form" onSubmit={formik.handleSubmit}>
         <Stack spacing={2} mb={2}>
           <Typography variant="h6">General</Typography>
+          <FormControlLabel
+            label="Dark Mode"
+            control={
+              <Checkbox
+                name="darkMode"
+                checked={formik.values.darkMode}
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+              />
+            }
+          />
           <FormControlLabel
             label="Developer Mode"
             control={
