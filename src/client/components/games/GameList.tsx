@@ -1,5 +1,6 @@
 import React, { useContext, useMemo, useState } from "react";
 import {
+  Checkbox,
   Table,
   TableBody,
   TableCell,
@@ -25,18 +26,25 @@ interface HeaderSortProps {
 }
 
 const headers = [
-  { key: "selected", label: "" },
-  { key: "coverImage", label: "" },
-  { key: "name", label: "Name" },
-  { key: "franchise", label: "Franchise" },
-  { key: "status", label: "Status" },
-  { key: "started", label: "Started" },
-  { key: "completed", label: "Completed" },
-  { key: "actions", label: "" },
+  { key: "coverImage", label: "", sortable: false },
+  { key: "name", label: "Name", sortable: true },
+  { key: "franchise", label: "Franchise", sortable: true },
+  { key: "status", label: "Status", sortable: true },
+  { key: "started", label: "Started", sortable: true },
+  { key: "completed", label: "Completed", sortable: true },
+  { key: "actions", label: "", sortable: false },
 ];
 
 const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
   const { state, dispatch } = useContext(GamesContext);
+
+  const allSelected = useMemo(
+    () =>
+      items.length > 0 &&
+      Object.values(state.selectedGames).map((v: any) => v.selected === true)
+        .length === items.length,
+    [state.selectedGames]
+  );
 
   const navgiate = useNavigate();
 
@@ -46,18 +54,37 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
   });
 
   const onHeaderClick = (event: React.MouseEvent, property: string) => {
-    setSortOptions({
-      orderBy:
-        sortOptions.orderBy === property && sortOptions.order === "desc"
-          ? ""
-          : property,
-      order:
-        sortOptions.orderBy === property
-          ? sortOptions.order === "asc"
-            ? "desc"
-            : "asc"
-          : "asc",
-    });
+    if (property === "selected") {
+      if (!allSelected) {
+        for (const item of items) {
+          dispatch({
+            type: "SET_SELECTED_GAME",
+            payload: {
+              id: item.id,
+              selected: true,
+              loading: false,
+            },
+          });
+        }
+      } else {
+        dispatch({
+          type: "REMOVE_ALL_SELECTED_GAMES",
+        });
+      }
+    } else {
+      setSortOptions({
+        orderBy:
+          sortOptions.orderBy === property && sortOptions.order === "desc"
+            ? ""
+            : property,
+        order:
+          sortOptions.orderBy === property
+            ? sortOptions.order === "asc"
+              ? "desc"
+              : "asc"
+            : "asc",
+      });
+    }
   };
 
   const onRowClick = (event: React.MouseEvent, id: number) => {
@@ -70,17 +97,29 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
   };
 
   const onRowSelect = (id: number) => {
-    dispatch({
-      type: "toggle_selected_game",
-      payload: id,
-    });
+    const selected = state.selectedGames[id]?.selected;
+    if (selected) {
+      dispatch({
+        type: "REMOVE_SELECTED_GAME",
+        payload: id,
+      });
+    } else {
+      dispatch({
+        type: "SET_SELECTED_GAME",
+        payload: {
+          id: id,
+          loading: false,
+          selected: state.selectedGames[id]?.selected ? false : true,
+        },
+      });
+    }
   };
 
   const headerCells = useMemo(
     () =>
-      headers.map((h) => (
-        <TableCell key={h.key}>
-          {h.label ? (
+      headers.map((h) => {
+        return h.label && h.sortable ? (
+          <TableCell key={h.key}>
             <TableSortLabel
               onClick={(e) => onHeaderClick(e, h.key)}
               active={sortOptions.orderBy === h.key}
@@ -88,12 +127,14 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
             >
               {h.label}
             </TableSortLabel>
-          ) : (
-            h.label
-          )}
-        </TableCell>
-      )),
-    [sortOptions]
+          </TableCell>
+        ) : (
+          <TableCell onClick={(e) => onHeaderClick(e, h.key)}>
+            {h.label}
+          </TableCell>
+        );
+      }),
+    [sortOptions, allSelected]
   );
 
   // TODO: Refactor this mess
@@ -133,24 +174,39 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
     return items;
   }, [sortOptions, items]);
 
+  console.log(allSelected);
+
   return (
     <TableContainer sx={{ td: { userSelect: "none" } }}>
       <Table>
         <TableHead>
-          <TableRow>{headerCells}</TableRow>
+          <TableRow>
+            <TableCell onClick={(e) => onHeaderClick(e, "selected")}>
+              <Checkbox checked={allSelected} />
+            </TableCell>
+            {headerCells}
+          </TableRow>
         </TableHead>
         <TableBody>
-          {sortedItems.map((item) => (
-            <GameListRow
-              key={item.id}
-              selected={!!state.selectedGames[item.id]}
-              onSelect={() => onRowSelect(item.id)}
-              onClick={(e: React.MouseEvent) => onRowClick(e, item.id)}
-              game={item}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ))}
+          {sortedItems.map((item) => {
+            const loading = state.selectedGames[item.id]?.loading;
+            return (
+              <GameListRow
+                key={item.id}
+                loading={loading}
+                selected={state.selectedGames[item.id]?.selected}
+                onSelect={loading ? null : () => onRowSelect(item.id)}
+                onClick={
+                  loading
+                    ? null
+                    : (e: React.MouseEvent) => onRowClick(e, item.id)
+                }
+                game={item}
+                onEdit={loading ? null : onEdit}
+                onDelete={loading ? null : onDelete}
+              />
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>

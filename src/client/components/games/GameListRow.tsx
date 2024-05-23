@@ -4,6 +4,7 @@ import {
   Checkbox,
   IconButton,
   Paper,
+  Skeleton,
   TableCell,
   TableRow,
 } from "@mui/material";
@@ -15,6 +16,7 @@ import dayjs from "dayjs";
 interface GameListRowProps {
   game: GameDto;
   selected: boolean;
+  loading: boolean;
   onSelect: () => void;
   onClick: (event: React.MouseEvent) => void;
   onEdit: (game: GameDto) => void;
@@ -24,6 +26,7 @@ interface GameListRowProps {
 const GameListRow = ({
   game,
   selected,
+  loading,
   onSelect,
   onClick,
   onEdit,
@@ -31,16 +34,15 @@ const GameListRow = ({
 }: GameListRowProps) => {
   return (
     <TableRow
-      key={game.name}
-      hover
+      hover={!loading}
       onClick={onClick}
       sx={{ ":hover": { cursor: "pointer" } }}
     >
       <TableCell width={"5%"}>
-        <Checkbox onChange={onSelect} checked={selected} />
+        <Checkbox onChange={onSelect} checked={selected ? true : false} />
       </TableCell>
       <TableCell width={"5%"}>
-        {game.coverImage ? (
+        {game.coverImage && !loading ? (
           <Paper
             component="img"
             src={game.coverImage}
@@ -52,22 +54,40 @@ const GameListRow = ({
           <Paper sx={{ width: 48, height: 64 }} elevation={3} />
         )}
       </TableCell>
-      <TableCell width={"30%"}>{game.name}</TableCell>
-      <TableCell width={"13%"}>{game.franchise}</TableCell>
-      <TableCell width={"15%"}>{<StatusIcon game={game} />}</TableCell>
-      <TableCell width={"10%"}>
-        {game.started && dayjs(game.started).format("YYYY-MM-DD")}
+      <TableCell width={"30%"}>{loading ? <Skeleton /> : game.name}</TableCell>
+      <TableCell width={"13%"}>
+        {loading ? <Skeleton /> : game.franchise}
+      </TableCell>
+      <TableCell width={"15%"}>
+        {loading ? <Skeleton /> : <StatusIcon game={game} />}
       </TableCell>
       <TableCell width={"10%"}>
-        {game.completed && dayjs(game.completed).format("YYYY-MM-DD")}
+        {loading ? (
+          <Skeleton />
+        ) : (
+          game.started && dayjs(game.started).format("YYYY-MM-DD")
+        )}
+      </TableCell>
+      <TableCell width={"10%"}>
+        {loading ? (
+          <Skeleton />
+        ) : (
+          game.completed && dayjs(game.completed).format("YYYY-MM-DD")
+        )}
       </TableCell>
       <TableCell align="right" width={"12%"}>
-        <IconButton onClick={() => onEdit(game)}>
-          <EditIcon />
-        </IconButton>
-        <IconButton onClick={() => onDelete(game.id)}>
-          <DeleteIcon />
-        </IconButton>
+        {loading ? (
+          <Skeleton />
+        ) : (
+          <>
+            <IconButton onClick={() => onEdit(game)}>
+              <EditIcon />
+            </IconButton>
+            <IconButton onClick={() => onDelete(game.id)}>
+              <DeleteIcon />
+            </IconButton>
+          </>
+        )}
       </TableCell>
     </TableRow>
   );

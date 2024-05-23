@@ -10,25 +10,52 @@ const initialState: IGamesProvider = {
   selectedGames: {},
 };
 
-export type GamesAction = { type: "toggle_selected_game"; payload: number };
+type SetSelectedGamePayload = {
+  id: number;
+  selected: boolean;
+  loading: boolean;
+};
+
+export type GamesAction =
+  | {
+      type: "SET_SELECTED_GAME";
+      payload: SetSelectedGamePayload;
+    }
+  | {
+      type: "REMOVE_SELECTED_GAME";
+      payload: number;
+    }
+  | {
+      type: "REMOVE_ALL_SELECTED_GAMES";
+    };
 
 const reducer = (state: IGamesProvider, action: GamesAction) => {
   switch (action.type) {
-    case "toggle_selected_game":
-      const result = {
-        ...state.selectedGames,
-        [action.payload]: !state.selectedGames[action.payload],
+    case "SET_SELECTED_GAME":
+      return {
+        ...state,
+        selectedGames: {
+          ...state.selectedGames,
+          [action.payload.id]: {
+            selected: action.payload.selected,
+            loading: action.payload.loading,
+          },
+        },
       };
-
-      if (result[action.payload] === false) {
-        delete result[action.payload];
-      }
-
-      console.log(result);
+    case "REMOVE_SELECTED_GAME":
+      const result = { ...state.selectedGames };
+      delete result[action.payload];
 
       return {
         ...state,
-        selectedGames: result,
+        selectedGames: {
+          ...result,
+        },
+      };
+    case "REMOVE_ALL_SELECTED_GAMES":
+      return {
+        ...state,
+        selectedGames: {},
       };
     default:
       return state;

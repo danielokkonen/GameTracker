@@ -17,7 +17,6 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import SnackbarContext from "../context/SnackbarContext";
 import MenuButton from "../components/common/MenuButton";
 import Spinner from "../components/common/Spinner";
-import GamesProvider from "../components/games/GamesProvider";
 import GamesContext from "../context/GamesContext";
 import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
 
@@ -108,8 +107,23 @@ const Games = () => {
       type: "show_message",
       payload: "Adding game details from IGDB...",
     });
-    
-    for (const item of Object.keys(gamesContext.state.selectedGames)) {
+
+    const selectedGames = Object.keys(
+      gamesContext.state.selectedGames
+    ).reverse();
+
+    for (const item of selectedGames) {
+      gamesContext.dispatch({
+        type: "SET_SELECTED_GAME",
+        payload: {
+          id: parseInt(item),
+          loading: true,
+          selected: true,
+        },
+      });
+    }
+
+    for (const item of selectedGames) {
       window.gameService.addGameDetails(parseInt(item));
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
@@ -120,10 +134,10 @@ const Games = () => {
     null,
     (id: number) => {
       gamesContext.dispatch({
-        type: "toggle_selected_game",
+        type: "REMOVE_SELECTED_GAME",
         payload: id,
       });
-      window.gameService.list();
+      window.gameService.list(); // TODO: Do not fetch all games every time
     }
   );
 
