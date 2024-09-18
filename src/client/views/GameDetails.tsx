@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import GameDto from "../../backend/dtos/game";
 import { useParams } from "react-router-dom";
 import { Channels } from "../constants/channels";
-import { IpcRendererEvent } from "electron";
 import {
   Box,
   Button,
@@ -22,6 +21,7 @@ import MenuButton from "../components/common/MenuButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
 
 const GameDetails = () => {
   const { id } = useParams();
@@ -84,71 +84,32 @@ const GameDetails = () => {
     }
   }, [id]);
 
+  useIpcRendererCallback(Channels.IGDB_GET_GAME, null, (result: any) => {
+    setGameDetails(result.filter((r: any) => !!r.cover));
+    setGameDetailsLoading(false);
+  });
+
+  useIpcRendererCallback(
+    Channels.GAMES_GET_SUCCESS,
+    null,
+    (game: GameDto) => {
+      setGame(game);
+      setGameDetails([]);
+    }
+  );
+
+  useIpcRendererCallback(Channels.GAMES_UPDATE_SUCCESS, null, () => {
+    window.gameService.get(parseInt(id));
+  });
+
   const getGameDetails = (name: string) => {
     setGameDetailsLoading(true);
     window.igdbService.getGameDetails(name);
   };
 
-  const saveGameDetails = async () => {
+  const saveGameDetails = () => {
     window.gameService.update(game);
   };
-
-  const handleGetGameDetailsSuccess = async (
-    event: IpcRendererEvent,
-    result: any
-  ) => {
-    setGameDetails(result.filter((r: any) => !!r.cover));
-    setGameDetailsLoading(false);
-  };
-
-  useEffect(() => {
-    window.electronApi.ipcRenderer.on(
-      Channels.IGDB_GET_GAME,
-      handleGetGameDetailsSuccess
-    );
-
-    return () => {
-      window.electronApi.ipcRenderer.removeAllListeners(Channels.IGDB_GET_GAME);
-    };
-  }, []);
-
-  const handleGetGameSuccess = async (
-    event: IpcRendererEvent,
-    result: GameDto
-  ) => {
-    setGame(result);
-    setGameDetails([]);
-  };
-
-  useEffect(() => {
-    window.electronApi.ipcRenderer.on(
-      Channels.GAMES_GET_SUCCESS,
-      handleGetGameSuccess
-    );
-
-    return () => {
-      window.electronApi.ipcRenderer.removeAllListeners(
-        Channels.GAMES_GET_SUCCESS
-      );
-    };
-  }, []);
-
-  const handleUpdateGameSuccess = async () => {
-    window.gameService.get(parseInt(id));
-  };
-
-  useEffect(() => {
-    window.electronApi.ipcRenderer.on(
-      Channels.GAMES_UPDATE_SUCCESS,
-      handleUpdateGameSuccess
-    );
-
-    return () => {
-      window.electronApi.ipcRenderer.removeAllListeners(
-        Channels.GAMES_UPDATE_SUCCESS
-      );
-    };
-  }, []);
 
   if (!game) {
     return <Spinner />;

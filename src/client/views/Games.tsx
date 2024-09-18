@@ -9,7 +9,6 @@ import {
 } from "@mui/material";
 import GameList from "../components/games/GameList";
 import GameDto from "../../backend/dtos/game";
-import { IpcRendererEvent } from "electron";
 import { Channels } from "../constants/channels";
 import CreateGameForm from "../components/games/CreateGameForm";
 import AddIcon from "@mui/icons-material/Add";
@@ -129,37 +128,30 @@ const Games = () => {
     }
   };
 
+  const handleAddGameDetailsSuccess = (id: number) => {
+    gamesContext.dispatch({
+      type: "REMOVE_SELECTED_GAME",
+      payload: id,
+    });
+    window.gameService.list(); // TODO: Do not fetch all games every time
+  };
+
   useIpcRendererCallback(
     Channels.GAMES_ADDDETAILS_SUCCESS,
     null,
-    (id: number) => {
-      gamesContext.dispatch({
-        type: "REMOVE_SELECTED_GAME",
-        payload: id,
-      });
-      window.gameService.list(); // TODO: Do not fetch all games every time
-    }
+    handleAddGameDetailsSuccess
   );
 
-  const handleListGamesSuccess = (
-    event: IpcRendererEvent,
-    payload: GameDto[]
-  ) => {
+  const handleListGamesSuccess = (payload: GameDto[]) => {
     setGames(payload);
     setLoading(false);
   };
 
-  useEffect(() => {
-    window.electronApi.ipcRenderer.on(
-      Channels.GAMES_LIST_SUCCESS,
-      handleListGamesSuccess
-    );
-    return () => {
-      window.electronApi.ipcRenderer.removeAllListeners(
-        Channels.GAMES_LIST_SUCCESS
-      );
-    };
-  }, []);
+  useIpcRendererCallback(
+    Channels.GAMES_LIST_SUCCESS,
+    null,
+    handleListGamesSuccess
+  );
 
   const handleCreateSuccess = () => {
     hideForm();
@@ -170,17 +162,11 @@ const Games = () => {
     });
   };
 
-  useEffect(() => {
-    window.electronApi.ipcRenderer.on(
-      Channels.GAMES_CREATE_SUCCESS,
-      handleCreateSuccess
-    );
-    return () => {
-      window.electronApi.ipcRenderer.removeAllListeners(
-        Channels.GAMES_CREATE_SUCCESS
-      );
-    };
-  }, []);
+  useIpcRendererCallback(
+    Channels.GAMES_CREATE_SUCCESS,
+    null,
+    handleCreateSuccess
+  );
 
   const handleUpdateSuccess = () => {
     hideForm();
@@ -191,17 +177,11 @@ const Games = () => {
     });
   };
 
-  useEffect(() => {
-    window.electronApi.ipcRenderer.on(
-      Channels.GAMES_UPDATE_SUCCESS,
-      handleUpdateSuccess
-    );
-    return () => {
-      window.electronApi.ipcRenderer.removeAllListeners(
-        Channels.GAMES_UPDATE_SUCCESS
-      );
-    };
-  }, []);
+  useIpcRendererCallback(
+    Channels.GAMES_UPDATE_SUCCESS,
+    null,
+    handleUpdateSuccess
+  );
 
   const handleDeleteSuccess = () => {
     refreshTable();
@@ -211,17 +191,11 @@ const Games = () => {
     });
   };
 
-  useEffect(() => {
-    window.electronApi.ipcRenderer.on(
-      Channels.GAMES_DELETE_SUCCESS,
-      handleDeleteSuccess
-    );
-    return () => {
-      window.electronApi.ipcRenderer.removeAllListeners(
-        Channels.GAMES_DELETE_SUCCESS
-      );
-    };
-  }, []);
+  useIpcRendererCallback(
+    Channels.GAMES_DELETE_SUCCESS,
+    null,
+    handleDeleteSuccess
+  );
 
   const handleImportSuccess = () => {
     refreshTable();
@@ -231,17 +205,11 @@ const Games = () => {
     });
   };
 
-  useEffect(() => {
-    window.electronApi.ipcRenderer.on(
-      Channels.GAMES_IMPORT_SUCCESS,
-      handleImportSuccess
-    );
-    return () => {
-      window.electronApi.ipcRenderer.removeAllListeners(
-        Channels.GAMES_IMPORT_SUCCESS
-      );
-    };
-  }, []);
+  useIpcRendererCallback(
+    Channels.GAMES_IMPORT_SUCCESS,
+    null,
+    handleImportSuccess
+  );
 
   return (
     <Box>
