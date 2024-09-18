@@ -69,8 +69,6 @@ export class IgdbService {
     const now = dayjs().subtract(2, "hour").unix();
 
     if (!token || now >= token?.expires_at || force) {
-      console.log("Renew token");
-
       const response = await fetch("https://id.twitch.tv/oauth2/token", {
         method: "POST",
         headers: {

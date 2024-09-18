@@ -174,8 +174,6 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
     return items;
   }, [sortOptions, items]);
 
-  console.log(allSelected);
-
   return (
     <TableContainer sx={{ td: { userSelect: "none" } }}>
       <Table>

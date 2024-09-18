@@ -13,7 +13,7 @@ export class Database {
   
       mkdir(dbPath, (err) => {
         if (err.code !== "EEXIST") {
-          console.log(err);
+          console.error(err);
         }
       });
 
@@ -22,8 +22,6 @@ export class Database {
     else {
       this.instance = db("dev.db");
     }
-
-    console.log('Database ctor()');
 
     this.instance.prepare(`
       CREATE TABLE IF NOT EXISTS "Game" (
