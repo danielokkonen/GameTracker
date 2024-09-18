@@ -109,7 +109,7 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
         payload: {
           id: id,
           loading: false,
-          selected: state.selectedGames[id]?.selected ? false : true,
+          selected: true,
         },
       });
     }
