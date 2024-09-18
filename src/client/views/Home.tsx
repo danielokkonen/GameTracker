@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Card, CardContent, Stack, Typography } from "@mui/material";
 import DashboardDto from "../../backend/dtos/dashboard";
 import { Channels } from "../constants/channels";
 import { IpcRendererEvent } from "electron";

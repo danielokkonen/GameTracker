@@ -53,9 +53,7 @@ const BaseLayout = () => {
   }, [state]);
 
   return (
-    <ThemeProvider
-      theme={shouldUseDarkMode ? darkTheme : lightTheme}
-    >
+    <ThemeProvider theme={shouldUseDarkMode ? darkTheme : lightTheme}>
       <CssBaseline />
       <Navigation open={true} />
       <Container maxWidth="xl">

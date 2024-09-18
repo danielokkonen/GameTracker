@@ -89,14 +89,10 @@ const GameDetails = () => {
     setGameDetailsLoading(false);
   });
 
-  useIpcRendererCallback(
-    Channels.GAMES_GET_SUCCESS,
-    null,
-    (game: GameDto) => {
-      setGame(game);
-      setGameDetails([]);
-    }
-  );
+  useIpcRendererCallback(Channels.GAMES_GET_SUCCESS, null, (game: GameDto) => {
+    setGame(game);
+    setGameDetails([]);
+  });
 
   useIpcRendererCallback(Channels.GAMES_UPDATE_SUCCESS, null, () => {
     window.gameService.get(parseInt(id));

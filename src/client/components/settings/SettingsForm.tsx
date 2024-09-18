@@ -21,7 +21,10 @@ const SettingsForm = ({ value, onSubmit }: ISettingsFormProps) => {
     onSubmit(values);
   };
 
-  const shouldUseDarkMode = useMemo(() => window.electronApi.theme.darkMode(), []);
+  const shouldUseDarkMode = useMemo(
+    () => window.electronApi.theme.darkMode(),
+    []
+  );
 
   const formik = useFormik({
     enableReinitialize: true,

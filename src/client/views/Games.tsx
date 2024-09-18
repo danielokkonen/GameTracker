@@ -255,7 +255,7 @@ const Games = () => {
             displayEmpty
             value={filter.franchise}
             onChange={(e) =>
-              setFilter({ ...filter, franchise: e.target.value as string })
+              setFilter({ ...filter, franchise: e.target.value })
             }
           >
             <MenuItem value="">Franchise</MenuItem>
@@ -270,9 +270,7 @@ const Games = () => {
             name="status"
             displayEmpty
             value={filter.status}
-            onChange={(e) =>
-              setFilter({ ...filter, status: e.target.value as string })
-            }
+            onChange={(e) => setFilter({ ...filter, status: e.target.value })}
           >
             <MenuItem value="">Status</MenuItem>
             {statuses.map((s) => (
@@ -283,15 +281,12 @@ const Games = () => {
           </Select>
         </Box>
       </Stack>
-      {loading ? (
-        <Spinner delayed />
-      ) : (
-        <GameList
-          items={filteredGames}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      )}
+      {loading && <Spinner delayed />}
+      <GameList
+        items={filteredGames}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
     </Box>
   );
 };

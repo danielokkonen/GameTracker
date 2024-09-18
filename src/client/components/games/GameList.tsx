@@ -67,9 +67,7 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
           });
         }
       } else {
-        dispatch({
-          type: "REMOVE_ALL_SELECTED_GAMES",
-        });
+        dispatch({ type: "REMOVE_ALL_SELECTED_GAMES" });
       }
     } else {
       setSortOptions({
