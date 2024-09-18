@@ -1,8 +1,8 @@
 import { Dispatch, createContext } from "react";
-import { GamesAction, IGamesProvider } from "../components/games/GamesProvider";
+import { GamesAction, IGamesState } from "../components/games/GamesProvider";
 
 export interface IGamesContext {
-  state: IGamesProvider;
+  state: IGamesState;
   dispatch: Dispatch<GamesAction>;
 }
 

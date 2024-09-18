@@ -2,11 +2,11 @@
 import React, { useReducer } from "react";
 import GamesContext from "../../../client/context/GamesContext";
 
-export interface IGamesProvider {
+export interface IGamesState {
   selectedGames: any;
 }
 
-const initialState: IGamesProvider = {
+const initialState: IGamesState = {
   selectedGames: {},
 };
 
@@ -29,7 +29,7 @@ export type GamesAction =
       type: "REMOVE_ALL_SELECTED_GAMES";
     };
 
-const reducer = (state: IGamesProvider, action: GamesAction) => {
+const reducer = (state: IGamesState, action: GamesAction) => {
   switch (action.type) {
     case "SET_SELECTED_GAME":
       return {
