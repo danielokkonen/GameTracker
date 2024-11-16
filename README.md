@@ -12,6 +12,7 @@ Integrated with IGDB (Internet Game Database) to fetch additional details about 
 
 ## Built with
 - Electron
+- Electron Forge
 - React
 - TypeScript
 - SQLite
