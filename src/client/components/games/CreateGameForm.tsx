@@ -4,7 +4,7 @@ import GameDto from "../../../backend/dtos/game";
 import SaveIcon from "@mui/icons-material/Save";
 import { LoadingButton } from "@mui/lab";
 import { useFormik } from "formik";
-import { ObjectSchema, date, number, object, string } from "yup";
+import { date, number, object, string } from "yup";
 import SettingsContext from "../../../client/context/SettingsContext";
 import dayjs from "dayjs";
 
@@ -14,17 +14,6 @@ interface CreateGameFormProps {
   onClose: any;
   franchises?: string[];
 }
-
-const validationSchema: ObjectSchema<GameDto> = object({
-  id: number().optional(),
-  name: string().required(),
-  franchise: string().required(),
-  status: string().optional(),
-  started: date().optional().nullable(),
-  completed: date().optional().nullable(),
-  created: date().optional(),
-  updated: date().optional().nullable(),
-});
 
 const CreateGameForm = ({
   value,
@@ -49,7 +38,16 @@ const CreateGameForm = ({
   const formik = useFormik({
     initialValues: value ?? new GameDto(),
     onSubmit: handleSubmit,
-    validationSchema: validationSchema,
+    validationSchema: object({
+      id: number().optional(),
+      name: string().required(),
+      franchise: string().required(),
+      status: string().optional(),
+      started: date().optional().nullable(),
+      completed: date().optional().nullable(),
+      created: date().optional(),
+      updated: date().optional().nullable(),
+    }),
   });
 
   return (

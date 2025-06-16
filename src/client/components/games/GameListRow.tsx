@@ -37,6 +37,7 @@ const GameListRow = ({
       hover={!loading}
       onClick={onClick}
       sx={{ ":hover": { cursor: "pointer" } }}
+      data-gameid={game.id}
     >
       <TableCell width={"5%"}>
         <Checkbox onChange={onSelect} checked={selected ? true : false} />

@@ -145,6 +145,13 @@ const Games = () => {
   const handleListGamesSuccess = (payload: GameDto[]) => {
     setGames(payload);
     setLoading(false);
+
+    setTimeout(() => {
+      const lastClickedGameId = sessionStorage.getItem('games.lastclicked');
+      if (lastClickedGameId) {
+        document.querySelector(`[data-gameid="${lastClickedGameId}"]`).scrollIntoView();
+      }
+    }, 1000);
   };
 
   useIpcRendererCallback(
