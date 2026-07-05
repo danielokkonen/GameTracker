@@ -3,16 +3,16 @@ export default class GameDto {
   public name: string;
   public franchise: string;
   public status: string;
-  public started: Date;
-  public completed: Date;
-  public summary: string;
-  public developer: string;
-  public publisher: string;
-  public genres: string[]; 
-  public platforms: string[];
-  public coverImage: string;
-  public created: Date;
-  public updated: Date;
+  public started: Date | null;
+  public completed: Date | null;
+  public summary: string | null;
+  public developer: string | null;
+  public publisher: string | null;
+  public genres: string[] | null; 
+  public platforms: string[] | null;
+  public coverImage: string | null;
+  public created: Date | null;
+  public updated: Date | null;
 
-  [key: string]: string| string[] | number| Date;
+  [key: string]: string| string[] | number| Date|null;
 }
