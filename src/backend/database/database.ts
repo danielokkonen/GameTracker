@@ -1,15 +1,23 @@
 import { app } from "electron";
 import { mkdir } from 'node:fs';
+import path from 'path';
 
-const db = require("better-sqlite3");
+const { DatabaseSync } = require("node:sqlite");
 
 export class Database {
   public instance: any;
   
   constructor() {
     if (app.isPackaged) {
-      const dbPath = `${app.getPath("appData").replace("Roaming", "Local")}\\GameTracker`;
+      const isWindows = process.platform === "win32";
       const dbName = "GameTracker.db";
+      
+      let dbPath: string;
+      if (isWindows) {
+        dbPath = path.join(app.getPath("appData").replace("Roaming", "Local"), "GameTracker");
+      } else {
+        dbPath = app.getPath("userData");
+      }
   
       mkdir(dbPath, (err) => {
         if (err.code !== "EEXIST") {
@@ -17,10 +25,10 @@ export class Database {
         }
       });
 
-      this.instance = db(`${dbPath}\\${dbName}`);
+      this.instance = new DatabaseSync(path.join(dbPath, dbName));
     }
     else {
-      this.instance = db("dev.db");
+      this.instance = new DatabaseSync('dev.db');
     }
 
     this.instance.prepare(`

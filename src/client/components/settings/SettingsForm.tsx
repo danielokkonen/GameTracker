@@ -28,7 +28,7 @@ const SettingsForm = ({ value, onSubmit }: ISettingsFormProps) => {
 
   const formik = useFormik({
     enableReinitialize: true,
-    initialValues: value ?? new SettingsDto(shouldUseDarkMode),
+    initialValues: value ?? new SettingsDto(Boolean(shouldUseDarkMode)),
     onSubmit: handleSubmit,
   });
 

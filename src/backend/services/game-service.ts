@@ -28,15 +28,28 @@ export default class GameService {
 
   create = async (entity: GameDto): Promise<void> => {
     const data = this.toDbEntity(entity);
+    data.id = 0;
     data.created = new Date().toISOString();
 
-    const statement = this.database.instance.prepare(
-      "INSERT INTO Game VALUES(@id, @name, @franchise, @start, @end, @created, @updated, @summary, @developer, @publisher, @genres, @platforms, @coverImage)"
-    );
-    statement.run({
-      id: 0,
-      ...data,
-    });
+    const statement = this.database.instance.prepare(`
+      INSERT INTO Game 
+      VALUES(
+        @id, 
+        @name, 
+        @franchise, 
+        @start, 
+        @end, 
+        @created, 
+        @updated, 
+        @coverImage, 
+        @developer, 
+        @genres, 
+        @platforms, 
+        @publisher,
+        @summary
+      )
+    `);
+    statement.run(data);
   };
 
   update = async (entity: GameDto): Promise<void> => {
@@ -57,7 +70,20 @@ export default class GameService {
         platforms = @platforms, 
         coverImage = @coverImage 
       WHERE id = @id`);
-    statement.run(data);
+    statement.run({
+      id: data.id,
+      name: data.name,
+      franchise: data.franchise, 
+      start: data.start, 
+      end: data.end, 
+      updated: data.updated, 
+      summary: data.summary, 
+      developer: data.developer, 
+      publisher: data.publisher, 
+      genres: data.genres, 
+      platforms: data.platforms, 
+      coverImage: data.coverImage,
+    });
   };
 
   delete = async (id: number): Promise<void> => {
@@ -163,12 +189,12 @@ export default class GameService {
     end: g.completed ? new Date(g.completed).toISOString() : null,
     created: g.created ? new Date(g.created).toISOString() : null,
     updated: g.updated ? new Date(g.updated).toISOString() : null,
-    summary: g.summary,
-    developer: g.developer,
-    publisher: g.publisher,
-    genres: g.genres?.join(";"),
-    platforms: g.platforms?.join(";"),
-    coverImage: g.coverImage,
+    coverImage: g.coverImage ?? null,
+    developer: g.developer ?? null,
+    genres: g.genres?.join(";") ?? null,
+    platforms: g.platforms?.join(";") ?? null,
+    publisher: g.publisher ?? null,
+    summary: g.summary ?? null,
   });
 
   private toDto = (g: any) => {
