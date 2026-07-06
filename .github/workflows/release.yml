@@ -39,7 +39,7 @@ jobs:
 
       - name: Print directory tree
         run: |
-          tree
+          tree -I node_modules
 
       - name: Extract package files
         run: |
