@@ -37,6 +37,10 @@ jobs:
             --platform=${{ matrix.platform }} \
             --arch=${{ matrix.arch }}
 
+      - name: Print directory tree
+        run: |
+          tree
+
       - name: Extract package files
         run: |
           mkdir -p packages
