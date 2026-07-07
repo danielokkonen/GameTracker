@@ -12,9 +12,10 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-    ...(process.platform === 'win32' ? [new MakerSquirrel({})] : []),
-    ...(process.platform === 'darwin' ? [new MakerZIP({}, ['darwin'])] : []),
-    ...(process.platform === 'linux' ? [new MakerDeb({})] : []),
+    new MakerSquirrel({})
+    // ...(process.platform === 'win32' ? [new MakerSquirrel({})] : []),
+    // ...(process.platform === 'darwin' ? [new MakerZIP({}, ['darwin'])] : []),
+    // ...(process.platform === 'linux' ? [new MakerDeb({})] : []),
   ],
   plugins: [
     new VitePlugin({

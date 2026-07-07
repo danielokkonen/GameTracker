@@ -7,17 +7,8 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            platform: linux
-            arch: x64
-          - os: windows-latest
-            platform: win32
-            arch: x64
 
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 26
           cache: npm
 
       - name: Install dependencies
@@ -44,13 +35,12 @@ jobs:
       - name: Extract package files
         run: |
           mkdir -p packages
-          cp out/game-tracker/package/${{ matrix.platform }}-${{ matrix.arch }}/game-tracker*.deb packages/ || true
-          cp out/game-tracker/package/${{ matrix.platform }}-${{ matrix.arch }}/game-tracker*.exe packages/ || true
+          cp out/game-tracker/package/win32-x64/game-tracker*.deb packages/ || true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: game-tracker-${{ matrix.platform }}-${{ matrix.arch }}
+          name: game-tracker-win32-x64
           path: packages/
           retention-days: 5
 
