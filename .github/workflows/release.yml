@@ -22,11 +22,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build for ${{ matrix.platform }}-${{ matrix.arch }}
+      - name: Build for win32
         run: |
-          npx electron-forge make \
-            --platform=${{ matrix.platform }} \
-            --arch=${{ matrix.arch }}
+          npx electron-forge make
 
       - name: Print directory tree
         run: |
