@@ -1,5 +1,9 @@
 name: Release
 
+defaults:
+  run:
+    shell: bash
+
 on:
   push:
     branches:
@@ -9,10 +13,6 @@ jobs:
   build:
 
     runs-on: windows-latest
-
-    defaults:
-      run:
-        shell: bash
 
     steps:
       - uses: actions/checkout@v4
@@ -30,9 +30,8 @@ jobs:
         run: |
           npx electron-forge make
 
-      - name: Print directory tree
-        run: |
-          tree -I node_modules
+      - name: Print directory
+        run: ls
 
       - name: Extract package files
         run: |
