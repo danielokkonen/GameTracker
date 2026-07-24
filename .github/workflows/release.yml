@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 26
-          cache: npm
+          # cache: npm
 
       - name: Install dependencies
         run: npm ci
@@ -33,32 +33,32 @@ jobs:
       - name: Print directory
         run: ls
 
-      - name: Extract package files
-        run: |
-          mkdir -p packages
-          cp out/game-tracker/package/win32-x64/game-tracker*.deb packages/ || true
+      # - name: Extract package files
+      #   run: |
+      #     mkdir -p packages
+      #     cp out/game-tracker/package/win32-x64/game-tracker*.deb packages/ || true
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: game-tracker-win32-x64
-          path: packages/
-          retention-days: 5
+      # - name: Upload artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: game-tracker-win32-x64
+      #     path: packages/
+      #     retention-days: 5
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
+  # release:
+  #   needs: build
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: "game-tracker-*"
-          path: dist/
+  #   steps:
+  #     - name: Download all artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         pattern: "game-tracker-*"
+  #         path: dist/
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/**/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Create GitHub Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: dist/**/*
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
