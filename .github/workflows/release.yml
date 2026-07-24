@@ -34,7 +34,7 @@ jobs:
         run: rm -rf node_modules
 
       - name: Print directory tree
-        run: tree
+        run: find . -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'
 
       # - name: Extract package files
       #   run: |
