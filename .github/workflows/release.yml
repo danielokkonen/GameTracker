@@ -2,7 +2,7 @@ name: Release
 
 defaults:
   run:
-    shell: bash
+    shell: powershell
 
 on:
   push:
