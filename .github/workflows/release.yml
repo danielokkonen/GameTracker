@@ -30,8 +30,8 @@ jobs:
         run: |
           npx electron-forge make --platform win32 --arch x64
 
-      - name: Print directory
-        run: ls
+      - name: Print directory tree
+        run: tree -I node_modules
 
       # - name: Extract package files
       #   run: |
