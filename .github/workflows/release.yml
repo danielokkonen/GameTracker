@@ -28,7 +28,7 @@ jobs:
 
       - name: Build for win32
         run: |
-          npx electron-forge make
+          npx electron-forge make --platform win32 --arch x64
 
       - name: Print directory
         run: ls
