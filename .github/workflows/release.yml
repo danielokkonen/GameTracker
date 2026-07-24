@@ -2,7 +2,7 @@ name: Release
 
 defaults:
   run:
-    shell: powershell
+    shell: bash
 
 on:
   push:
@@ -30,8 +30,11 @@ jobs:
         run: |
           npx electron-forge make --platform win32 --arch x64
 
+      - name: Remove node_modules
+        run: rm -rf node_modules
+
       - name: Print directory tree
-        run: tree -I node_modules
+        run: tree
 
       # - name: Extract package files
       #   run: |
