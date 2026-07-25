@@ -36,32 +36,35 @@ jobs:
       - name: Print directory tree
         run: find . -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'
 
-      # - name: Extract package files
-      #   run: |
-      #     mkdir -p packages
-      #     cp out/game-tracker/package/win32-x64/game-tracker*.deb packages/ || true
+      - name: Extract package files
+        run: |
+          mkdir -p packages
+          cp out/make/**/game-tracker-*.exe packages/
 
-      # - name: Upload artifacts
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: game-tracker-win32-x64
-      #     path: packages/
-      #     retention-days: 5
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-tracker-win32-x64
+          path: packages/
+          retention-days: 5
 
-  # release:
-  #   needs: build
-  #   runs-on: ubuntu-latest
+  release:
+    needs: build
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Download all artifacts
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         pattern: "game-tracker-*"
-  #         path: dist/
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "game-tracker-*"
+          path: packages/
 
-  #     - name: Create GitHub Release
-  #       uses: softprops/action-gh-release@v2
-  #       with:
-  #         files: dist/**/*
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-2026-07-25
+          working_directory: packages
+          files: |
+            *.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
