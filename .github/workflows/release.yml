@@ -38,8 +38,8 @@ jobs:
 
       - name: Extract package files
         run: |
-          mkdir -p packages
-          cp out/make/**/game-tracker-*.exe packages/
+          mkdir packages
+          cp out/make/**/*.exe packages/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
