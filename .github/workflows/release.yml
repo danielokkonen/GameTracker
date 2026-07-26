@@ -58,6 +58,9 @@ jobs:
         with:
           pattern: "game-tracker-*"
 
+      - name: Print directory tree
+        run: find . -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -65,5 +68,3 @@ jobs:
           working_directory: game-tracker-win32-x64
           files: |
             ./*.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
