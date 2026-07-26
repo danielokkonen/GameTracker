@@ -12,7 +12,17 @@ on:
 jobs:
   build:
 
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+          - os: windows-latest
+            platform: win32
+            arch: x64
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -21,14 +31,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          # cache: npm
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
       - name: Build for win32
         run: |
-          npx electron-forge make --platform win32 --arch x64
+          npx electron-forge make --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
 
       - name: Remove node_modules
         run: rm -rf node_modules
@@ -40,11 +50,12 @@ jobs:
         run: |
           mkdir packages
           find ./out -name '*.exe' -exec cp {} ./packages/ \;
+          find ./out -name '*.deb' -exec cp {} ./packages/ \;
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: game-tracker-win32-x64
+          name: game-tracker-${{ matrix.platform }}-${{ matrix.arch }}
           path: packages/
           retention-days: 5
 
@@ -64,7 +75,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: test-2026-07-26
-          working_directory: game-tracker-win32-x64
+          tag_name: test-2026-07-26-2
           files: |
-            ./*.exe
+            ./game-tracker-win32-x64/*Setup.exe
+            ./game-tracker-linux-x64/*.deb
