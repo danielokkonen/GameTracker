@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build for win32
+      - name: Build for ${{ matrix.platform }}-${{ matrix.arch }}
         run: |
           npx electron-forge make --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
 
