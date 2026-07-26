@@ -62,7 +62,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: test-2026-07-26
-          working_directory: packages
+          working_directory: game-tracker-win32-x64
           files: |
             ./*.exe
         env:
