@@ -6,8 +6,8 @@ defaults:
 
 on:
   push:
-    branches:
-      - build/release-pipeline
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -75,7 +75,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: test-2026-07-26-2
+          tag_name: ${{  github.ref_name }}
           files: |
             ./game-tracker-win32-x64/*Setup.exe
             ./game-tracker-linux-x64/*.deb
