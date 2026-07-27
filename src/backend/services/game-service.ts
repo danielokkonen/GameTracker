@@ -28,7 +28,7 @@ export default class GameService {
 
   create = async (entity: GameDto): Promise<void> => {
     const data = this.toDbEntity(entity);
-    data.id = 0;
+    data.id = null; // Id needs to be present, so for auto increment to work it needs to be assigned to null
     data.created = new Date().toISOString();
 
     const statement = this.database.instance.prepare(`
