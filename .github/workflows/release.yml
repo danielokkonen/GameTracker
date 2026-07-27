@@ -1,0 +1,81 @@
+name: Release
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+          - os: windows-latest
+            platform: win32
+            arch: x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for ${{ matrix.platform }}-${{ matrix.arch }}
+        run: |
+          npx electron-forge make --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+
+      - name: Remove node_modules
+        run: rm -rf node_modules
+
+      - name: Print directory tree
+        run: find . -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'
+
+      - name: Extract package files
+        run: |
+          mkdir packages
+          find ./out -name '*.exe' -exec cp {} ./packages/ \;
+          find ./out -name '*.deb' -exec cp {} ./packages/ \;
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-tracker-${{ matrix.platform }}-${{ matrix.arch }}
+          path: packages/
+          retention-days: 5
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "game-tracker-*"
+
+      - name: Print directory tree
+        run: find . -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{  github.ref_name }}
+          files: |
+            ./game-tracker-win32-x64/*Setup.exe
+            ./game-tracker-linux-x64/*.deb
