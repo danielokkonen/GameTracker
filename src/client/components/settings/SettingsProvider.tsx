@@ -3,9 +3,9 @@ import SettingsContext from "../../../client/context/SettingsContext";
 
 export interface ISettingsState {
   developerMode: boolean;
-  darkMode: boolean;
-  igdbClientId: string;
-  igdbSecret: string;
+  darkMode: boolean | null;
+  igdbClientId: string | null;
+  igdbSecret: string | null;
 }
 
 const initialState: ISettingsState = {
@@ -27,6 +27,7 @@ export type SettingsAction =
 const reducer = (state: ISettingsState, action: SettingsAction) => {
   switch (action.type) {
     case "init":
+      if (!action.payload) return state;
       return {
         ...action.payload,
       };

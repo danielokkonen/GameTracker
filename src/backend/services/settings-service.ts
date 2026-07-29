@@ -2,47 +2,64 @@
 
 import { Database } from "../database/database";
 import SettingsDto from "../dtos/settings";
+import CredentialService from "./credential-service";
 
 export default class SettingsService {
   private database: Database;
+  private credentialService: CredentialService;
 
   constructor() {
     this.database = new Database();
+    this.credentialService = new CredentialService();
   }
 
-  get = async (): Promise<SettingsDto> => {
+  get = async (): Promise<SettingsDto | null> => {
     const statement = this.database.instance.prepare("SELECT * FROM Settings WHERE id = @id");
     const result = statement.get({ id: 1 });
-    return this.toDto(result);
+    
+    if (!result) {
+      return null;
+    }
+
+    const dto: SettingsDto = JSON.parse(result.json);
+    const credentials = this.credentialService.getCredentials(dto, result.credentialsEncrypted === 1);
+    
+    dto.igdbClientId = credentials.igdbClientId;
+    dto.igdbSecret = credentials.igdbSecret;
+    
+    return dto;
   };
 
   upsert = async (entity: SettingsDto): Promise<void> => {
-    const data = this.toDbEntity(entity);
+    const credentials = this.credentialService.setCredentials(
+      entity.igdbClientId,
+      entity.igdbSecret
+    );
+
+    const updatedEntity = {
+      ...entity,
+      igdbClientId: credentials.igdbClientId,
+      igdbSecret: credentials.igdbSecret,
+    };
+
+    const data = {
+      id: 1,
+      json: JSON.stringify(updatedEntity),
+      credentialsEncrypted: credentials.credentialsEncrypted ? 1 : 0,
+    };
 
     const existing = await this.get();
 
     if (existing) {
-      const statement = this.database.instance.prepare("UPDATE Settings SET json = @json WHERE id = @id");
+      const statement = this.database.instance.prepare(
+        "UPDATE Settings SET json = @json, credentialsEncrypted = @credentialsEncrypted WHERE id = @id"
+      );
       statement.run(data);
-
-    }
-    else {
-      const statement = this.database.instance.prepare("INSERT INTO Settings VALUES (@id, @json)");
+    } else {
+      const statement = this.database.instance.prepare(
+        "INSERT INTO Settings (id, json, credentialsEncrypted) VALUES (@id, @json, @credentialsEncrypted)"
+      );
       statement.run(data);
     }
-  };
-
-  private toDbEntity = (s: SettingsDto): any => ({
-    id: 1,
-    json: JSON.stringify(s),
-  });
-
-  private toDto = (s: any): SettingsDto => {
-    if (!s) {
-      return null;
-    }
-
-    const dto: SettingsDto = JSON.parse(s.json);
-    return dto;
   };
 }

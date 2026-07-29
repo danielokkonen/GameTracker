@@ -8,9 +8,9 @@ import SettingsContext from "../context/SettingsContext";
 
 const Settings = () => {
   const { dispatch } = useContext(SettingsContext);
-  const [settings, setSettings] = useState<SettingsDto>(null);
+  const [settings, setSettings] = useState<SettingsDto | null>(null);
 
-  useIpcRendererCallback<SettingsDto>(
+  useIpcRendererCallback<SettingsDto | null>(
     Channels.SETTINGS_GET_SUCCESS,
     () => window.settingsService.get(),
     (data) => {

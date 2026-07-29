@@ -4,15 +4,18 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
+  InputAdornment,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { useFormik } from "formik";
 import SettingsDto from "../../../backend/dtos/settings";
+import LockIcon from "@mui/icons-material/Lock";
 
 interface ISettingsFormProps {
-  value: SettingsDto;
+  value: SettingsDto | null;
   onSubmit: (value: SettingsDto) => void;
 }
 
@@ -72,9 +75,19 @@ const SettingsForm = ({ value, onSubmit }: ISettingsFormProps) => {
           <TextField
             name="igdbSecret"
             label="Secret"
+            type="password"
             value={formik.values.igdbSecret}
             onBlur={formik.handleBlur}
             onChange={formik.handleChange}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <Tooltip title="Credentials are encrypted at rest using your OS keychain">
+                    <LockIcon fontSize="small" color="action" />
+                  </Tooltip>
+                </InputAdornment>
+              ),
+            }}
           />
         </Stack>
         <Button type="submit" variant="contained" disabled={disabled}>
