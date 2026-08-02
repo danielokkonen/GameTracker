@@ -22,24 +22,24 @@ export default class SettingsService {
     }
 
     const dto: SettingsDto = JSON.parse(result.json);
-    const credentials = this.credentialService.getCredentials(dto, result.credentialsEncrypted === 1);
+    const credentials = this.credentialService.getCredentials(["igdbClientId", "igdbSecret"], dto, result.credentialsEncrypted === 1);
     
-    dto.igdbClientId = credentials.igdbClientId;
-    dto.igdbSecret = credentials.igdbSecret;
+    dto.igdbClientId = credentials["igdbClientId"];
+    dto.igdbSecret = credentials["igdbSecret"];
     
     return dto;
   };
 
   upsert = async (entity: SettingsDto): Promise<void> => {
-    const credentials = this.credentialService.setCredentials(
-      entity.igdbClientId,
-      entity.igdbSecret
-    );
+    const credentials = this.credentialService.setCredentials({
+      igdbClientId: entity.igdbClientId,
+      igdbSecret: entity.igdbSecret,
+    });
 
     const updatedEntity = {
       ...entity,
-      igdbClientId: credentials.igdbClientId,
-      igdbSecret: credentials.igdbSecret,
+      igdbClientId: credentials.encryptedKeys["igdbClientId"],
+      igdbSecret: credentials.encryptedKeys["igdbSecret"],
     };
 
     const data = {

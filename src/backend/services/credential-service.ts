@@ -1,81 +1,50 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-
-const { safeStorage } = require("electron");
+import EncryptionService from "./encryption-service";
 
 export default class CredentialService {
-  private get isEncryptionAvailable(): boolean {
-    try {
-      return safeStorage.isEncryptionAvailable();
-    } catch {
-      return false;
-    }
+  private encryptionService: EncryptionService;
+
+  constructor(encryptionService?: EncryptionService) {
+    this.encryptionService = encryptionService || new EncryptionService();
   }
 
-  encryptString = (plainText: string): string => {
-    if (!this.isEncryptionAvailable || !plainText) {
-      return plainText;
+  getCredentials = (keys: string[], json: any, credentialsEncrypted: boolean): Record<string, string> => {
+    const result: Record<string, string> = {};
+
+    for (const key of keys) {
+      const value = json[key] || "";
+      if (credentialsEncrypted) {
+        result[key] = this.encryptionService.decryptString(value);
+      } else {
+        result[key] = value;
+      }
     }
-    const encrypted = safeStorage.encryptString(plainText);
-    return encrypted.toString("base64");
+
+    return result;
   };
 
-  decryptString = (encrypted: string): string => {
-    if (!this.isEncryptionAvailable || !encrypted) {
-      return encrypted;
-    }
-    try {
-      const buffer = Buffer.from(encrypted, "base64");
-      return safeStorage.decryptString(buffer);
-    } catch {
-      return encrypted;
-    }
-  };
-
-  getCredentials = (json: any, credentialsEncrypted: boolean) => {
-    const clientId = json.igdbClientId || "";
-    const secret = json.igdbSecret || "";
-
-    if (credentialsEncrypted) {
-      return {
-        igdbClientId: this.decryptString(clientId),
-        igdbSecret: this.decryptString(secret),
-        isMigrated: true,
-      };
-    }
-
-    return {
-      igdbClientId: clientId,
-      igdbSecret: secret,
-      isMigrated: false,
-    };
-  };
-
-  setCredentials = (clientId: string, secret: string) => {
-    const hasCredentials = Boolean(clientId) || Boolean(secret);
+  setCredentials = (keys: Record<string, string>): { encryptedKeys: Record<string, string>; credentialsEncrypted: boolean } => {
+    const hasCredentials = Object.values(keys).some(Boolean);
 
     if (!hasCredentials) {
+      const emptyKeys: Record<string, string> = {};
+      for (const key of Object.keys(keys)) {
+        emptyKeys[key] = "";
+      }
       return {
-        igdbClientId: "",
-        igdbSecret: "",
+        encryptedKeys: emptyKeys,
         credentialsEncrypted: false,
       };
     }
 
-    const encryptedClientId = this.encryptString(clientId);
-    const encryptedSecret = this.encryptString(secret);
+    const encryptedKeys: Record<string, string> = {};
+    for (const [key, value] of Object.entries(keys)) {
+      encryptedKeys[key] = this.encryptionService.encryptString(value || "");
+    }
 
     return {
-      igdbClientId: encryptedClientId,
-      igdbSecret: encryptedSecret,
-      credentialsEncrypted: this.isEncryptionAvailable,
+      encryptedKeys,
+      credentialsEncrypted: this.encryptionService.isEncryptionAvailable,
     };
   };
 
-  deleteCredentials = () => {
-    return {
-      igdbClientId: "",
-      igdbSecret: "",
-      credentialsEncrypted: false,
-    };
-  };
 }
