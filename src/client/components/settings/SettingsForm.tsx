@@ -4,21 +4,24 @@ import {
   Button,
   Checkbox,
   Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControlLabel,
+  IconButton,
   InputAdornment,
   Stack,
   TextField,
   Tooltip,
   Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import { useFormik } from "formik";
 import SettingsDto from "../../../backend/dtos/settings";
 import LockIcon from "@mui/icons-material/Lock";
 import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 interface ISettingsFormProps {
   value: SettingsDto | null;
@@ -29,6 +32,7 @@ interface ISettingsFormProps {
 const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) => {
   const [showDialog, setShowDialog] = React.useState(false);
   const [debugExpanded, setDebugExpanded] = React.useState(false);
+  const [showSecret, setShowSecret] = React.useState(false);
   const handleSubmit = (values: SettingsDto) => {
     onSubmit(values);
   };
@@ -73,7 +77,7 @@ const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) =>
           <TextField
             name="igdbSecret"
             label="Secret"
-            type="password"
+            type={showSecret ? "text" : "password"}
             value={formik.values.igdbSecret}
             onBlur={formik.handleBlur}
             onChange={formik.handleChange}
@@ -83,6 +87,12 @@ const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) =>
                   <Tooltip title="Credentials are encrypted at rest using your OS keychain">
                     <LockIcon fontSize="small" color="action" />
                   </Tooltip>
+                  <IconButton
+                    onClick={() => setShowSecret(!showSecret)}
+                    edge="end"
+                  >
+                    {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                  </IconButton>
                 </InputAdornment>
               ),
             }}
