@@ -147,3 +147,8 @@ ipcMain.on("upsert-settings", async (event, payload: SettingsDto) => {
   await settingService.upsert(payload);
   event.reply("upsert-settings-success");
 });
+
+ipcMain.on("clear-tokens", async (event) => {
+  await settingService.clearTokens();
+  event.reply("clear-tokens-success");
+});

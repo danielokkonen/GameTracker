@@ -61,8 +61,17 @@ export class Database {
     this.instance.prepare(`
       CREATE TABLE IF NOT EXISTS "Settings" (
         "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-        "json" TEXT NOT NULL
+        "json" TEXT NOT NULL,
+        "credentialsEncrypted" INTEGER NOT NULL DEFAULT 0
       );
     `).run();
+
+    try {
+      this.instance.prepare(
+        "ALTER TABLE Settings ADD COLUMN credentialsEncrypted INTEGER NOT NULL DEFAULT 0"
+      ).run();
+    } catch {
+      // Column already exists
+    }
   }
 }

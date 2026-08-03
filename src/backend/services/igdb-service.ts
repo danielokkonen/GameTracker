@@ -20,6 +20,10 @@ export class IgdbService {
   getGameDetails = async (title: string): Promise<any> => {
     const settings = await this.settingsService.get();
 
+    if (!settings) {
+      throw new Error("Settings not found. Please configure IGDB credentials first.");
+    }
+
     let token = await this.getAccessToken(
       settings.igdbClientId,
       settings.igdbSecret
