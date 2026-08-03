@@ -47,4 +47,5 @@ interface IIgdbService {
 interface ISettingsService {
   get: () => SettingsDto;
   upsert: (settings: SettingsDto) => void;
+  clearTokens: () => void;
 }

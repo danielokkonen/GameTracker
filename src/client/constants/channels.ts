@@ -12,4 +12,6 @@ export const Channels = {
 
   SETTINGS_GET_SUCCESS: "get-settings-success",
   SETTINGS_UPSERT_SUCCESS: "upsert-settings-success",
+  CLEAR_TOKENS: "clear-tokens",
+  CLEAR_TOKENS_SUCCESS: "clear-tokens-success",
 };

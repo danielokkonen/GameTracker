@@ -5,9 +5,11 @@ import SettingsDto from "../../backend/dtos/settings";
 import { Channels } from "../constants/channels";
 import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
 import SettingsContext from "../context/SettingsContext";
+import SnackbarContext from "../context/SnackbarContext";
 
 const Settings = () => {
   const { dispatch } = useContext(SettingsContext);
+  const snackbarDispatch = useContext(SnackbarContext);
   const [settings, setSettings] = useState<SettingsDto | null>(null);
 
   useIpcRendererCallback<SettingsDto | null>(
@@ -26,9 +28,17 @@ const Settings = () => {
     });
   };
 
+  const onClearTokens = () => {
+    window.settingsService.clearTokens();
+    snackbarDispatch({
+      type: "show_message",
+      payload: "Tokens cleared successfully.",
+    });
+  };
+
   return (
     <Box>
-      <SettingsForm value={settings} onSubmit={onSubmit} />
+      <SettingsForm value={settings} onSubmit={onSubmit} onClearTokens={onClearTokens} />
     </Box>
   );
 };

@@ -62,4 +62,9 @@ export default class SettingsService {
       statement.run(data);
     }
   };
+
+  clearTokens = async (): Promise<void> => {
+    const statement = this.database.instance.prepare("DELETE FROM Tokens");
+    statement.run();
+  };
 }
