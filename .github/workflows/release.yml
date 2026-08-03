@@ -6,6 +6,8 @@ defaults:
 
 on:
   push:
+    branches:
+      - 'fix/windows-squirrel-installer-does-not-open-correctly'
     tags:
       - '*'
 
