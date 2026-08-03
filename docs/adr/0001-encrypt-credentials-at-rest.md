@@ -38,6 +38,12 @@ If `safeStorage.isEncryptionAvailable()` returns `false` (e.g., headless environ
 | Windows | DPAPI (Windows Credential Manager) |
 | macOS | Keychain |
 
+## UI Status Indicator
+
+The settings form checks `safeStorage.isEncryptionAvailable()` on mount via a `is-encryption-available` IPC handler and displays a colored helper text below the `igdbSecret` input:
+- Green text when encryption is available
+- Red text when encryption is unavailable
+
 ## Consequences
 
 ### Positive
@@ -57,4 +63,3 @@ If `safeStorage.isEncryptionAvailable()` returns `false` (e.g., headless environ
 
 ### Open Questions
 - Should `CredentialService` eventually manage its own DB table (e.g., a `Credentials` table) instead of operating on JSON blobs?
-- Should a settings UI show whether encryption is active or if credentials are stored as plaintext?
