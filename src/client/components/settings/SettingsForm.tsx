@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import {
   Box,
   Button,
@@ -9,16 +9,16 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
+  FormHelperText,
   IconButton,
   InputAdornment,
   Stack,
   TextField,
-  Tooltip,
+
   Typography,
 } from "@mui/material";
 import { useFormik } from "formik";
 import SettingsDto from "../../../backend/dtos/settings";
-import LockIcon from "@mui/icons-material/Lock";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -37,10 +37,13 @@ const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) =>
     onSubmit(values);
   };
 
-  const shouldUseDarkMode = useMemo(
-    () => window.electronApi.theme.darkMode(),
-    []
-  );
+  const [shouldUseDarkMode, setShouldUseDarkMode] = React.useState(false);
+  const [isEncryptionAvailable, setIsEncryptionAvailable] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    setShouldUseDarkMode(window.electronApi.theme.darkMode());
+    window.electronApi.encryption.isAvailable().then(setIsEncryptionAvailable);
+  }, []);
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -84,9 +87,6 @@ const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) =>
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <Tooltip title="Credentials are encrypted at rest using your OS keychain">
-                    <LockIcon fontSize="small" color="action" />
-                  </Tooltip>
                   <IconButton
                     onClick={() => setShowSecret(!showSecret)}
                     edge="end"
@@ -97,6 +97,13 @@ const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) =>
               ),
             }}
           />
+          {isEncryptionAvailable !== null && (
+            <FormHelperText sx={{ color: isEncryptionAvailable ? "success.main" : "error.main" }}>
+              {isEncryptionAvailable
+                ? "Credentials are encrypted at rest using your OS keychain"
+                : "Encryption not available — secret will be stored in plain text"}
+            </FormHelperText>
+          )}
         </Stack>
         <Stack spacing={2} sx={{ mt: 4, mb: 3 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
