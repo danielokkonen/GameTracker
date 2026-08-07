@@ -15,6 +15,11 @@ declare global {
 interface IElectronApi {
   ipcRenderer: IIpcRenderer;
   theme: ITheme;
+  encryption: IEncryption;
+}
+
+interface IEncryption {
+  isAvailable: () => boolean;
 }
 
 interface IIpcRenderer {

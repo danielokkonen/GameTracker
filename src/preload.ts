@@ -17,6 +17,9 @@ contextBridge.exposeInMainWorld("electronApi", {
   },
   theme: {
     darkMode: () => ipcRenderer.invoke('dark-mode'),
+  },
+  encryption: {
+    isAvailable: () => ipcRenderer.invoke('is-encryption-available'),
   }
 });
 

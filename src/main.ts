@@ -4,6 +4,7 @@ import GameService from "./backend/services/game-service";
 import GameDto from "./backend/dtos/game";
 import { IgdbService } from "./backend/services/igdb-service";
 import SettingsService from "./backend/services/settings-service";
+import EncryptionService from "./backend/services/encryption-service";
 import SettingsDto from "./backend/dtos/settings";
 const dialog = require("electron").dialog;
 
@@ -71,6 +72,11 @@ app.on("activate", () => {
 
 ipcMain.handle("dark-mode", () => {
   return nativeTheme.shouldUseDarkColors;
+});
+
+ipcMain.handle("is-encryption-available", () => {
+  const encryptionService = new EncryptionService();
+  return encryptionService.isEncryptionAvailable;
 });
 
 const gameService = new GameService();

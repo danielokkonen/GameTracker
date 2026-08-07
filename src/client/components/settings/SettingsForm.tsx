@@ -35,6 +35,7 @@ const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) =>
   const [showSecret, setShowSecret] = React.useState(false);
   const handleSubmit = (values: SettingsDto) => {
     onSubmit(values);
+    formik.setSubmitting(false);
   };
 
   const shouldUseDarkMode = useMemo(
@@ -132,10 +133,10 @@ const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) =>
             </Stack>
           </Collapse>
         </Stack>
+        <Button type="submit" variant="contained" disabled={disabled}>
+          Save
+        </Button>
       </Box>
-      <Button type="submit" variant="contained" disabled={disabled}>
-        Save
-      </Button>
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
         <DialogTitle>Clear Tokens</DialogTitle>
         <DialogContent>
