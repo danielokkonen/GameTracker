@@ -22,6 +22,8 @@ export default class SettingsService {
     }
 
     const dto: SettingsDto = JSON.parse(result.json);
+    dto.darkMode = Boolean(dto.darkMode);
+    
     const credentials = this.credentialService.getCredentials(["igdbClientId", "igdbSecret"], dto, result.credentialsEncrypted === 1);
     
     dto.igdbClientId = credentials["igdbClientId"];

@@ -26,6 +26,7 @@ const Settings = () => {
       type: "init",
       payload: data,
     });
+    setSettings(data);
   };
 
   const onClearTokens = () => {
