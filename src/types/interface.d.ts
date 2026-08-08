@@ -19,7 +19,7 @@ interface IElectronApi {
 }
 
 interface IEncryption {
-  isAvailable: () => boolean;
+  isAvailable: () => Promise<boolean>;
 }
 
 interface IIpcRenderer {

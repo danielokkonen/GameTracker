@@ -116,7 +116,7 @@ ipcMain.on("dashboard-games", async (event) => {
 ipcMain.on("adddetails-game", async (event, id: number) => {
   const game = await gameService.get(id);
   const gameDetails = await igdbService.getGameDetails(game.name);
-  const result = await gameService.addGameDetails(
+  await gameService.addGameDetails(
     id,
     gameDetails.filter((r: any) => !!r.cover)[0]
   );
