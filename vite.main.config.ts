@@ -11,7 +11,7 @@ export default defineConfig((env) => {
   const config: UserConfig = {
     build: {
       lib: {
-        entry: forgeConfigSelf.entry!,
+        entry: forgeConfigSelf.entry as string,
         fileName: () => '[name].js',
         formats: ['cjs'],
       },
