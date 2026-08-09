@@ -1,7 +1,7 @@
 {
   "name": "game-tracker",
   "productName": "game-tracker",
-  "version": "0.1.1",
+  "version": "0.1.2 ",
   "description": "Keep track of your backlog of games, with the ability to mark when games are started and completed.",
   "main": ".vite/build/main.js",
   "scripts": {
