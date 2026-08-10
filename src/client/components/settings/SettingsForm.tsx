@@ -113,6 +113,14 @@ const SettingsForm = ({ value, onSubmit, onClearTokens, onDeleteAllGames }: ISet
         <Stack spacing={2} sx={{ mt: 4, mb: 3 }}>
           <Typography variant="h6">Steam</Typography>
           <TextField
+            name="steamId"
+            label="SteamID"
+            placeholder="76561198299001234"
+            value={formik.values.steamId || ""}
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+          />
+          <TextField
             name="steamApiKey"
             label="API Key"
             type={showSteamKey ? "text" : "password"}
@@ -131,13 +139,6 @@ const SettingsForm = ({ value, onSubmit, onClearTokens, onDeleteAllGames }: ISet
                 </InputAdornment>
               ),
             }}
-          />
-          <TextField
-            name="steamId"
-            label="SteamID"
-            value={formik.values.steamId || ""}
-            onBlur={formik.handleBlur}
-            onChange={formik.handleChange}
           />
           <Typography variant="body2">
             Get your API key at{" "}

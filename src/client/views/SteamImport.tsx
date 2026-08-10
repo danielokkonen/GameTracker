@@ -218,6 +218,7 @@ const SteamImport = () => {
       type: "show_message",
       payload: message,
     });
+    setSelected(new Set());
     refreshExistingGames();
   };
 
