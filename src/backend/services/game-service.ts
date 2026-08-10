@@ -27,6 +27,16 @@ export default class GameService {
   };
 
   create = async (entity: GameDto): Promise<void> => {
+    if (entity.appId) {
+      const existing = this.database.instance
+        .prepare("SELECT id FROM Game WHERE appId = @appId")
+        .get({ appId: entity.appId });
+
+      if (existing) {
+        throw new Error("DUPLICATE");
+      }
+    }
+
     const data = this.toDbEntity(entity);
     data.id = null; // Id needs to be present, so for auto increment to work it needs to be assigned to null
     data.created = new Date().toISOString();
@@ -46,7 +56,9 @@ export default class GameService {
         @genres, 
         @platforms, 
         @publisher,
-        @summary
+        @summary,
+        @appId,
+        @playtime_minutes
       )
     `);
     statement.run(data);
@@ -91,6 +103,11 @@ export default class GameService {
       "DELETE FROM Game WHERE Id = @Id"
     );
     statement.run({ Id: id });
+  };
+
+  deleteAll = async (): Promise<void> => {
+    const statement = this.database.instance.prepare("DELETE FROM Game");
+    statement.run();
   };
 
   dashboard = async (): Promise<DashboardDto> => {
@@ -195,6 +212,8 @@ export default class GameService {
     platforms: g.platforms?.join(";") ?? null,
     publisher: g.publisher ?? null,
     summary: g.summary ?? null,
+    appId: g.appId ?? null,
+    playtime_minutes: g.playtimeMinutes ?? 0,
   });
 
   private toDto = (g: any) => {
@@ -221,6 +240,8 @@ export default class GameService {
     dto.coverImage = g.coverImage;
     dto.created = g.created ? new Date(g.created) : null;
     dto.updated = g.updated ? new Date(g.updated) : null;
+    dto.appId = g.appId || "";
+    dto.playtimeMinutes = g.playtime_minutes || 0;
 
     return dto;
   };

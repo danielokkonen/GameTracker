@@ -29,9 +29,12 @@ contextBridge.exposeInMainWorld("gameService", {
   create: (entity: GameDto) => ipcRenderer.send("create-game", entity),
   update: (entity: GameDto) => ipcRenderer.send("update-game", entity),
   delete: (id: number) => ipcRenderer.send("delete-game", id),
+  deleteAll: () => ipcRenderer.send("delete-all-games"),
   dashboard: () => ipcRenderer.send("dashboard-games"),
   import: (path: string) => ipcRenderer.send("import-games", path),
   addGameDetails: (id: number) => ipcRenderer.send("adddetails-game", id),
+  importSteam: () => ipcRenderer.send("import-steam"),
+  importSteamSelected: (games: GameDto[]) => ipcRenderer.send("import-steam-selected", games),
 });
 
 contextBridge.exposeInMainWorld("igdbService", {

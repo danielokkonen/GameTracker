@@ -43,6 +43,7 @@ interface IGameService {
   dashboard: () => void;
   import: () => void;
   addGameDetails: (id: number) => void;
+  importSteam: () => void;
 }
 
 interface IIgdbService {

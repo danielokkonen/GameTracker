@@ -15,6 +15,7 @@ import {
   Stack,
   TextField,
   Typography,
+  useTheme,
 } from "@mui/material";
 import { useFormik } from "formik";
 import SettingsDto from "../../../backend/dtos/settings";
@@ -26,12 +27,16 @@ interface ISettingsFormProps {
   value: SettingsDto | null;
   onSubmit: (value: SettingsDto) => void;
   onClearTokens: () => void;
+  onDeleteAllGames: () => void;
 }
 
-const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) => {
+const SettingsForm = ({ value, onSubmit, onClearTokens, onDeleteAllGames }: ISettingsFormProps) => {
+  const theme = useTheme();
   const [showDialog, setShowDialog] = React.useState(false);
+  const [showGamesDialog, setShowGamesDialog] = React.useState(false);
   const [debugExpanded, setDebugExpanded] = React.useState(false);
   const [showSecret, setShowSecret] = React.useState(false);
+  const [showSteamKey, setShowSteamKey] = React.useState(false);
   const handleSubmit = (values: SettingsDto) => {
     onSubmit(values);
     formik.setSubmitting(false);
@@ -106,6 +111,42 @@ const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) =>
           )}
         </Stack>
         <Stack spacing={2} sx={{ mt: 4, mb: 3 }}>
+          <Typography variant="h6">Steam</Typography>
+          <TextField
+            name="steamApiKey"
+            label="API Key"
+            type={showSteamKey ? "text" : "password"}
+            value={formik.values.steamApiKey || ""}
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowSteamKey(!showSteamKey)}
+                    edge="end"
+                  >
+                    {showSteamKey ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <TextField
+            name="steamId"
+            label="SteamID"
+            value={formik.values.steamId || ""}
+            onBlur={formik.handleBlur}
+            onChange={formik.handleChange}
+          />
+          <Typography variant="body2">
+            Get your API key at{" "}
+            <a href="https://steamcommunity.com/dev/apikey" target="_blank" rel="noopener noreferrer">
+              steamcommunity.com/dev/apikey
+            </a>
+          </Typography>
+        </Stack>
+        <Stack spacing={2} sx={{ mt: 4, mb: 3 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Typography variant="h6">Debug</Typography>
             <Button
@@ -128,14 +169,23 @@ const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) =>
                   />
                 }
               />
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={() => setShowDialog(true)}
-              >
-                Clear Tokens
-              </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={() => setShowDialog(true)}
+          >
+            Clear Tokens
+          </Button>
+          <Box sx={{ height: theme.spacing(1) }} />
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={() => setShowGamesDialog(true)}
+          >
+            Delete All Games
+          </Button>
             </Stack>
           </Collapse>
         </Stack>
@@ -162,6 +212,28 @@ const SettingsForm = ({ value, onSubmit, onClearTokens }: ISettingsFormProps) =>
             variant="contained"
           >
             Clear
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={showGamesDialog} onClose={() => setShowGamesDialog(false)}>
+        <DialogTitle>Delete All Games</DialogTitle>
+        <DialogContent>
+          <Typography>
+            This will permanently delete all games from your library.
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowGamesDialog(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              setShowGamesDialog(false);
+              onDeleteAllGames();
+            }}
+            color="error"
+            variant="contained"
+          >
+            Delete All
           </Button>
         </DialogActions>
       </Dialog>

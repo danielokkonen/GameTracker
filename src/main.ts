@@ -6,6 +6,7 @@ import { IgdbService } from "./backend/services/igdb-service";
 import SettingsService from "./backend/services/settings-service";
 import EncryptionService from "./backend/services/encryption-service";
 import SettingsDto from "./backend/dtos/settings";
+import SteamService from "./backend/services/steam-service";
 const dialog = require("electron").dialog;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -82,6 +83,7 @@ ipcMain.handle("is-encryption-available", () => {
 const gameService = new GameService();
 const igdbService = new IgdbService();
 const settingService = new SettingsService();
+const steamService = new SteamService(settingService);
 
 ipcMain.on("list-games", async (event) => {
   const result = await gameService.list();
@@ -106,6 +108,11 @@ ipcMain.on("update-game", async (event, data: GameDto) => {
 ipcMain.on("delete-game", async (event, data: number) => {
   await gameService.delete(data);
   event.reply("delete-game-success");
+});
+
+ipcMain.on("delete-all-games", async (event) => {
+  await gameService.deleteAll();
+  event.reply("delete-all-games-success");
 });
 
 ipcMain.on("dashboard-games", async (event) => {
@@ -157,4 +164,34 @@ ipcMain.on("upsert-settings", async (event, payload: SettingsDto) => {
 ipcMain.on("clear-tokens", async (event) => {
   await settingService.clearTokens();
   event.reply("clear-tokens-success");
+});
+
+ipcMain.on("import-steam", async (event) => {
+  try {
+    const games: GameDto[] = await steamService.getOwnedGames();
+    event.reply("import-steam-success", games);
+  } catch (error: any) {
+    event.reply("import-steam-success", { error: error.message });
+  }
+});
+
+ipcMain.on("import-steam-selected", async (event, games: GameDto[]) => {
+  let imported = 0;
+  let skipped = 0;
+
+  for (const game of games) {
+    try {
+      await gameService.create(game);
+      imported++;
+    } catch (error: any) {
+      if (error.message === "DUPLICATE") {
+        skipped++;
+      } else {
+        throw error;
+      }
+    }
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+
+  event.reply("import-steam-selected-success", { imported, skipped });
 });

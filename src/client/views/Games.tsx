@@ -11,6 +11,7 @@ import GameList from "../components/games/GameList";
 import GameDto from "../../backend/dtos/game";
 import { Channels } from "../constants/channels";
 import CreateGameForm from "../components/games/CreateGameForm";
+import SteamImportDialog from "../components/games/SteamImportDialog";
 import AddIcon from "@mui/icons-material/Add";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SnackbarContext from "../context/SnackbarContext";
@@ -33,6 +34,14 @@ const Games = () => {
   const [filter, setFilter] = useState({
     franchise: "",
     status: "",
+  });
+
+  const [steamDialog, setSteamDialog] = useState({
+    open: false,
+    games: null as GameDto[] | null,
+    loading: false,
+    error: null as string | null,
+    importing: false,
   });
 
   const filteredGames = useMemo(() => {
@@ -211,6 +220,86 @@ const Games = () => {
     handleImportSuccess
   );
 
+  const handleSteamLibrarySuccess = (payload: GameDto[] | { error: string }) => {
+    if (typeof payload === "object" && "error" in payload) {
+      setSteamDialog((prev) => ({ ...prev, loading: false, error: payload.error }));
+      snackbarDispatch({
+        type: "show_message",
+        payload: `Failed to fetch Steam library: ${payload.error}`,
+      });
+    } else {
+      setSteamDialog((prev) => ({ ...prev, loading: false, games: payload }));
+    }
+  };
+
+  useIpcRendererCallback(
+    Channels.IMPORT_STEAM_SUCCESS,
+    null,
+    handleSteamLibrarySuccess
+  );
+
+  const handleOpenSteamDialog = () => {
+    setSteamDialog((prev) => ({ ...prev, open: true, games: null, loading: true, error: null }));
+    window.gameService.importSteam();
+  };
+
+  const handleSteamImport = (selectedGames: GameDto[]) => {
+    setSteamDialog((prev) => ({ ...prev, importing: true }));
+
+    const gamesToImport = selectedGames
+      .filter((game) => !games.find((g) => g.appId === game.appId))
+      .map((game) => {
+        const newGame = new GameDto();
+        newGame.id = null;
+        newGame.name = game.name;
+        newGame.developer = game.developer;
+        newGame.publisher = game.publisher;
+        newGame.appId = game.appId;
+        newGame.playtimeMinutes = game.playtimeMinutes;
+        newGame.franchise = "";
+        newGame.status = "";
+        return newGame;
+      });
+
+    if (gamesToImport.length === 0) {
+      snackbarDispatch({
+        type: "show_message",
+        payload: "All games already exist in your library",
+      });
+      return;
+    }
+
+    snackbarDispatch({
+      type: "show_message",
+      payload: `Importing ${gamesToImport.length} game${gamesToImport.length === 1 ? "" : "s"} from Steam...`,
+    });
+
+    window.gameService.importSteamSelected(gamesToImport);
+  };
+
+  const handleSteamImportSuccess = (payload: { imported: number; skipped: number }) => {
+    setSteamDialog((prev) => ({ ...prev, importing: false, open: false }));
+    const message = payload.skipped > 0
+      ? `Successfully imported ${payload.imported} game${payload.imported === 1 ? "" : "s"}, ${payload.skipped} already exist`
+      : `Successfully imported ${payload.imported} game${payload.imported === 1 ? "" : "s"} from Steam`;
+
+    snackbarDispatch({
+      type: "show_message",
+      payload: message,
+    });
+    refreshTable();
+  };
+
+  useIpcRendererCallback(
+    Channels.IMPORT_STEAM_SELECTED_SUCCESS,
+    null,
+    handleSteamImportSuccess
+  );
+
+  const handleCloseSteamDialog = () => {
+    setSteamDialog((prev) => ({ ...prev, open: false }));
+  };
+
   return (
     <Box>
       {form.show && (
@@ -237,6 +326,10 @@ const Games = () => {
               {
                 name: "Import from CSV",
                 onClick: window.gameService.import,
+              },
+              {
+                name: "Import from Steam",
+                onClick: handleOpenSteamDialog,
               },
               {
                 name: "Add game details from IGDB",
@@ -287,6 +380,18 @@ const Games = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
+      {steamDialog.open && (
+        <SteamImportDialog
+          open={steamDialog.open}
+          onClose={handleCloseSteamDialog}
+          onImport={handleSteamImport}
+          games={steamDialog.games}
+          loading={steamDialog.loading}
+          error={steamDialog.error}
+          onFetchLibrary={handleOpenSteamDialog}
+          importing={steamDialog.importing}
+        />
+      )}
     </Box>
   );
 };
