@@ -80,7 +80,9 @@ export default class GameService {
         publisher = @publisher, 
         genres = @genres, 
         platforms = @platforms, 
-        coverImage = @coverImage 
+        coverImage = @coverImage,
+        appId = @appId,
+        playtime_minutes = @playtime_minutes
       WHERE id = @id`);
     statement.run({
       id: data.id,
@@ -95,6 +97,8 @@ export default class GameService {
       genres: data.genres, 
       platforms: data.platforms, 
       coverImage: data.coverImage,
+      appId: data.appId,
+      playtime_minutes: data.playtime_minutes,
     });
   };
 

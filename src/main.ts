@@ -178,6 +178,7 @@ ipcMain.on("import-steam", async (event) => {
 ipcMain.on("import-steam-selected", async (event, games: GameDto[]) => {
   let imported = 0;
   let skipped = 0;
+  const errors: string[] = [];
 
   for (const game of games) {
     try {
@@ -187,11 +188,10 @@ ipcMain.on("import-steam-selected", async (event, games: GameDto[]) => {
       if (error.message === "DUPLICATE") {
         skipped++;
       } else {
-        throw error;
+        errors.push(`${game.name}: ${error.message || "Unknown error"}`);
       }
     }
-    await new Promise((resolve) => setImmediate(resolve));
   }
 
-  event.reply("import-steam-selected-success", { imported, skipped });
+  event.reply("import-steam-selected-success", { imported, skipped, errors });
 });

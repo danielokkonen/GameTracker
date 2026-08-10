@@ -120,6 +120,7 @@ const SteamImport = () => {
   };
 
   const handleSelectAllVisible = () => {
+    if (!steamGames) return;
     const selectableGames = filteredGames.filter(
       (g) => !existingGames.find((e) => e.appId === g.appId)
     );
@@ -207,6 +208,7 @@ const SteamImport = () => {
   const handleSteamImportSuccess = (payload: {
     imported: number;
     skipped: number;
+    errors?: string[];
   }) => {
     setImporting(false);
     const message =
@@ -214,10 +216,20 @@ const SteamImport = () => {
         ? `Successfully imported ${payload.imported} game${payload.imported === 1 ? "" : "s"}, ${payload.skipped} already exist`
         : `Successfully imported ${payload.imported} game${payload.imported === 1 ? "" : "s"} from Steam`;
 
-    snackbarDispatch({
-      type: "show_message",
-      payload: message,
-    });
+    if (payload.errors && payload.errors.length > 0) {
+      const truncated = payload.errors.length > 5
+        ? `${payload.errors.slice(0, 5).join(", ")}, ... and ${payload.errors.length - 5} more`
+        : payload.errors.join(", ");
+      snackbarDispatch({
+        type: "show_message",
+        payload: `${message}. Failed: ${truncated}`,
+      });
+    } else {
+      snackbarDispatch({
+        type: "show_message",
+        payload: message,
+      });
+    }
     setSelected(new Set());
     refreshExistingGames();
   };
