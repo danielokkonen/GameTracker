@@ -390,6 +390,7 @@ const Games = () => {
           error={steamDialog.error}
           onFetchLibrary={handleOpenSteamDialog}
           importing={steamDialog.importing}
+          existingAppIds={new Set(games.map((g) => String(g.appId)))}
         />
       )}
     </Box>

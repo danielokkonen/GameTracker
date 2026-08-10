@@ -30,6 +30,7 @@ interface SteamImportDialogProps {
   error: string | null;
   onFetchLibrary: () => void;
   importing: boolean;
+  existingAppIds: Set<string>;
 }
 
 const SteamImportDialog: React.FC<SteamImportDialogProps> = ({
@@ -41,6 +42,7 @@ const SteamImportDialog: React.FC<SteamImportDialogProps> = ({
   error,
   onFetchLibrary,
   importing,
+  existingAppIds,
 }) => {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -75,23 +77,23 @@ const SteamImportDialog: React.FC<SteamImportDialogProps> = ({
 
   React.useEffect(() => {
     if (open && games && games.length > 0) {
-      setSelected(new Set(games.map((g) => String(g.appId))));
+      setSelected(new Set(games.filter((g) => !existingAppIds.has(String(g.appId))).map((g) => String(g.appId))));
     }
     if (games === null) {
       setSelected(new Set());
     }
-  }, [open, games]);
+  }, [open, games, existingAppIds]);
 
   const handleSelectAll = () => {
-    const allIds = filteredGames.map((g) => String(g.appId));
-    const allSelected = filteredGames.every((g) => selected.has(String(g.appId)));
+    const selectableGames = filteredGames.filter((g) => !existingAppIds.has(String(g.appId)));
+    const allSelected = selectableGames.length > 0 && selectableGames.every((g) => selected.has(String(g.appId)));
     if (allSelected) {
       const next = new Set(selected);
-      allIds.forEach((id) => next.delete(id));
+      selectableGames.forEach((g) => next.delete(String(g.appId)));
       setSelected(next);
     } else {
       const next = new Set(selected);
-      allIds.forEach((id) => next.add(id));
+      selectableGames.forEach((g) => next.add(String(g.appId)));
       setSelected(next);
     }
   };
@@ -101,15 +103,15 @@ const SteamImportDialog: React.FC<SteamImportDialogProps> = ({
   };
 
   const handleSelectAllVisible = () => {
-    const allIds = filteredGames.map((g) => String(g.appId));
-    const allSelected = filteredGames.every((g) => selected.has(String(g.appId)));
+    const selectableGames = filteredGames.filter((g) => !existingAppIds.has(String(g.appId)));
+    const allSelected = selectableGames.length > 0 && selectableGames.every((g) => selected.has(String(g.appId)));
     if (allSelected) {
       const next = new Set(selected);
-      allIds.forEach((id) => next.delete(id));
+      selectableGames.forEach((g) => next.delete(String(g.appId)));
       setSelected(next);
     } else {
       const next = new Set(selected);
-      allIds.forEach((id) => next.add(id));
+      selectableGames.forEach((g) => next.add(String(g.appId)));
       setSelected(next);
     }
   };
@@ -118,7 +120,7 @@ const SteamImportDialog: React.FC<SteamImportDialogProps> = ({
     const next = new Set(selected);
     if (next.has(appId)) {
       next.delete(appId);
-    } else {
+    } else if (!existingAppIds.has(appId)) {
       next.add(appId);
     }
     setSelected(next);
@@ -206,13 +208,12 @@ const SteamImportDialog: React.FC<SteamImportDialogProps> = ({
                     <TableCell padding="checkbox">
                       <Checkbox
                         indeterminate={
-                          filteredGames.length > 0 &&
-                          filteredGames.some((g) => selected.has(String(g.appId))) &&
-                          !filteredGames.every((g) => selected.has(String(g.appId)))
+                          filteredGames.some((g) => !existingAppIds.has(String(g.appId)) && selected.has(String(g.appId))) &&
+                          !filteredGames.every((g) => existingAppIds.has(String(g.appId)) || selected.has(String(g.appId)))
                         }
                         checked={
-                          filteredGames.length > 0 &&
-                          filteredGames.every((g) => selected.has(String(g.appId)))
+                          filteredGames.some((g) => !existingAppIds.has(String(g.appId))) &&
+                          filteredGames.every((g) => existingAppIds.has(String(g.appId)) || selected.has(String(g.appId)))
                         }
                         onChange={handleSelectAll}
                         size="small"
@@ -245,6 +246,7 @@ const SteamImportDialog: React.FC<SteamImportDialogProps> = ({
                         {getSortIcon("playtime")}
                       </Box>
                     </TableCell>
+                    <TableCell>Imported</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -255,11 +257,15 @@ const SteamImportDialog: React.FC<SteamImportDialogProps> = ({
                           checked={selected.has(String(game.appId))}
                           onChange={() => handleToggleSelect(String(game.appId))}
                           size="small"
+                          disabled={existingAppIds.has(String(game.appId))}
                         />
                       </TableCell>
                       <TableCell>{game.name}</TableCell>
                       <TableCell align="right">
                         {formatPlaytime(game.playtimeMinutes)}
+                      </TableCell>
+                      <TableCell>
+                        {existingAppIds.has(String(game.appId)) ? "Yes" : "No"}
                       </TableCell>
                     </TableRow>
                   ))}
