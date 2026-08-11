@@ -175,7 +175,12 @@ ipcMain.on("import-steam", async (event) => {
   }
 });
 
-ipcMain.on("import-steam-selected", async (event, games: GameDto[]) => {
+ipcMain.on("import-steam-selected", async (event, games: any) => {
+  if (!Array.isArray(games)) {
+    event.reply("import-steam-selected-success", { imported: 0, skipped: 0, errors: ["Invalid payload: games must be an array"] });
+    return;
+  }
+
   let imported = 0;
   let skipped = 0;
   const errors: string[] = [];
@@ -191,6 +196,8 @@ ipcMain.on("import-steam-selected", async (event, games: GameDto[]) => {
         errors.push(`${game.name}: ${error.message || "Unknown error"}`);
       }
     }
+
+    await new Promise((resolve) => setImmediate(resolve));
   }
 
   event.reply("import-steam-selected-success", { imported, skipped, errors });

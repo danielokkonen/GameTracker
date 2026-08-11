@@ -119,25 +119,6 @@ const SteamImport = () => {
     setSelected(new Set());
   };
 
-  const handleSelectAllVisible = () => {
-    if (!steamGames) return;
-    const selectableGames = filteredGames.filter(
-      (g) => !existingGames.find((e) => e.appId === g.appId)
-    );
-    const allSelected =
-      selectableGames.length > 0 &&
-      selectableGames.every((g) => selected.has(String(g.appId)));
-    if (allSelected) {
-      const next = new Set(selected);
-      selectableGames.forEach((g) => next.delete(String(g.appId)));
-      setSelected(next);
-    } else {
-      const next = new Set(selected);
-      selectableGames.forEach((g) => next.add(String(g.appId)));
-      setSelected(next);
-    }
-  };
-
   const handleToggleSelect = (appId: string) => {
     const next = new Set(selected);
     if (next.has(appId)) {
@@ -185,7 +166,7 @@ const SteamImport = () => {
         newGame.appId = game.appId;
         newGame.playtimeMinutes = game.playtimeMinutes;
         newGame.franchise = "";
-        newGame.status = "";
+        newGame.status = "Not started";
         return newGame;
       });
 
@@ -302,7 +283,7 @@ const SteamImport = () => {
                 }}
               />
               <Box sx={{ display: "flex", gap: 1 }}>
-                <Button size="small" onClick={handleSelectAllVisible}>
+                <Button size="small" onClick={handleSelectAll}>
                   Select All
                 </Button>
                 <Button size="small" onClick={handleSelectNone}>

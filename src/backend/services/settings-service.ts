@@ -29,7 +29,7 @@ export default class SettingsService {
     dto.igdbClientId = credentials["igdbClientId"];
     dto.igdbSecret = credentials["igdbSecret"];
     dto.steamApiKey = credentials["steamApiKey"];
-    dto.steamId = result.json ? JSON.parse(result.json).steamId || "" : "";
+    dto.steamId = dto.steamId || "";
     
     return dto;
   };
