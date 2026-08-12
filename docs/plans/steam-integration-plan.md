@@ -14,12 +14,12 @@ This feature is split into 6 smaller issues, each buildable independently. Work 
 
 Run `npm start` and `npm run lint`, test the specific functionality the issue addresses, and only proceed once fully validated. This ensures each layer is solid before building on top of it, making any issues easier to isolate and fix.
 
-1. [Foundation — DB schema + DTOs](issues/steam-integration/01-foundation-db-dtos.md)
-2. [Settings — Steam credentials UI](issues/steam-integration/02-settings-steam-credentials.md)
-3. [Steam Service — API integration](issues/steam-integration/03-steam-service-api.md)
-4. [IPC + Preload wiring](issues/steam-integration/04-ipc-preload-wiring.md)
-5. [Steam Import Dialog](issues/steam-integration/05-steam-import-dialog.md)
-6. [Final integration](issues/steam-integration/06-final-integration.md)
+1. [Foundation — DB schema + DTOs](../issues/steam-integration/01-foundation-db-dtos.md)
+2. [Settings — Steam credentials UI](../issues/steam-integration/02-settings-steam-credentials.md)
+3. [Steam Service — API integration](../issues/steam-integration/03-steam-service-api.md)
+4. [IPC + Preload wiring](../issues/steam-integration/04-ipc-preload-wiring.md)
+5. [Steam Import Dialog](../issues/steam-integration/05-steam-import-dialog.md)
+6. [Final integration](../issues/steam-integration/06-final-integration.md)
 
 ## Steam API Details
 
