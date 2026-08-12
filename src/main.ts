@@ -166,18 +166,18 @@ ipcMain.on("clear-tokens", async (event) => {
   event.reply("clear-tokens-success");
 });
 
-ipcMain.on("import-steam", async (event) => {
+ipcMain.on("get-steam-games", async (event) => {
   try {
     const games: GameDto[] = await steamService.getOwnedGames();
-    event.reply("import-steam-success", games);
+    event.reply("get-steam-games-success", games);
   } catch (error: any) {
-    event.reply("import-steam-success", { error: error.message });
+    event.reply("get-steam-games-error", { error: error.message });
   }
 });
 
-ipcMain.on("import-steam-selected", async (event, games: any) => {
+ipcMain.on("import-steam-games", async (event, games: any) => {
   if (!Array.isArray(games)) {
-    event.reply("import-steam-selected-success", { imported: 0, skipped: 0, errors: ["Invalid payload: games must be an array"] });
+    event.reply("import-steam-games-success", { imported: 0, skipped: 0, errors: ["Invalid payload: games must be an array"] });
     return;
   }
 
@@ -200,5 +200,5 @@ ipcMain.on("import-steam-selected", async (event, games: any) => {
     await new Promise((resolve) => setImmediate(resolve));
   }
 
-  event.reply("import-steam-selected-success", { imported, skipped, errors });
+  event.reply("import-steam-games-success", { imported, skipped, errors });
 });

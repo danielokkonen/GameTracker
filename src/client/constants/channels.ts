@@ -17,8 +17,9 @@ export const Channels = {
   CLEAR_TOKENS: "clear-tokens",
   CLEAR_TOKENS_SUCCESS: "clear-tokens-success",
 
-  IMPORT_STEAM: "import-steam",
-  IMPORT_STEAM_SUCCESS: "import-steam-success",
-  IMPORT_STEAM_SELECTED: "import-steam-selected",
-  IMPORT_STEAM_SELECTED_SUCCESS: "import-steam-selected-success",
+  GET_STEAM_GAMES: "get-steam-games",
+  GET_STEAM_GAMES_SUCCESS: "get-steam-games-success",
+  GET_STEAM_GAMES_ERROR: "get-steam-games-error",
+  IMPORT_STEAM_GAMES: "import-steam-games",
+  IMPORT_STEAM_GAMES_SUCCESS: "import-steam-games-success",
 };

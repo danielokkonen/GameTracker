@@ -32,7 +32,7 @@ const SteamImport = () => {
 
   useEffect(() => {
     refreshExistingGames();
-    window.gameService.importSteam();
+    window.gameService.getSteamGames();
   }, []);
 
   const handleExistingGamesSuccess = (payload: GameDto[]) => {
@@ -46,25 +46,31 @@ const SteamImport = () => {
     handleExistingGamesSuccess
   );
 
-  const handleSteamLibrarySuccess = (payload: GameDto[] | { error: string }) => {
-    if (typeof payload === "object" && "error" in payload) {
-      setSteamError(payload.error);
-      setSteamLoading(false);
-      snackbarDispatch({
-        type: "show_message",
-        payload: `Failed to fetch Steam library: ${payload.error}`,
-      });
-    } else {
-      setSteamGames(payload);
-      setSteamLoading(false);
-      setSelected(new Set());
-    }
+  const handleSteamLibrarySuccess = (payload: GameDto[]) => {
+    setSteamGames(payload);
+    setSteamLoading(false);
+    setSelected(new Set());
   };
 
   useIpcRendererCallback(
-    Channels.IMPORT_STEAM_SUCCESS,
+    Channels.GET_STEAM_GAMES_SUCCESS,
     null,
     handleSteamLibrarySuccess
+  );
+
+  const handleSteamLibraryError = (payload: { error: string }) => {
+    setSteamError(payload.error);
+    setSteamLoading(false);
+    snackbarDispatch({
+      type: "show_message",
+      payload: `Failed to fetch Steam library: ${payload.error}`,
+    });
+  };
+
+  useIpcRendererCallback(
+    Channels.GET_STEAM_GAMES_ERROR,
+    null,
+    handleSteamLibraryError
   );
 
   const filteredGames = useMemo(() => {
@@ -153,7 +159,7 @@ const SteamImport = () => {
       type: "show_message",
       payload: `Importing ${gamesToImport.length} game${gamesToImport.length === 1 ? "" : "s"} from Steam...`,
     });
-    window.gameService.importSteamSelected(gamesToImport);
+    window.gameService.importSteamGames(gamesToImport);
   };
 
   const handleSteamImportSuccess = (payload: {
@@ -186,7 +192,7 @@ const SteamImport = () => {
   };
 
   useIpcRendererCallback(
-    Channels.IMPORT_STEAM_SELECTED_SUCCESS,
+    Channels.IMPORT_STEAM_GAMES_SUCCESS,
     null,
     handleSteamImportSuccess
   );

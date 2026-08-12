@@ -33,8 +33,8 @@ contextBridge.exposeInMainWorld("gameService", {
   dashboard: () => ipcRenderer.send("dashboard-games"),
   import: (path: string) => ipcRenderer.send("import-games", path),
   addGameDetails: (id: number) => ipcRenderer.send("adddetails-game", id),
-  importSteam: () => ipcRenderer.send("import-steam"),
-  importSteamSelected: (games: GameDto[]) => ipcRenderer.send("import-steam-selected", games),
+  getSteamGames: () => ipcRenderer.send("get-steam-games"),
+  importSteamGames: (games: GameDto[]) => ipcRenderer.send("import-steam-games", games),
 });
 
 contextBridge.exposeInMainWorld("igdbService", {

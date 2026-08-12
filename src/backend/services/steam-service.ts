@@ -12,6 +12,8 @@ interface SteamGame {
 export default class SteamService {
   private settingsService: SettingsService;
 
+  private readonly BASE_URL = "https://api.steampowered.com";
+
   constructor(settingsService: SettingsService) {
     this.settingsService = settingsService;
   }
@@ -27,9 +29,14 @@ export default class SteamService {
       throw new Error("SteamID is not configured");
     }
 
-    const url = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${settings.steamApiKey}&steamid=${settings.steamId}&include_appinfo=1&include_played_free_games=1&format=json`;
+    const url = new URL(`${this.BASE_URL}/IPlayerService/GetOwnedGames/v0001/`);
+    url.searchParams.set("key", settings.steamApiKey);
+    url.searchParams.set("steamid", settings.steamId);
+    url.searchParams.set("include_appinfo", "1");
+    url.searchParams.set("include_played_free_games", "1");
+    url.searchParams.set("format", "json");
     
-    const response = await fetch(url);
+    const response = await fetch(url.toString());
 
     if (!response.ok) {
       throw new Error(`Steam API request failed with status ${response.status}`);
