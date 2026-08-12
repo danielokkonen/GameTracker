@@ -38,6 +38,7 @@ const SteamImport = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<"name" | "playtime">("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [hideImported, setHideImported] = useState(true);
 
   const refreshExistingGames = () => {
     setLoading(true);
@@ -84,7 +85,10 @@ const SteamImport = () => {
   const filteredGames = useMemo(() => {
     if (!steamGames) return [];
     const lowerSearch = search.toLowerCase();
-    const result = steamGames.filter((g) => g.name.toLowerCase().includes(lowerSearch));
+    let result = steamGames.filter((g) => g.name.toLowerCase().includes(lowerSearch));
+    if (hideImported) {
+      result = result.filter((g) => !existingGames.find((e) => e.appId === g.appId));
+    }
     result.sort((a, b) => {
       let comparison = 0;
       if (sortColumn === "name") {
@@ -95,7 +99,7 @@ const SteamImport = () => {
       return sortDirection === "asc" ? comparison : -comparison;
     });
     return result;
-  }, [steamGames, search, sortColumn, sortDirection]);
+  }, [steamGames, search, sortColumn, sortDirection, hideImported]);
 
   const handleSelectAll = () => {
     const selectableGames = filteredGames.filter(
@@ -113,10 +117,6 @@ const SteamImport = () => {
       selectableGames.forEach((g) => next.add(String(g.appId)));
       setSelected(next);
     }
-  };
-
-  const handleSelectNone = () => {
-    setSelected(new Set());
   };
 
   const handleToggleSelect = (appId: string) => {
@@ -239,28 +239,6 @@ const SteamImport = () => {
               Steam library: {steamGames ? steamGames.length : "—"} games
             </Typography>
           </Box>
-
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              variant="outlined"
-              onClick={refreshExistingGames}
-              disabled={loading || !state.steamApiKey || !state.steamId}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleImport}
-              disabled={selected.size === 0 || importing || !steamGames}
-              startIcon={
-                importing ? <CircularProgress size={20} /> : null
-              }
-            >
-              {importing
-                ? "Importing..."
-                : `Import Selected (${selected.size})`}
-            </Button>
-          </Box>
         </Box>
 
         {loading && <Spinner delayed />}
@@ -268,26 +246,62 @@ const SteamImport = () => {
         {!loading && (
           <>
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, alignItems: "center" }}>
-              <TextField
-                size="small"
-                placeholder="Search games..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                sx={{ width: 300 }}
-                InputProps={{
-                  endAdornment: search ? (
-                    <IconButton size="small" onClick={() => setSearch("")}>
-                      <Close fontSize="small" />
-                    </IconButton>
-                  ) : null,
-                }}
-              />
+              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                <TextField
+                  size="small"
+                  placeholder="Search games..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  sx={{ width: 300 }}
+                  InputProps={{
+                    endAdornment: search ? (
+                      <IconButton size="small" onClick={() => setSearch("")}>
+                        <Close fontSize="small" />
+                      </IconButton>
+                    ) : null,
+                  }}
+                />
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 0.5, cursor: "pointer", userSelect: "none" }}
+                  onClick={() => setHideImported((prev) => !prev)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setHideImported((prev) => !prev);
+                    }
+                  }}
+                  role="checkbox"
+                  aria-checked={hideImported}
+                  tabIndex={0}
+                >
+                  <Checkbox
+                    size="small"
+                    checked={hideImported}
+                    onChange={() => setHideImported((prev) => !prev)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <Typography variant="body2">Hide imported</Typography>
+                </Box>
+              </Box>
               <Box sx={{ display: "flex", gap: 1 }}>
-                <Button size="small" onClick={handleSelectAll}>
-                  Select All
+                <Button
+                  variant="outlined"
+                  onClick={refreshExistingGames}
+                  disabled={loading || !state.steamApiKey || !state.steamId}
+                >
+                  Refresh
                 </Button>
-                <Button size="small" onClick={handleSelectNone}>
-                  Select None
+                <Button
+                  variant="contained"
+                  onClick={handleImport}
+                  disabled={selected.size === 0 || importing || !steamGames}
+                  startIcon={
+                    importing ? <CircularProgress size={20} /> : null
+                  }
+                >
+                  {importing
+                    ? "Importing..."
+                    : `Import Selected (${selected.size})`}
                 </Button>
               </Box>
             </Box>
