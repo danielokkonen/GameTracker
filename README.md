@@ -21,9 +21,9 @@ Integrated with IGDB (Internet Game Database) to fetch additional details about 
 - Track your game backlog with start/completed status
 - Dashboard with play statistics
 - Fetch game details and artwork from IGDB
-- Import games from CSV
+- Import games from CSV or Steam library
 - Filter, sort, and batch operations
-- Dark mode and IGDB API settings
+- Dark mode, IGDB API, and Steam API settings
 
 ## Built with
 
@@ -43,14 +43,14 @@ Integrated with IGDB (Internet Game Database) to fetch additional details about 
 
 GameTracker is an Electron desktop application with a three-process architecture:
 
-- **Main process** (`src/main.ts`) — Creates the BrowserWindow, registers all IPC handlers, and instantiates the three backend services (game, igdb, settings). 
-- **Preload script** (`src/preload.ts`) — Bridges the main process to the renderer via contextBridge, exposing `electronApi`, `gameService`, `igdbService`, and `settingsService` to the browser context. 
+- **Main process** (`src/main.ts`) — Creates the BrowserWindow, registers all IPC handlers, and instantiates the backend services (game, igdb, steam, settings). 
+- **Preload script** (`src/preload.ts`) — Bridges the main process to the renderer via contextBridge, exposing `electronApi`, `gameService`, `igdbService`, `steamService`, and `settingsService` to the browser context.
 - **Renderer** (`src/renderer.tsx` → `App.tsx`) — React UI rendered with MUI components, react-router-dom (hash-based routing), and React contexts for state management (GamesContext, SettingsContext, SnackbarContext). 
 
 ## Data Layer
 
 - **Database**: SQLite via `node:sqlite`, persisted in `GameTracker.db`
-- **Services**: `game-service.ts`, `igdb-service.ts`, `settings-service.ts` handle all data operations
+- **Services**: `game-service.ts`, `igdb-service.ts`, `steam-service.ts`, `settings-service.ts` handle all data operations
 - **IPC**: Uses `send`/`on` with typed channel names from `src/client/constants/channels.ts`. Replies follow the `<channel>-success` pattern
 
 ## Key Details
