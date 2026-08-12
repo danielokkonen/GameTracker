@@ -11,6 +11,7 @@ import {
 import HomeIcon from "@mui/icons-material/Home";
 import GamesIcon from "@mui/icons-material/List";
 import AboutIcon from "@mui/icons-material/Settings";
+import SteamIcon from "@mui/icons-material/Download";
 import { Link } from "react-router-dom";
 import useRouteMatch from "../../../client/hooks/UseRouteMatch";
 
@@ -30,6 +31,11 @@ const Navigation = ({ open }: NavigationProps) => {
         icon: <GamesIcon />,
         route: "/games",
         label: "Games",
+      },
+      {
+        icon: <SteamIcon />,
+        route: "/steam-import",
+        label: "Import from Steam",
       },
       {
         icon: <AboutIcon />,

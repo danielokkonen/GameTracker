@@ -1,0 +1,73 @@
+import SettingsService from "./settings-service";
+import GameDto from "../dtos/game";
+
+interface SteamGame {
+  appid: number;
+  name: string;
+  developer: string;
+  publisher: string;
+  playtime_forever: number;
+}
+
+export default class SteamService {
+  private settingsService: SettingsService;
+
+  private readonly BASE_URL = "https://api.steampowered.com";
+
+  constructor(settingsService: SettingsService) {
+    this.settingsService = settingsService;
+  }
+
+  getOwnedGames = async (): Promise<GameDto[]> => {
+    const settings = await this.settingsService.get();    
+
+    if (!settings?.steamApiKey) {
+      throw new Error("Steam API key is not configured. Add it in Settings.");
+    }
+
+    if (!settings?.steamId) {
+      throw new Error("SteamID is not configured. Add it in Settings.");
+    }
+
+    const url = new URL(`${this.BASE_URL}/IPlayerService/GetOwnedGames/v0001/`);
+    url.searchParams.set("key", settings.steamApiKey);
+    url.searchParams.set("steamid", settings.steamId);
+    url.searchParams.set("include_appinfo", "1");
+    url.searchParams.set("include_played_free_games", "1");
+    url.searchParams.set("format", "json");
+    
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      throw new Error(`Steam API request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data?.response?.games) {
+      return data.response.games.map((game: SteamGame) => this.mapToGameDto(game));
+    }
+
+    return [];
+  };
+
+  mapToGameDto = (steamGame: SteamGame): GameDto => {
+    const dto = new GameDto();
+    dto.appId = String(steamGame.appid);
+    dto.name = steamGame.name || "";
+    dto.developer = steamGame.developer || null;
+    dto.publisher = steamGame.publisher || null;
+    dto.playtimeMinutes = steamGame.playtime_forever || 0;
+    dto.franchise = "";
+    dto.status = "Not started";
+    dto.started = null;
+    dto.completed = null;
+    dto.summary = null;
+    dto.genres = null;
+    dto.platforms = null;
+    dto.coverImage = null;
+    dto.created = null;
+    dto.updated = null;
+    return dto;
+  };
+}

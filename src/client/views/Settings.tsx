@@ -37,9 +37,26 @@ const Settings = () => {
     });
   };
 
+  const onDeleteAllGames = () => {
+    window.gameService.deleteAll();
+  };
+
+  const handleDeleteAllSuccess = () => {
+    snackbarDispatch({
+      type: "show_message",
+      payload: "All games deleted successfully.",
+    });
+  };
+
+  useIpcRendererCallback(
+    Channels.GAMES_DELETE_ALL_SUCCESS,
+    null,
+    handleDeleteAllSuccess
+  );
+
   return (
     <Box>
-      <SettingsForm value={settings} onSubmit={onSubmit} onClearTokens={onClearTokens} />
+      <SettingsForm value={settings} onSubmit={onSubmit} onClearTokens={onClearTokens} onDeleteAllGames={onDeleteAllGames} />
     </Box>
   );
 };

@@ -24,10 +24,12 @@ export default class SettingsService {
     const dto: SettingsDto = JSON.parse(result.json);
     dto.darkMode = Boolean(dto.darkMode);
     
-    const credentials = this.credentialService.getCredentials(["igdbClientId", "igdbSecret"], dto, result.credentialsEncrypted === 1);
+    const credentials = this.credentialService.getCredentials(["igdbClientId", "igdbSecret", "steamApiKey"], dto, result.credentialsEncrypted === 1);
     
     dto.igdbClientId = credentials["igdbClientId"];
     dto.igdbSecret = credentials["igdbSecret"];
+    dto.steamApiKey = credentials["steamApiKey"];
+    dto.steamId = dto.steamId || "";
     
     return dto;
   };
@@ -36,12 +38,15 @@ export default class SettingsService {
     const credentials = this.credentialService.setCredentials({
       igdbClientId: entity.igdbClientId,
       igdbSecret: entity.igdbSecret,
+      steamApiKey: entity.steamApiKey,
     });
 
     const updatedEntity = {
       ...entity,
       igdbClientId: credentials.encryptedKeys["igdbClientId"],
       igdbSecret: credentials.encryptedKeys["igdbSecret"],
+      steamApiKey: credentials.encryptedKeys["steamApiKey"],
+      steamId: entity.steamId || "",
     };
 
     const data = {

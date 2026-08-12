@@ -6,6 +6,8 @@ export interface ISettingsState {
   darkMode: boolean | null;
   igdbClientId: string | null;
   igdbSecret: string | null;
+  steamApiKey: string | null;
+  steamId: string | null;
 }
 
 const initialState: ISettingsState = {
@@ -13,6 +15,8 @@ const initialState: ISettingsState = {
   darkMode: null,
   igdbClientId: null,
   igdbSecret: null,
+  steamApiKey: null,
+  steamId: null,
 };
 
 export type SettingsPayload = {

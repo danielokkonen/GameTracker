@@ -13,6 +13,8 @@ export default class GameDto {
   public coverImage: string | null;
   public created: Date | null;
   public updated: Date | null;
+  public appId: string;
+  public playtimeMinutes: number;
 
   [key: string]: string| string[] | number| Date|null;
 }

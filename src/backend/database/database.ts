@@ -46,7 +46,9 @@ export class Database {
         "genres" TEXT,
         "platforms" TEXT,
         "publisher" TEXT,
-        "summary" TEXT
+        "summary" TEXT,
+        "appId" TEXT,
+        "playtime_minutes" INTEGER
       );
     `).run();
 
@@ -70,6 +72,22 @@ export class Database {
     try {
       this.instance.prepare(
         "ALTER TABLE Settings ADD COLUMN credentialsEncrypted INTEGER NOT NULL DEFAULT 0"
+      ).run();
+    } catch {
+      // Column already exists
+    }
+
+    try {
+      this.instance.prepare(
+        "ALTER TABLE Game ADD COLUMN appId TEXT"
+      ).run();
+    } catch {
+      // Column already exists
+    }
+
+    try {
+      this.instance.prepare(
+        "ALTER TABLE Game ADD COLUMN playtime_minutes INTEGER"
       ).run();
     } catch {
       // Column already exists

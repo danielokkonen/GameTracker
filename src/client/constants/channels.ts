@@ -4,6 +4,8 @@ export const Channels = {
   GAMES_CREATE_SUCCESS: "create-game-success",
   GAMES_UPDATE_SUCCESS: "update-game-success",
   GAMES_DELETE_SUCCESS: "delete-game-success",
+  GAMES_DELETE_ALL: "delete-all-games",
+  GAMES_DELETE_ALL_SUCCESS: "delete-all-games-success",
   GAMES_DASHBOARD_SUCCESS: "dashboard-games-success",
   GAMES_IMPORT_SUCCESS: "import-games-success",
   GAMES_ADDDETAILS_SUCCESS: "adddetails-game-success",
@@ -14,4 +16,10 @@ export const Channels = {
   SETTINGS_UPSERT_SUCCESS: "upsert-settings-success",
   CLEAR_TOKENS: "clear-tokens",
   CLEAR_TOKENS_SUCCESS: "clear-tokens-success",
+
+  GET_STEAM_GAMES: "get-steam-games",
+  GET_STEAM_GAMES_SUCCESS: "get-steam-games-success",
+  GET_STEAM_GAMES_ERROR: "get-steam-games-error",
+  IMPORT_STEAM_GAMES: "import-steam-games",
+  IMPORT_STEAM_GAMES_SUCCESS: "import-steam-games-success",
 };
