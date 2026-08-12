@@ -14,6 +14,7 @@ import {
   InputAdornment,
   Stack,
   TextField,
+  Link,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -142,9 +143,14 @@ const SettingsForm = ({ value, onSubmit, onClearTokens, onDeleteAllGames }: ISet
           />
           <Typography variant="body2">
             Get your API key at{" "}
-            <a href="https://steamcommunity.com/dev/apikey" target="_blank" rel="noopener noreferrer">
+            <Link
+              href="https://steamcommunity.com/dev/apikey"
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ color: "primary.main" }}
+            >
               steamcommunity.com/dev/apikey
-            </a>
+            </Link>
           </Typography>
         </Stack>
         <Stack spacing={2} sx={{ mt: 4, mb: 3 }}>

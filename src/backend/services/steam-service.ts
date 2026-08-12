@@ -22,11 +22,11 @@ export default class SteamService {
     const settings = await this.settingsService.get();    
 
     if (!settings?.steamApiKey) {
-      throw new Error("Steam API key is not configured");
+      throw new Error("Steam API key is not configured. Add it in Settings.");
     }
 
     if (!settings?.steamId) {
-      throw new Error("SteamID is not configured");
+      throw new Error("SteamID is not configured. Add it in Settings.");
     }
 
     const url = new URL(`${this.BASE_URL}/IPlayerService/GetOwnedGames/v0001/`);

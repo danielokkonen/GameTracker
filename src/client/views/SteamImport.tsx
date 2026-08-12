@@ -90,7 +90,7 @@ const SteamImport = () => {
       return sortDirection === "asc" ? comparison : -comparison;
     });
     return result;
-  }, [steamGames, search, sortColumn, sortDirection, hideImported]);
+  }, [steamGames, existingGames, search, sortColumn, sortDirection, hideImported]);
 
   const handleSelectAll = () => {
     const selectableGames = filteredGames.filter(
@@ -251,18 +251,16 @@ const SteamImport = () => {
               disabled={loading || !state.steamApiKey || !state.steamId}
             />
 
-            {filteredGames.length > 0 && (
-              <SteamImportTable
-                games={filteredGames}
-                selected={selected}
-                existingGames={existingGames}
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSelectAll={handleSelectAll}
-                onToggleSelect={handleToggleSelect}
-                onSort={handleSort}
-              />
-            )}
+            <SteamImportTable
+              games={filteredGames}
+              selected={selected}
+              existingGames={existingGames}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSelectAll={handleSelectAll}
+              onToggleSelect={handleToggleSelect}
+              onSort={handleSort}
+            />
           </>
         )}
       </Stack>

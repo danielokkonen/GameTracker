@@ -109,27 +109,35 @@ const SteamImportTable = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {games.map((game) => (
-            <TableRow key={game.appId}>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  checked={selected.has(String(game.appId))}
-                  onChange={() => onToggleSelect(String(game.appId))}
-                  size="small"
-                  disabled={!!existingGames.find((e) => e.appId === game.appId)}
-                />
-              </TableCell>
-              <TableCell>{game.name}</TableCell>
-              <TableCell align="right">
-                {formatPlaytime(game.playtimeMinutes)}
-              </TableCell>
-              <TableCell>
-                {existingGames.find((e) => e.appId === game.appId)
-                  ? "Yes"
-                  : "No"}
+          {games.length === 0 || selectableGames.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} align="center">
+                No games to import
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            games.map((game) => (
+              <TableRow key={game.appId}>
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    checked={selected.has(String(game.appId))}
+                    onChange={() => onToggleSelect(String(game.appId))}
+                    size="small"
+                    disabled={!!existingGames.find((e) => e.appId === game.appId)}
+                  />
+                </TableCell>
+                <TableCell>{game.name}</TableCell>
+                <TableCell align="right">
+                  {formatPlaytime(game.playtimeMinutes)}
+                </TableCell>
+                <TableCell>
+                  {existingGames.find((e) => e.appId === game.appId)
+                    ? "Yes"
+                    : "No"}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </TableContainer>
