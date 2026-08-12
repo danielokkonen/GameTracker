@@ -109,7 +109,7 @@ const SteamImportTable = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {games.length === 0 || selectableGames.length === 0 ? (
+          {games.length === 0 ? (
             <TableRow>
               <TableCell colSpan={4} align="center">
                 No games to import
