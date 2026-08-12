@@ -1,27 +1,12 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import {
-  Box,
-  Stack,
-  Typography,
-  Button,
-  Table,
-  TableHead,
-  TableRow,
-  TableContainer,
-  TableBody,
-  TableCell,
-  Checkbox,
-  TextField,
-  CircularProgress,
-  Alert,
-  IconButton,
-} from "@mui/material";
-import { ArrowUpward, ArrowDownward, Close } from "@mui/icons-material";
+import { Box, Stack, Typography, CircularProgress, Alert } from "@mui/material";
 import GameDto from "../../backend/dtos/game";
 import { Channels } from "../constants/channels";
 import SnackbarContext from "../context/SnackbarContext";
 import SettingsContext from "../context/SettingsContext";
 import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
+import SteamImportToolbar from "../components/steam-import/SteamImportToolbar";
+import SteamImportTable from "../components/steam-import/SteamImportTable";
 import Spinner from "../components/common/Spinner";
 
 const SteamImport = () => {
@@ -129,12 +114,6 @@ const SteamImport = () => {
     setSelected(next);
   };
 
-  const formatPlaytime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
-
   const handleSort = (column: "name" | "playtime") => {
     if (sortColumn === column) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -142,15 +121,6 @@ const SteamImport = () => {
       setSortColumn(column);
       setSortDirection("asc");
     }
-  };
-
-  const getSortIcon = (column: "name" | "playtime") => {
-    if (sortColumn !== column) return null;
-    return sortDirection === "asc" ? (
-      <ArrowUpward fontSize="small" />
-    ) : (
-      <ArrowDownward fontSize="small" />
-    );
   };
 
   const handleImport = () => {
@@ -243,179 +213,50 @@ const SteamImport = () => {
 
         {loading && <Spinner delayed />}
 
-        {!loading && (
+        {!loading && steamLoading && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {!loading && !steamLoading && steamError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {steamError}
+          </Alert>
+        )}
+
+        {!loading && !steamLoading && !steamError && steamGames && steamGames.length === 0 && (
+          <Box sx={{ textAlign: "center", py: 4 }}>
+            <Typography>No games found in your Steam library.</Typography>
+          </Box>
+        )}
+
+        {!loading && steamGames && (
           <>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, alignItems: "center" }}>
-              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                <TextField
-                  size="small"
-                  placeholder="Search games..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  sx={{ width: 300 }}
-                  InputProps={{
-                    endAdornment: search ? (
-                      <IconButton size="small" onClick={() => setSearch("")}>
-                        <Close fontSize="small" />
-                      </IconButton>
-                    ) : null,
-                  }}
-                />
-                <Box
-                  sx={{ display: "flex", alignItems: "center", gap: 0.5, cursor: "pointer", userSelect: "none" }}
-                  onClick={() => setHideImported((prev) => !prev)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setHideImported((prev) => !prev);
-                    }
-                  }}
-                  role="checkbox"
-                  aria-checked={hideImported}
-                  tabIndex={0}
-                >
-                  <Checkbox
-                    size="small"
-                    checked={hideImported}
-                    onChange={() => setHideImported((prev) => !prev)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <Typography variant="body2">Hide imported</Typography>
-                </Box>
-              </Box>
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <Button
-                  variant="outlined"
-                  onClick={refreshExistingGames}
-                  disabled={loading || !state.steamApiKey || !state.steamId}
-                >
-                  Refresh
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleImport}
-                  disabled={selected.size === 0 || importing || !steamGames}
-                  startIcon={
-                    importing ? <CircularProgress size={20} /> : null
-                  }
-                >
-                  {importing
-                    ? "Importing..."
-                    : `Import Selected (${selected.size})`}
-                </Button>
-              </Box>
-            </Box>
+            <SteamImportToolbar
+              search={search}
+              onSearchChange={setSearch}
+              hideImported={hideImported}
+              onToggleHideImported={() => setHideImported((prev) => !prev)}
+              onRefresh={refreshExistingGames}
+              onImport={handleImport}
+              importing={importing}
+              selectedCount={selected.size}
+              disabled={loading || !state.steamApiKey || !state.steamId}
+            />
 
-            {steamLoading && (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                <CircularProgress />
-              </Box>
+            {filteredGames.length > 0 && (
+              <SteamImportTable
+                games={filteredGames}
+                selected={selected}
+                existingGames={existingGames}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSelectAll={handleSelectAll}
+                onToggleSelect={handleToggleSelect}
+                onSort={handleSort}
+              />
             )}
-
-            {steamError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {steamError}
-              </Alert>
-            )}
-
-            {!steamLoading && !steamError && steamGames && steamGames.length > 0 && (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          indeterminate={
-                            filteredGames.some(
-                              (g) =>
-                                !existingGames.find((e) => e.appId === g.appId) &&
-                                selected.has(String(g.appId))
-                            ) &&
-                            !filteredGames.every(
-                              (g) =>
-                                existingGames.find((e) => e.appId === g.appId) ||
-                                selected.has(String(g.appId))
-                            )
-                          }
-                          checked={
-                            filteredGames.some(
-                              (g) =>
-                                !existingGames.find((e) => e.appId === g.appId)
-                            ) &&
-                            filteredGames.every(
-                              (g) =>
-                                existingGames.find((e) => e.appId === g.appId) ||
-                                selected.has(String(g.appId))
-                            )
-                          }
-                          onChange={handleSelectAll}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          cursor: "pointer",
-                          userSelect: "none",
-                          "&:hover": { bgcolor: "action.hover" },
-                        }}
-                        onClick={() => handleSort("name")}
-                      >
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                          Game
-                          {getSortIcon("name")}
-                        </Box>
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{
-                          cursor: "pointer",
-                          userSelect: "none",
-                          "&:hover": { bgcolor: "action.hover" },
-                        }}
-                        onClick={() => handleSort("playtime")}
-                      >
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "flex-end" }}>
-                          Playtime
-                          {getSortIcon("playtime")}
-                        </Box>
-                      </TableCell>
-                      <TableCell>Imported</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredGames.map((game) => (
-                      <TableRow key={game.appId}>
-                        <TableCell padding="checkbox">
-                          <Checkbox
-                            checked={selected.has(String(game.appId))}
-                            onChange={() => handleToggleSelect(String(game.appId))}
-                            size="small"
-                            disabled={!!existingGames.find((e) => e.appId === game.appId)}
-                          />
-                        </TableCell>
-                        <TableCell>{game.name}</TableCell>
-                        <TableCell align="right">
-                          {formatPlaytime(game.playtimeMinutes)}
-                        </TableCell>
-                        <TableCell>
-                          {existingGames.find((e) => e.appId === game.appId)
-                            ? "Yes"
-                            : "No"}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-
-            {!steamLoading && !steamError && steamGames && steamGames.length === 0 && (
-              <Box sx={{ textAlign: "center", py: 4 }}>
-                <Typography>No games found in your Steam library.</Typography>
-              </Box>
-            )}
-
-
           </>
         )}
       </Stack>
