@@ -21,7 +21,6 @@ export class Database {
   
       mkdir(dbPath, (err) => {
         if (err.code !== "EEXIST") {
-          // eslint-disable-next-line no-console
           console.error(err);
         }
       });

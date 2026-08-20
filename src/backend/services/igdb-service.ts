@@ -24,7 +24,7 @@ export class IgdbService {
       throw new Error("Settings not found. Please configure IGDB credentials first.");
     }
 
-    let token = await this.getAccessToken(
+    const token = await this.getAccessToken(
       settings.igdbClientId,
       settings.igdbSecret
     );
@@ -42,7 +42,7 @@ export class IgdbService {
 
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
-        token = await this.getAccessToken(
+        await this.getAccessToken(
           settings.igdbClientId,
           settings.igdbSecret,
           true

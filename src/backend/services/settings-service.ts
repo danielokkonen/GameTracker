@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-
 import { Database } from "../database/database";
 import SettingsDto from "../dtos/settings";
 import CredentialService from "./credential-service";

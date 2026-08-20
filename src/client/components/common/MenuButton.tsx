@@ -6,7 +6,6 @@ import {
   MenuItem,
   SvgIconTypeMap,
 } from "@mui/material";
-// eslint-disable-next-line import/no-unresolved
 import { OverridableComponent } from "@mui/material/OverridableComponent";
 
 interface MenuButtonProps {
