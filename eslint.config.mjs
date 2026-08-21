@@ -5,23 +5,23 @@ import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([{
-    files: [
-        "**/src/**/*.{ts,tsx}"
-    ],
+  files: [
+    "**/src/**/*.{ts,tsx}"
+  ],
 
-    extends: [
-        js.configs.recommended, 
-        tseslint.configs.recommended,
-    ],
+  extends: [
+    js.configs.recommended,
+    tseslint.configs.recommended,
+  ],
 
-    languageOptions: {
-        parserOptions: {
-        projectService: true,
-        },
+  languageOptions: {
+    parserOptions: {
+      projectService: true,
     },
+  },
 
-    rules: {
-        "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-require-imports": "off",
-    },
+  rules: {
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-require-imports": "off",
+  },
 }]);
