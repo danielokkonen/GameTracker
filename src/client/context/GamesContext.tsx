@@ -6,7 +6,7 @@ export interface IGamesContext {
   dispatch: Dispatch<GamesAction>;
 }
 
-const context: IGamesContext = null;
+const context: IGamesContext = undefined as unknown as IGamesContext;
 
 const GamesContext = createContext(context);
 

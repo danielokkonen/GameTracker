@@ -136,7 +136,7 @@ ipcMain.on("import-games", async (event) => {
       properties: ["openFile"],
       filters: [{ name: "", extensions: ["csv"] }],
     })
-    .then((value) => {
+    .then((value: Electron.OpenDialogReturnValue) => {
       const path = value.filePaths[0];
       if (!path) {
         throw new Error("Parameter path cannot be empty");

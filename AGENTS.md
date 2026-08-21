@@ -3,6 +3,7 @@
 ## Commands
 - `npm start` — builds all Vite configs and launches Electron (electron-forge)
 - `npm run lint` — runs ESLint on `.ts,.tsx` files in `./src`
+- `npm run tsc` — runs TypeScript compiler for type checking
 
 No test framework is set up. No publish/make commands are used regularly.
 

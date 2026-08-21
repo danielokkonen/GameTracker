@@ -15,7 +15,7 @@ interface MenuButtonProps {
 }
 
 interface MenuButtonState {
-  anchorEl: Element & EventTarget;
+  anchorEl: Element & EventTarget | null;
 }
 
 const MenuButton = (props: MenuButtonProps) => {

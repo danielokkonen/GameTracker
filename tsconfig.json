@@ -2,15 +2,16 @@
   "compilerOptions": {
     "jsx": "react",
     "target": "ESNext",
-    "module": "commonjs",
+    "module": "node16",
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "outDir": "dist",
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "resolveJsonModule": true,
     "lib": ["DOM"]
   }

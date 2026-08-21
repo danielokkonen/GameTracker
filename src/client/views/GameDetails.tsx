@@ -26,7 +26,7 @@ import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
 const GameDetails = () => {
   const { id } = useParams();
 
-  const [game, setGame] = useState<GameDto>(null);
+  const [game, setGame] = useState<GameDto | null>(null);
   const [gameDetails, setGameDetails] = useState<any[]>([]);
   const [gameDetailsIndex, setGameDetailsIndex] = useState(0);
   const [gameDetailsLoading, setGameDetailsLoading] = useState(false);
@@ -56,9 +56,9 @@ const GameDetails = () => {
         });
       })
       .then(() => {
-        const coverImage = reader.result.toString();
+        const coverImage = (reader.result as string).toString();
 
-        const updatedGame: GameDto = { ...game };
+        const updatedGame: GameDto = { ...game!, id: game!.id };
         updatedGame.summary = selectedGameDetails.summary;
         updatedGame.developer = selectedGameDetails?.involved_companies?.find(
           (i: any) => i.developer
@@ -84,18 +84,20 @@ const GameDetails = () => {
     }
   }, [id]);
 
-  useIpcRendererCallback(Channels.IGDB_GET_GAME, null, (result: any) => {
+  useIpcRendererCallback(Channels.IGDB_GET_GAME, () => {}, (result: any) => {
     setGameDetails(result.filter((r: any) => !!r.cover));
     setGameDetailsLoading(false);
   });
 
-  useIpcRendererCallback(Channels.GAMES_GET_SUCCESS, null, (game: GameDto) => {
+  useIpcRendererCallback(Channels.GAMES_GET_SUCCESS, () => {}, (game: GameDto) => {
     setGame(game);
     setGameDetails([]);
   });
 
-  useIpcRendererCallback(Channels.GAMES_UPDATE_SUCCESS, null, () => {
-    window.gameService.get(parseInt(id));
+  useIpcRendererCallback(Channels.GAMES_UPDATE_SUCCESS, () => {}, () => {
+    if (id) {
+      window.gameService.get(parseInt(id));
+    }
   });
 
   const getGameDetails = (name: string) => {
@@ -104,7 +106,9 @@ const GameDetails = () => {
   };
 
   const saveGameDetails = () => {
-    window.gameService.update(game);
+    if (game) {
+      window.gameService.update(game);
+    }
   };
 
   if (!game) {
@@ -249,7 +253,7 @@ const GameDetails = () => {
             component="img"
             width={400}
             sx={{ minHeight: 500 }}
-            src={game?.coverImage}
+            src={game?.coverImage ?? undefined}
             elevation={3}
           ></Paper>
         )}

@@ -135,7 +135,7 @@ const SteamImport = () => {
       .filter((game) => !existingGames.find((e) => e.appId === game.appId))
       .map((game) => {
         const newGame = new GameDto();
-        newGame.id = null;
+        newGame.id = undefined as unknown as number;
         newGame.name = game.name;
         newGame.developer = game.developer;
         newGame.publisher = game.publisher;
