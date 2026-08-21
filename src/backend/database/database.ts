@@ -20,7 +20,7 @@ export class Database {
       }
   
       mkdir(dbPath, (err) => {
-        if (err && (err as NodeJS.ErrnoException).code !== "EEXIST") {
+        if (err?.code !== "EEXIST") {
           console.error(err);
         }
       });

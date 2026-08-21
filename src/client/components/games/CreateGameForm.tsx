@@ -4,14 +4,14 @@ import GameDto from "../../../backend/dtos/game";
 import SaveIcon from "@mui/icons-material/Save";
 import { LoadingButton } from "@mui/lab";
 import { useFormik } from "formik";
-import { ObjectSchema, array, date, number, object, string } from "yup";
+import { array, date, number, object, string } from "yup";
 import SettingsContext from "../../../client/context/SettingsContext";
 import dayjs from "dayjs";
 
 interface CreateGameFormProps {
   value: GameDto;
-  onSubmit: any;
-  onClose: any;
+  onSubmit: (values: GameDto) => void;
+  onClose: () => void;
   franchises?: string[];
 }
 

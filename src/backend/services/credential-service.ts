@@ -7,11 +7,11 @@ export default class CredentialService {
     this.encryptionService = encryptionService || new EncryptionService();
   }
 
-  getCredentials = (keys: string[], json: any, credentialsEncrypted: boolean): Record<string, string> => {
+  getCredentials = (keys: string[], json: Record<string, unknown>, credentialsEncrypted: boolean): Record<string, string> => {
     const result: Record<string, string> = {};
 
     for (const key of keys) {
-      const value = json[key] || "";
+      const value = json[key] as string || "";
       if (credentialsEncrypted) {
         result[key] = this.encryptionService.decryptString(value);
       } else {

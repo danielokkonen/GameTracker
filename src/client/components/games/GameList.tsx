@@ -41,7 +41,7 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
   const allSelected = useMemo(
     () =>
       items.length > 0 &&
-      Object.values(state.selectedGames).map((v: any) => v.selected === true)
+      Object.values(state.selectedGames).map((v: { selected: boolean; loading: boolean }) => v.selected === true)
         .length === items.length,
     [state.selectedGames]
   );

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import GameDto from "../../backend/dtos/game";
 import { useParams } from "react-router-dom";
 import { Channels } from "../constants/channels";
+import { IgdbGame } from "../../backend/types/igdb";
 import {
   Box,
   Button,
@@ -27,7 +28,7 @@ const GameDetails = () => {
   const { id } = useParams();
 
   const [game, setGame] = useState<GameDto | null>(null);
-  const [gameDetails, setGameDetails] = useState<any[]>([]);
+  const [gameDetails, setGameDetails] = useState<IgdbGame[]>([]);
   const [gameDetailsIndex, setGameDetailsIndex] = useState(0);
   const [gameDetailsLoading, setGameDetailsLoading] = useState(false);
 
@@ -61,16 +62,16 @@ const GameDetails = () => {
         const updatedGame: GameDto = { ...game!, id: game!.id };
         updatedGame.summary = selectedGameDetails.summary;
         updatedGame.developer = selectedGameDetails?.involved_companies?.find(
-          (i: any) => i.developer
-        )?.company.name;
+          (i) => i.developer
+        )?.company.name ?? null;
         updatedGame.publisher = selectedGameDetails?.involved_companies?.find(
-          (i: any) => i.publisher
-        )?.company.name;
+          (i) => i.publisher
+        )?.company.name ?? null;
         updatedGame.genres = selectedGameDetails.genres?.map(
-          (g: any) => g.name
+          (g) => g.name
         );
         updatedGame.platforms = selectedGameDetails.platforms?.map(
-          (p: any) => p.name
+          (p) => p.name
         );
         updatedGame.coverImage = coverImage;
 
@@ -84,8 +85,8 @@ const GameDetails = () => {
     }
   }, [id]);
 
-  useIpcRendererCallback(Channels.IGDB_GET_GAME, () => {}, (result: any) => {
-    setGameDetails(result.filter((r: any) => !!r.cover));
+  useIpcRendererCallback(Channels.IGDB_GET_GAME, () => {}, (result: IgdbGame[]) => {
+    setGameDetails(result.filter((r: IgdbGame) => !!r.cover));
     setGameDetailsLoading(false);
   });
 
