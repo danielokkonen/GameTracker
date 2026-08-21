@@ -43,9 +43,9 @@ Integrated with IGDB (Internet Game Database) to fetch additional details about 
 
 GameTracker is an Electron desktop application with a three-process architecture:
 
-- **Main process** (`src/main.ts`) — Creates the BrowserWindow, registers all IPC handlers, and instantiates the backend services (game, igdb, steam, settings). 
+- **Main process** (`src/main.ts`) — Creates the BrowserWindow, registers all IPC handlers, and instantiates the backend services (game, igdb, steam, settings).
 - **Preload script** (`src/preload.ts`) — Bridges the main process to the renderer via contextBridge, exposing `electronApi`, `gameService`, `igdbService`, `steamService`, and `settingsService` to the browser context.
-- **Renderer** (`src/renderer.tsx` → `App.tsx`) — React UI rendered with MUI components, react-router-dom (hash-based routing), and React contexts for state management (GamesContext, SettingsContext, SnackbarContext). 
+- **Renderer** (`src/renderer.tsx` → `App.tsx`) — React UI rendered with MUI components, react-router-dom (hash-based routing), and React contexts for state management (GamesContext, SettingsContext, SnackbarContext).
 
 ## Data Layer
 
