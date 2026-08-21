@@ -27,7 +27,7 @@ const Games = () => {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     show: false,
-    value: null,
+    value: new GameDto(),
   });
 
   const [filter, setFilter] = useState({
@@ -70,7 +70,7 @@ const Games = () => {
     setForm({
       ...form,
       show: true,
-      value: null,
+      value: new GameDto(),
     });
   };
 

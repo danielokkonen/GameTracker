@@ -20,8 +20,7 @@ export class Database {
       }
   
       mkdir(dbPath, (err) => {
-        if (err.code !== "EEXIST") {
-          // eslint-disable-next-line no-console
+        if (err?.code !== "EEXIST") {
           console.error(err);
         }
       });

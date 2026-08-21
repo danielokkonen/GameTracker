@@ -1,56 +1,47 @@
 import SettingsDto from "../backend/dtos/settings";
 import GameDto from "../backend/dtos/game";
 
-export {};
-
-declare global {
-  interface Window {
-    electronApi: IElectronApi;
-    gameService: IGameService;
-    igdbService: IIgdbService;
-    settingsService: ISettingsService;
-  }
+export interface ElectronApi {
+  ipcRenderer: IpcRenderer;
+  theme: Theme;
+  encryption: Encryption;
 }
 
-interface IElectronApi {
-  ipcRenderer: IIpcRenderer;
-  theme: ITheme;
-  encryption: IEncryption;
-}
-
-interface IEncryption {
+export interface Encryption {
   isAvailable: () => Promise<boolean>;
 }
 
-interface IIpcRenderer {
+export interface IpcRenderer {
   on: (
     channel: string,
-    listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void
+    listener: (event: Electron.IpcRendererEvent, ...args: unknown[]) => void
   ) => Electron.IpcRenderer;
   removeAllListeners: (channel: string) => Electron.IpcRenderer;
 }
 
-interface ITheme {
+export interface Theme {
   darkMode: () => boolean;
 }
 
-interface IGameService {
+export interface GameService {
   list: () => void;
   get: (id: number) => void;
   create: (game: GameDto) => void;
   update: (game: GameDto) => void;
   delete: (id: number) => void;
+  deleteAll: () => void;
   dashboard: () => void;
   import: () => void;
   addGameDetails: (id: number) => void;
-  importSteam: () => void;
+  getSteamGames: () => void;
+  importSteamGames: (games: GameDto[]) => void;
 }
 
-interface IIgdbService {
+export interface IgdbService {
   getGameDetails: (title: string) => string;
 }
 
-interface ISettingsService {
+export interface SettingsService {
   get: () => SettingsDto;
   upsert: (settings: SettingsDto) => void;
   clearTokens: () => void;

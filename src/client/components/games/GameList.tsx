@@ -41,7 +41,7 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
   const allSelected = useMemo(
     () =>
       items.length > 0 &&
-      Object.values(state.selectedGames).map((v: any) => v.selected === true)
+      Object.values(state.selectedGames).map((v: { selected: boolean; loading: boolean }) => v.selected === true)
         .length === items.length,
     [state.selectedGames]
   );
@@ -167,6 +167,7 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
             );
           }
         }
+        return 0;
       });
     }
     return items;
@@ -191,15 +192,15 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
                 key={item.id}
                 loading={loading}
                 selected={state.selectedGames[item.id]?.selected}
-                onSelect={loading ? null : () => onRowSelect(item.id)}
+                onSelect={loading ? () => {} : () => onRowSelect(item.id)}
                 onClick={
                   loading
-                    ? null
+                    ? () => {}
                     : (e: React.MouseEvent) => onRowClick(e, item.id)
                 }
                 game={item}
-                onEdit={loading ? null : onEdit}
-                onDelete={loading ? null : onDelete}
+                onEdit={loading ? () => {} : onEdit}
+                onDelete={loading ? () => {} : onDelete}
               />
             );
           })}

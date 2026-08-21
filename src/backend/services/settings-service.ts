@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-
 import { Database } from "../database/database";
 import SettingsDto from "../dtos/settings";
 import CredentialService from "./credential-service";
@@ -24,7 +22,7 @@ export default class SettingsService {
     const dto: SettingsDto = JSON.parse(result.json);
     dto.darkMode = Boolean(dto.darkMode);
     
-    const credentials = this.credentialService.getCredentials(["igdbClientId", "igdbSecret", "steamApiKey"], dto, result.credentialsEncrypted === 1);
+    const credentials = this.credentialService.getCredentials(["igdbClientId", "igdbSecret", "steamApiKey"], dto as unknown as Record<string, unknown>, result.credentialsEncrypted === 1);
     
     dto.igdbClientId = credentials["igdbClientId"];
     dto.igdbSecret = credentials["igdbSecret"];

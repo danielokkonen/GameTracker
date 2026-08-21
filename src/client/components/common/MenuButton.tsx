@@ -6,17 +6,21 @@ import {
   MenuItem,
   SvgIconTypeMap,
 } from "@mui/material";
-// eslint-disable-next-line import/no-unresolved
 import { OverridableComponent } from "@mui/material/OverridableComponent";
+
+export interface MenuButtonItem {
+  name: string;
+  onClick: () => void;
+}
 
 interface MenuButtonProps {
   component: ExtendButtonBase<IconButtonTypeMap>;
   icon: OverridableComponent<SvgIconTypeMap<object, "svg">>;
-  items: any;
+  items: MenuButtonItem[];
 }
 
 interface MenuButtonState {
-  anchorEl: Element & EventTarget;
+  anchorEl: Element & EventTarget | null;
 }
 
 const MenuButton = (props: MenuButtonProps) => {
@@ -56,7 +60,7 @@ const MenuButton = (props: MenuButtonProps) => {
         onClose={onClose}
         anchorEl={state.anchorEl}
       >
-        {items.map((i: any) => (
+        {items.map((i) => (
           <MenuItem key={i.name} onClick={() => handleClickItem(i.onClick)}>
             {i.name}
           </MenuItem>

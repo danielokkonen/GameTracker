@@ -7,6 +7,7 @@ import SettingsService from "./backend/services/settings-service";
 import EncryptionService from "./backend/services/encryption-service";
 import SettingsDto from "./backend/dtos/settings";
 import SteamService from "./backend/services/steam-service";
+
 const dialog = require("electron").dialog;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -125,7 +126,7 @@ ipcMain.on("adddetails-game", async (event, id: number) => {
   const gameDetails = await igdbService.getGameDetails(game.name);
   await gameService.addGameDetails(
     id,
-    gameDetails.filter((r: any) => !!r.cover)[0]
+    gameDetails.filter((r) => !!r.cover)[0]
   );
   event.reply("adddetails-game-success", id);
 });
@@ -136,7 +137,7 @@ ipcMain.on("import-games", async (event) => {
       properties: ["openFile"],
       filters: [{ name: "", extensions: ["csv"] }],
     })
-    .then((value) => {
+    .then((value: Electron.OpenDialogReturnValue) => {
       const path = value.filePaths[0];
       if (!path) {
         throw new Error("Parameter path cannot be empty");
@@ -175,7 +176,7 @@ ipcMain.on("get-steam-games", async (event) => {
   }
 });
 
-ipcMain.on("import-steam-games", async (event, games: any) => {
+ipcMain.on("import-steam-games", async (event, games: GameDto[]) => {
   if (!Array.isArray(games)) {
     event.reply("import-steam-games-success", { imported: 0, skipped: 0, errors: ["Invalid payload: games must be an array"] });
     return;

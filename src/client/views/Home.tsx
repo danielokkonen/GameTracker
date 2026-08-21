@@ -6,7 +6,7 @@ import { IpcRendererEvent } from "electron";
 import Spinner from "../components/common/Spinner";
 
 const Home = () => {
-  const [dashboard, setDashboard] = useState<DashboardDto>(null);
+  const [dashboard, setDashboard] = useState<DashboardDto | null>(null);
 
   const handleDashboardSuccess = (
     event: IpcRendererEvent,
@@ -31,7 +31,7 @@ const Home = () => {
     };
   }, []);
 
-  const getCard = (label: string, data: number) => (
+  const getCard = (label: string, data: number | undefined) => (
     <Card>
       <CardContent>
         <Typography variant="h6" sx={{ mb: 1 }}>

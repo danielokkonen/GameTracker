@@ -3,7 +3,7 @@ import { IpcRendererEvent } from "electron";
 
 const useIpcRendererCallback = <T,>(
   channel: string,
-  method: () => void,
+  method: (() => void) | null,
   callback: (data: T) => void
 ) => {
   const handleEvent = (event: IpcRendererEvent, data: T) => {
