@@ -28,6 +28,6 @@ IPC uses `send`/`on` with event replies (not `invoke`). Channels are defined in 
 - IGDB integration downloads cover images and stores them as base64 data URIs in SQLite.
 
 ## Conventions
-- 2-space indent, CRLF line endings (see `.editorconfig`)
+- 2-space indent, LF line endings (see `.editorconfig`)
 - `noImplicitAny: true`, but `@typescript-eslint/no-explicit-any` and `no-var-requires` are turned off
 - React state lives in contexts (`GamesContext`, `SettingsContext`, `SnackbarContext`) with corresponding providers in `src/client/context/` and `src/client/components/*/`
