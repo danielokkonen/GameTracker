@@ -93,3 +93,4 @@ out/
 
 # Custom
 *.db
+.agents/

@@ -20,7 +20,7 @@ import {
 
 const Home = () => {
   const [dashboard, setDashboard] = useState<DashboardDto | null>(null);
-  const [activity, setActivity] = useState<ActivityDto[]>([]);
+  const [activity, setActivity] = useState<ActivityDto[] | null>(null);
   const navigate = useNavigate();
 
   const handleDashboardSuccess = (
@@ -85,17 +85,13 @@ const Home = () => {
     }
   };
 
-  if (!dashboard) {
-    return <Spinner />;
-  }
-
   const totalGames =
-    dashboard.notStarted +
-    dashboard.started +
-    dashboard.completed +
-    dashboard.paused +
-    dashboard.dropped +
-    dashboard.replaying;
+    (dashboard?.notStarted ?? 0) +
+    (dashboard?.started ?? 0) +
+    (dashboard?.completed ?? 0) +
+    (dashboard?.paused ?? 0) +
+    (dashboard?.dropped ?? 0) +
+    (dashboard?.replaying ?? 0);
 
   return (
     <Box>
@@ -107,7 +103,7 @@ const Home = () => {
                 Completion Rate
               </Typography>
               <Typography variant="h4" color="success.main">
-                {dashboard.completionRate}%
+                {dashboard?.completionRate ?? 0}%
               </Typography>
             </CardContent>
           </Card>
@@ -131,7 +127,7 @@ const Home = () => {
                 Total Playtime
               </Typography>
               <Typography variant="h4">
-                {formatPlaytime(dashboard.totalPlaytime)}
+                {formatPlaytime(dashboard?.totalPlaytime ?? 0)}
               </Typography>
             </CardContent>
           </Card>
@@ -143,7 +139,7 @@ const Home = () => {
                 Avg. Playtime
               </Typography>
               <Typography variant="h4">
-                {formatPlaytime(dashboard.avgPlaytime)}
+                {formatPlaytime(dashboard?.avgPlaytime ?? 0)}
               </Typography>
             </CardContent>
           </Card>
@@ -154,7 +150,11 @@ const Home = () => {
         Now Playing
       </Typography>
 
-      {dashboard.startedGames.length > 0 ? (
+      {dashboard === null ? (
+        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
+          <Spinner />
+        </Box>
+      ) : dashboard.startedGames.length > 0 ? (
         <Carousel>
           {dashboard.startedGames.map((game) => (
             <Box
@@ -263,7 +263,11 @@ const Home = () => {
         Recent Activity
       </Typography>
 
-      {activity.length > 0 ? (
+      {activity === null ? (
+        <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
+          <Spinner />
+        </Box>
+      ) : activity.length > 0 ? (
         <List sx={{ bgcolor: "rgba(255,255,255,0.02)", borderRadius: 2, mb: 4 }}>
           {activity.map((item) => (
             <ListItemButton
