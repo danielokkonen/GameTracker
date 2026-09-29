@@ -4,21 +4,24 @@ Games can fall into states that "Started" and "Not started" don't capture: a pla
 
 ## What Changes
 
-- Add three new game statuses: `Paused`, `Dropped`, `Replaying`
+- Define six valid game statuses: `Not started`, `Started`, `Completed`, `Paused`, `Dropped`, `Replaying`
 - Persist `status` as a new `TEXT` column in the `Game` table instead of deriving it from `start`/`end` dates
 - Make status user-editable via a dropdown in the Create Game form and Game Details view
-- Preserve existing statuses (`Not started`, `Started`, `Completed`) for backward compatibility
-- Update dashboard to show a pie chart (using `@mui/x-charts`) with slices for all seven statuses, replacing the existing card-based layout
+- Add a `GameActivity` table to track status changes with before/after values
+- Add a `Recent Activity` feed on the dashboard showing the last 10 status changes
+- Replace the existing card-based dashboard with metric cards (completion rate, total games, total playtime, avg playtime), a "Now Playing" carousel, and the activity feed
 - Update status filter dropdown to include all statuses
+- Add `@mui/x-charts` dependency (installed but not used in final dashboard)
 
 ## Capabilities
 
 ### New Capabilities
-- `game-statuses`: Define and manage game lifecycle statuses with persistent storage, user-editable selection, and dashboard support
+
+- `game-statuses`: Define and manage game lifecycle statuses with persistent storage, user-editable selection, dashboard support, and activity tracking
 
 ## Impact
 
-- **Database**: New `status` column on `Game` table — migration required
-- **Backend**: `GameDto.status` becomes stored field; `GameService.toDto()` reads from DB instead of deriving; `DbGame` gains `status` field; `DashboardDto` expands to include all status counts
-- **Frontend**: `StatusIcon.tsx` adds icons/colors for new statuses; `CreateGameForm.tsx` adds status dropdown; `GameDetails.tsx` adds status editor; `Games.tsx` filter dropdown updates; `Home.tsx` dashboard replaces cards with `@mui/x-charts` pie chart
+- **Database**: New `status` column on `Game` table (migration); new `GameActivity` table for activity tracking
+- **Backend**: `GameDto.status` becomes stored field; `GameService.toDto()` reads from DB; `DbGame` gains `status` field; `DashboardDto` expands to include all status counts, playtime metrics, `startedGames`, and `activity`; new `ActivityDto` class; new `logActivity()` and `getRecentActivity()` methods; `actionFromStatus` mapping records
+- **Frontend**: Centralized `gameStatuses.ts` constants (backend + client) with icons/colors; `StatusIcon.tsx` updated; `CreateGameForm.tsx` adds status dropdown; `GameDetails.tsx` adds inline status selector with icons; `Games.tsx` filter uses hardcoded statuses; `Home.tsx` dashboard uses metric cards + carousel + activity feed
 - **Breaking**: Status is no longer auto-derived from `start`/`end` dates — existing games will get a default status of "Not started"

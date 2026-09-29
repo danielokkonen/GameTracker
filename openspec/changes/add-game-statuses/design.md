@@ -8,8 +8,10 @@ The `Game` table currently has no `status` column. Status is derived in `GameSer
 - Persist status in the database as a nullable TEXT column with a default of `Not started`
 - Add `Paused`, `Dropped`, `Replaying` as valid statuses alongside the existing three
 - Make status user-editable via a dropdown in the UI
-- Update dashboard and filter controls to support all seven statuses
+- Update dashboard and filter controls to support all six statuses
 - Keep `start` and `end` dates independent — status is no longer auto-derived
+- Track status changes in a `GameActivity` table for activity feed display
+- Redesign dashboard with metric cards, "Now Playing" carousel, and activity feed
 
 **Non-Goals:**
 - Status transition rules or workflow enforcement (any status can be set to any other)
@@ -26,59 +28,86 @@ The `Game` table currently has no `status` column. Status is derived in `GameSer
 **Rationale:** A new column is the simplest migration path. Using `NOT NULL DEFAULT` ensures existing rows are populated without a separate UPDATE. The default value (`Not started`) matches the current derived behavior for games without a start date.
 
 **Alternatives considered:**
-- Use a separate `GameStatus` lookup table — overkill for 7 static values
+- Use a separate `GameStatus` lookup table — overkill for 6 static values
 - Add `is_paused`, `is_dropped`, `is_replaying` boolean columns — scatters status logic and makes queries harder
 
 ### Decision: `GameDto.status` becomes a stored field
 
-**Choice:** `GameDto.status` remains a `string` type but is now populated from the database column instead of derived. `DbGame` gains a `status: string` field.
+**Choice:** `GameDto.status` uses the `GameStatus` union type (`"Not started" | "Started" | "Completed" | "Paused" | "Dropped" | "Replaying"`) and is now populated from the database column instead of derived. `DbGame` gains a `status: GameStatus` field.
 
-**Rationale:** Minimal type system changes. The existing index signature on `GameDto` already accepts `string`. A proper `GameStatus` enum type can be added in a future refactor.
-
-**Alternatives considered:**
-- Create a `GameStatus` union type (`"Not started" | "Started" | ...`) — good long-term but adds migration surface; defer to a follow-up
-- Keep deriving status but with more conditions — contradicts the goal of independent status
-
-### Decision: Dashboard counts expand to seven statuses
-
-**Choice:** Add `paused`, `dropped`, `replaying` fields to `DashboardDto`. The `getDashboard` method in `GameService` filters by the new `status` column.
-
-**Rationale:** Backward-compatible addition — existing dashboard consumers see new fields without breaking. The three original fields (`completed`, `started`, `notStarted`) remain.
+**Rationale:** Using a proper union type adds type safety for the six valid statuses. The existing index signature on `GameDto` already accepts `string`.
 
 **Alternatives considered:**
-- Replace the three original fields with a generic `counts: Record<string, number>` — breaking change for existing dashboard consumers
+- Keep `string` type — lost type safety opportunity
+- Create a TypeScript `enum` — harder to serialize to/from SQLite; union type is more portable
 
-### Decision: Dashboard uses PieChart from @mui/x-charts
+### Decision: Centralized game statuses constants
 
-**Choice:** Replace the existing card-based dashboard with a `PieChart` from `@mui/x-charts` displaying all 7 status counts. Remove the "last 30 days" time-based metrics (Started last 30 days, Completed last 30 days) as they do not fit the pie chart model.
+**Choice:** Create `src/backend/constants/gameStatuses.ts` with `GameStatus` type, `GAME_STATUSES` array, and `actionFromStatus` mapping. Re-export from `src/client/constants/gameStatuses.ts` alongside UI-specific constants (`gameStatusIcons`, `gameStatusColors`).
 
-**Rationale:** `@mui/x-charts` is already part of the MUI ecosystem and integrates seamlessly with the existing MUI 5.18 setup. A pie chart provides an immediate visual breakdown of game distribution across statuses, which is more intuitive than individual cards for this use case.
-
-**Alternatives considered:**
-- Keep card-based layout with new status cards — less visually informative for comparing proportions
-- Use recharts — adds an external dependency when MUI already provides one
-- Use d3 directly — more flexible but significantly more code and complexity
-
-### Decision: Status dropdown in UI
-
-**Choice:** Use MUI `Select` component with a hardcoded array of all seven statuses. Display in `CreateGameForm.tsx` and `GameDetails.tsx`. The `Games.tsx` filter dropdown also uses the hardcoded array instead of deriving from data.
-
-**Rationale:** Hardcoding ensures the filter always shows all options even when no games exist with a given status. Consistent with the spec requirement for the filter.
+**Rationale:** Single source of truth for the six valid statuses prevents drift between backend and frontend. The `actionFromStatus` mapping links each status to its corresponding activity log action (e.g., "Paused" → "paused").
 
 **Alternatives considered:**
-- Keep dynamic filter options — would show empty statuses only when games exist, which is confusing
+- Duplicate constants in both layers — risk of drift, more maintenance
+- Generate constants from a shared schema — over-engineering for 6 values
 
-### Decision: StatusIcon adds new icons/colors
+### Decision: `GameActivity` table for activity tracking
 
-**Choice:** Map each status to a Material UI icon and color:
-- `Not started` → `CircleIcon` / `default` (gray)
-- `Started` → `CircleIcon` / `warning` (amber)
-- `Completed` → `CheckCircleIcon` / `success` (green)
-- `Paused` → `PauseCircleIcon` / `info` (blue)
-- `Dropped` → `CancelIcon` / `error` (red)
-- `Replaying` → `ReplayIcon` / `secondary` (purple)
+**Choice:** New table with columns `game_id`, `action`, `old_status`, `new_status`, `created`. `logActivity()` is called on status changes during create/update. `getRecentActivity()` returns the last 10 entries joined with game names.
 
-**Rationale:** MUI provides all needed icons out of the box. Colors follow MUI's semantic palette.
+**Rationale:** Enables the "Recent Activity" feed on the dashboard. Tracking `old_status` and `new_status` provides audit trail context. The `action` field uses the `actionFromStatus` mapping for human-readable labels.
+
+**Alternatives considered:**
+- Derive activity from `updated` timestamps — loses the before/after context
+- Store activity in-memory only — lost across restarts
+
+### Decision: Dashboard redesign — metric cards + carousel + activity feed
+
+**Choice:** Replace the original pie chart plan with:
+1. Four metric cards: Completion Rate, Total Games, Total Playtime, Avg. Playtime
+2. "Now Playing" carousel showing games with `Started` or `Replaying` status
+3. "Recent Activity" feed showing the last 10 status changes
+
+**Rationale:** The metric cards provide at-a-glance statistics that are more useful than a pie chart for quick overview. The carousel highlights currently active games. The activity feed adds social/history context. This approach was chosen over the pie chart because it provides more actionable information.
+
+**Alternatives considered:**
+- Pie chart with `@mui/x-charts` — less actionable, harder to compare proportions
+- Keep original card-based layout — didn't incorporate new status counts meaningfully
+
+### Decision: DashboardDto expands with playtime and activity fields
+
+**Choice:** `DashboardDto` gains `avgPlaytime`, `totalPlaytime`, `completionRate`, `startedGames`, and `activity` fields. The `dashboard()` method computes these from the full game list and activity table.
+
+**Rationale:** Backward-compatible addition — existing dashboard consumers see new fields without breaking. The completion rate and playtime metrics complement the status counts.
+
+**Alternatives considered:**
+- Separate API endpoint for activity — unnecessary complexity for a single dashboard load
+
+### Decision: Status icon colors use specific hex values
+
+**Choice:** Map each status to a Material UI icon and specific hex color:
+- `Not started` → `EventNote` / `#757575` (gray)
+- `Started` → `PlayArrow` / `#ffbf00` (amber)
+- `Completed` → `CheckCircle` / `#4caf50` (green)
+- `Paused` → `PauseCircle` / `#2196f3` (blue)
+- `Dropped` → `Cancel` / `#f44336` (red)
+- `Replaying` → `Replay` / `#9c27b0` (purple)
+
+**Rationale:** Specific hex values ensure consistent visual output across themes. The icons follow the semantic meaning of each status (play for Started, pause for Paused, etc.).
+
+**Alternatives considered:**
+- MUI semantic colors (`warning`, `error`, etc.) — theme-dependent, less control
+- Custom SVG icons — more work for marginal visual gain
+
+### Decision: Status dropdown in GameDetails uses inline icons
+
+**Choice:** The status selector in `GameDetails.tsx` renders each option with its corresponding icon and color inline within the `Select` component, using the `gameStatusIcons` and `gameStatusColors` constants.
+
+**Rationale:** Provides visual confirmation of the selected status without requiring the user to read text. Consistent with the `StatusIcon` component's rendering.
+
+**Alternatives considered:**
+- Text-only dropdown — less visually informative
+- Chip-based selector — different interaction model, less familiar
 
 ## Risks / Trade-offs
 
@@ -94,14 +123,18 @@ The `Game` table currently has no `status` column. Status is derived in `GameSer
 ## Migration Plan
 
 1. Add `status TEXT NOT NULL DEFAULT 'Not started'` column to `Game` table via `ALTER TABLE`
-2. Update `DbGame` type to include `status` field
-3. Update `GameService.toDto()` to read `status` from `DbGame` instead of deriving
-4. Update `DashboardDto` with new count fields; update `getDashboard()` to filter by status
-5. Update `StatusIcon.tsx` with new icons/colors
-6. Update `CreateGameForm.tsx` to include a status dropdown (default: "Not started")
-7. Update `GameDetails.tsx` to include a status editor
-8. Update `Games.tsx` filter dropdown to use hardcoded status list
-9. Update `Home.tsx` dashboard to replace cards with `@mui/x-charts` pie chart showing all 7 statuses
+2. Create `GameActivity` table for activity tracking
+3. Update `DbGame` type to include `status: GameStatus` field
+4. Update `GameService.toDto()` to read `status` from `DbGame` instead of deriving
+5. Add `logActivity()` and `getRecentActivity()` methods to `GameService`
+6. Update `DashboardDto` with new count fields, playtime metrics, `startedGames`, and `activity`; update `dashboard()` method
+7. Create `ActivityDto` class for activity entries
+8. Create centralized `gameStatuses.ts` constants (backend + client)
+9. Update `StatusIcon.tsx` with new icons/colors
+10. Update `CreateGameForm.tsx` to include a status dropdown (default: "Not started")
+11. Update `GameDetails.tsx` to include a status editor with inline icons
+12. Update `Games.tsx` filter dropdown to use hardcoded status list
+13. Redesign `Home.tsx` dashboard with metric cards, carousel, and activity feed
 
 ## Open Questions
 
