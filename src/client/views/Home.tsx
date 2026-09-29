@@ -1,13 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, Grid, Typography, Box, Button, ButtonGroup } from "@mui/material";
+import { Card, CardContent, Grid, Typography, Box, Button, ButtonGroup, List, ListItemIcon, ListItemButton, ListItemText } from "@mui/material";
 import DashboardDto from "../../backend/dtos/dashboard";
+import ActivityDto from "../../backend/dtos/activity";
 import { Channels } from "../constants/channels";
 import { IpcRendererEvent } from "electron";
 import Spinner from "../components/common/Spinner";
+import Carousel from "../components/common/Carousel";
 import { useNavigate } from "react-router-dom";
+import { formatPlaytime, formatActivityDate } from "../utils/formatUtils";
+import {
+  AddCircleOutlined,
+  PlayArrow,
+  CheckCircle,
+  PauseCircle,
+  Cancel,
+  Replay,
+  EventNote,
+} from "@mui/icons-material";
 
 const Home = () => {
   const [dashboard, setDashboard] = useState<DashboardDto | null>(null);
+  const [activity, setActivity] = useState<ActivityDto[]>([]);
   const navigate = useNavigate();
 
   const handleDashboardSuccess = (
@@ -17,8 +30,16 @@ const Home = () => {
     setDashboard(data);
   };
 
+  const handleActivitySuccess = (
+    event: IpcRendererEvent,
+    data: ActivityDto[]
+  ) => {
+    setActivity(data);
+  };
+
   useEffect(() => {
     window.gameService.dashboard();
+    window.gameService.getActivity();
   }, []);
 
   useEffect(() => {
@@ -26,19 +47,42 @@ const Home = () => {
       Channels.GAMES_DASHBOARD_SUCCESS,
       handleDashboardSuccess
     );
+    window.electronApi.ipcRenderer.on(
+      Channels.GET_ACTIVITY_SUCCESS,
+      handleActivitySuccess
+    );
     return () => {
       window.electronApi.ipcRenderer.removeAllListeners(
         Channels.GAMES_DASHBOARD_SUCCESS
       );
+      window.electronApi.ipcRenderer.removeAllListeners(
+        Channels.GET_ACTIVITY_SUCCESS
+      );
     };
   }, []);
 
-  const formatPlaytime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours === 0) return `${mins}m`;
-    if (mins === 0) return `${hours}h`;
-    return `${hours}h ${mins}m`;
+  const getActionIcon = (action: string) => {
+    switch (action) {
+      case "added": return <AddCircleOutlined sx={{ color: "#9e9e9e" }} />;
+      case "started": return <PlayArrow sx={{ color: "#ffbf00" }} />;
+      case "completed": return <CheckCircle sx={{ color: "#4caf50" }} />;
+      case "paused": return <PauseCircle sx={{ color: "#2196f3" }} />;
+      case "dropped": return <Cancel sx={{ color: "#f44336" }} />;
+      case "replaying": return <Replay sx={{ color: "#9c27b0" }} />;
+      default: return <EventNote sx={{ color: "#757575" }} />;
+    }
+  };
+
+  const getActionLabel = (action: string) => {
+    switch (action) {
+      case "added": return "Added to backlog";
+      case "started": return "Started playing";
+      case "completed": return "Completed";
+      case "paused": return "Paused";
+      case "dropped": return "Dropped";
+      case "replaying": return "Replaying";
+      default: return action;
+    }
   };
 
   if (!dashboard) {
@@ -111,20 +155,11 @@ const Home = () => {
       </Typography>
 
       {dashboard.startedGames.length > 0 ? (
-        <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            overflowX: "auto",
-            pb: 2,
-            "&::-webkit-scrollbar": { height: 6 },
-            "&::-webkit-scrollbar-thumb": { background: "#888", borderRadius: 3 },
-          }}
-        >
+        <Carousel>
           {dashboard.startedGames.map((game) => (
             <Box
               key={game.id}
-              onClick={() => navigate(`/game/${game.id}`)}
+              onClick={() => navigate(`/games/${game.id}`)}
               sx={{
                 flexShrink: 0,
                 width: 200,
@@ -195,7 +230,7 @@ const Home = () => {
               </Box>
             </Box>
           ))}
-        </Box>
+        </Carousel>
       ) : (
         <Box
           sx={{
@@ -217,10 +252,56 @@ const Home = () => {
             <Button onClick={() => navigate("/games")}>
               Add a Game
             </Button>
-            <Button onClick={() => navigate("/import")}>
+            <Button onClick={() => navigate("/steam-import")}>
               Import from Steam
             </Button>
           </ButtonGroup>
+        </Box>
+      )}
+
+      <Typography variant="h5" sx={{ mt: 4, mb: 2, fontWeight: 600 }}>
+        Recent Activity
+      </Typography>
+
+      {activity.length > 0 ? (
+        <List sx={{ bgcolor: "rgba(255,255,255,0.02)", borderRadius: 2, mb: 4 }}>
+          {activity.map((item) => (
+            <ListItemButton
+              key={item.id}
+              onClick={() => navigate(`/games/${item.gameId}`)}
+              sx={{ pl: 4 }}
+            >
+              <ListItemIcon>{getActionIcon(item.action)}</ListItemIcon>
+              <ListItemText
+                primary={item.gameName}
+                secondary={
+                  <>
+                    {getActionLabel(item.action)}
+                    <Typography component="span" variant="body2" color="text.secondary" sx={{ display: 'inline', ml: 1 }}>
+                      · {formatActivityDate(item.created)}
+                    </Typography>
+                  </>
+                }
+              />
+            </ListItemButton>
+          ))}
+        </List>
+      ) : (
+        <Box
+          sx={{
+            mt: 3,
+            p: 4,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            borderRadius: 2,
+            border: "1px dashed #555",
+            bgcolor: "rgba(255,255,255,0.03)",
+          }}
+        >
+          <Typography variant="h6" color="text.secondary">
+            No activity yet
+          </Typography>
         </Box>
       )}
     </Box>
