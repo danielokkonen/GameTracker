@@ -100,6 +100,17 @@ export class Database {
       // Column already exists
     }
 
+    try {
+      this.instance.prepare(
+        "UPDATE Game SET status = 'Completed' WHERE status = 'Not started' AND end IS NOT NULL"
+      ).run();
+      this.instance.prepare(
+        "UPDATE Game SET status = 'Started' WHERE status = 'Not started' AND start IS NOT NULL AND end IS NULL"
+      ).run();
+    } catch {
+      // Migration already ran or no games to migrate
+    }
+
     this.instance.prepare(`
       CREATE TABLE IF NOT EXISTS "GameActivity" (
         "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
