@@ -9,7 +9,9 @@ import {
   Chip,
   Grid,
   IconButton,
+  MenuItem,
   Paper,
+  Select,
   Skeleton,
   Stack,
   TextField,
@@ -17,7 +19,7 @@ import {
 } from "@mui/material";
 import Spinner from "../components/common/Spinner";
 import dayjs from "dayjs";
-import StatusIcon from "../components/games/StatusIcon";
+import { GAME_STATUSES, gameStatusIcons, gameStatusColors, type GameStatus } from "../constants/gameStatuses";
 import MenuButton from "../components/common/MenuButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -123,7 +125,26 @@ const GameDetails = () => {
           <Typography variant="h5" display="inline-block" mr={2}>
             {game.name}
           </Typography>
-          <StatusIcon game={game} />
+          <Select
+            variant="standard"
+            value={game.status || "Not started"}
+            onChange={(e) => {
+              const updatedGame = { ...game, status: e.target.value as GameStatus };
+              setGame(updatedGame);
+              window.gameService.update(updatedGame);
+            }}
+            sx={{ minWidth: 120 }}
+          >
+            {GAME_STATUSES.map((status) => {
+              const Icon = gameStatusIcons[status];
+              return (
+                <MenuItem key={status} value={status}>
+                  <Icon fontSize="small" sx={{ mr: 1, color: gameStatusColors[status] }} />
+                  {status}
+                </MenuItem>
+              );
+            })}
+          </Select>
         </Box>
         <Stack direction="row" spacing={2}>
           <Button

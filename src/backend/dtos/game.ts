@@ -1,8 +1,10 @@
+import { GameStatus } from "../constants/gameStatuses";
+
 export default class GameDto {
   public id!: number;
   public name!: string;
   public franchise!: string;
-  public status!: string;
+  public status!: GameStatus;
   public started!: Date | null;
   public completed!: Date | null;
   public summary!: string | null;

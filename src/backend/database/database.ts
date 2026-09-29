@@ -91,5 +91,35 @@ export class Database {
     } catch {
       // Column already exists
     }
+
+    try {
+      this.instance.prepare(
+        "ALTER TABLE Game ADD COLUMN status TEXT NOT NULL DEFAULT 'Not started'"
+      ).run();
+    } catch {
+      // Column already exists
+    }
+
+    try {
+      this.instance.prepare(
+        "UPDATE Game SET status = 'Completed' WHERE status = 'Not started' AND end IS NOT NULL"
+      ).run();
+      this.instance.prepare(
+        "UPDATE Game SET status = 'Started' WHERE status = 'Not started' AND start IS NOT NULL AND end IS NULL"
+      ).run();
+    } catch {
+      // Migration already ran or no games to migrate
+    }
+
+    this.instance.prepare(`
+      CREATE TABLE IF NOT EXISTS "GameActivity" (
+        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "game_id" INTEGER NOT NULL,
+        "action" TEXT NOT NULL,
+        "old_status" TEXT,
+        "new_status" TEXT NOT NULL,
+        "created" TEXT NOT NULL
+      );
+    `).run();
   }
 }

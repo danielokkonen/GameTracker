@@ -2,9 +2,10 @@ import { open } from "node:fs/promises";
 import { Database } from "../database/database";
 import GameDto from "../dtos/game";
 import DashboardDto from "../dtos/dashboard";
-import dayjs from "dayjs";
-import { DbGame } from "../types/db";
+import ActivityDto from "../dtos/activity";
+import { DbGame, DbActivity } from "../types/db";
 import { IgdbGame } from "../types/igdb";
+import { actionFromStatus, type GameStatus } from "../constants/gameStatuses";
 
 export default class GameService {
   private database: Database;
@@ -60,15 +61,27 @@ export default class GameService {
         @publisher,
         @summary,
         @appId,
-        @playtime_minutes
+        @playtime_minutes,
+        @status
       )
     `);
     statement.run(data);
+
+    const row = this.database.instance.prepare("SELECT last_insert_rowid() as id").get() as { id: bigint } | undefined;
+    const gameId = row ? Number(row.id) : null;
+    if (!gameId) {
+      throw new Error("Failed to get inserted game ID");
+    }
+    await this.logActivity(gameId, "added", null, entity.status ?? "Not started");
   };
 
   update = async (entity: GameDto): Promise<void> => {
     const data = this.toDbEntity(entity);
     data.updated = new Date().toISOString();
+
+    const existing = this.database.instance
+      .prepare("SELECT status FROM Game WHERE id = @id")
+      .get({ id: data.id });
 
     const statement = this.database.instance.prepare(`
       UPDATE Game 
@@ -84,7 +97,8 @@ export default class GameService {
         platforms = @platforms, 
         coverImage = @coverImage,
         appId = @appId,
-        playtime_minutes = @playtime_minutes
+        playtime_minutes = @playtime_minutes,
+        status = @status
       WHERE id = @id`);
     statement.run({
       id: data.id,
@@ -101,7 +115,15 @@ export default class GameService {
       coverImage: data.coverImage,
       appId: data.appId,
       playtime_minutes: data.playtime_minutes,
+      status: data.status,
     });
+
+    const oldStatus = existing?.status ?? null;
+    const newStatus = data.status;
+    if (oldStatus !== newStatus) {
+      const action = actionFromStatus[newStatus] ?? "updated";
+      await this.logActivity(data.id!, action, oldStatus, newStatus);
+    }
   };
 
   delete = async (id: number): Promise<void> => {
@@ -116,6 +138,41 @@ export default class GameService {
     statement.run();
   };
 
+  logActivity = async (gameId: number, action: string, oldStatus: string | null, newStatus: string): Promise<void> => {
+    this.database.instance.prepare(`
+      INSERT INTO GameActivity (game_id, action, old_status, new_status, created)
+      VALUES (@game_id, @action, @old_status, @new_status, @created)
+    `).run({
+      game_id: gameId,
+      action,
+      old_status: oldStatus,
+      new_status: newStatus,
+      created: new Date().toISOString(),
+    });
+  };
+
+  getRecentActivity = async (limit: number = 10): Promise<ActivityDto[]> => {
+    const results = this.database.instance.prepare(`
+      SELECT ga.*, g.name as game_name
+      FROM GameActivity ga
+      JOIN Game g ON ga.game_id = g.id
+      ORDER BY ga.created DESC
+      LIMIT ${limit}
+    `).all() as (DbActivity & { game_name: string })[];
+
+    return results.map((r) => {
+      const dto = new ActivityDto();
+      dto.id = r.id;
+      dto.gameId = r.game_id;
+      dto.gameName = r.game_name;
+      dto.action = r.action;
+      dto.oldStatus = r.old_status as GameStatus | null;
+      dto.newStatus = r.new_status as GameStatus;
+      dto.created = new Date(r.created);
+      return dto;
+    });
+  };
+
   dashboard = async (): Promise<DashboardDto> => {
     const data: DbGame[] = this.database.instance
       .prepare("SELECT * FROM Game")
@@ -123,18 +180,27 @@ export default class GameService {
 
     const results = new DashboardDto();
 
-    results.notStarted = data.filter((d) => !d.start && !d.end).length;
-    results.started = data.filter((d) => d.start && !d.end).length;
-    results.completed = data.filter((d) => d.start && d.end).length;
+    results.notStarted = data.filter((d) => d.status === "Not started").length;
+    results.started = data.filter((d) => d.status === "Started").length;
+    results.completed = data.filter((d) => d.status === "Completed").length;
+    results.paused = data.filter((d) => d.status === "Paused").length;
+    results.dropped = data.filter((d) => d.status === "Dropped").length;
+    results.replaying = data.filter((d) => d.status === "Replaying").length;
 
-    const threshold = dayjs().add(-30, "days").toDate().getTime();
-    results.startedLast30Days = data.filter(
-      (d) => d.start && !d.end && new Date(d.start!).getTime() >= threshold
-    ).length;
+    const totalGames = data.length;
+    results.completionRate = totalGames > 0 ? Math.round((results.completed / totalGames) * 100) : 0;
 
-    results.completedLast30Days = data.filter(
-      (d) => d.start && new Date(d.end!).getTime() >= threshold
-    ).length;
+    const playtimes = data.map((d) => d.playtime_minutes || 0);
+    results.totalPlaytime = playtimes.reduce((sum, t) => sum + t, 0);
+    results.avgPlaytime = totalGames > 0 ? Math.round(results.totalPlaytime / totalGames) : 0;
+
+    results.startedGames = data
+      .filter((g) => g.status === "Started" || g.status === "Replaying")
+      .map((g) => ({
+        id: g.id as number,
+        name: g.name,
+        coverImage: g.coverImage ?? null,
+      }));
 
     return results;
   };
@@ -220,22 +286,15 @@ export default class GameService {
     summary: g.summary ?? null,
     appId: g.appId ?? null,
     playtime_minutes: g.playtimeMinutes ?? 0,
+    status: g.status ?? "Not started",
   });
 
   private toDto = (g: DbGame): GameDto => {
-    let status = "Not started";
-
-    if (g.start && g.end) {
-      status = "Completed";
-    } else if (g.start) {
-      status = "Started";
-    }
-
     const dto = new GameDto();
     dto.id = g.id as number;
     dto.name = g.name;
     dto.franchise = g.franchise;
-    dto.status = status;
+    dto.status = g.status;
     dto.started = g.start ? new Date(g.start) : null;
     dto.completed = g.end ? new Date(g.end) : null;
     dto.summary = g.summary ?? null;
