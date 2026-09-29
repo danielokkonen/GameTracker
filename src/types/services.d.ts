@@ -35,6 +35,7 @@ export interface GameService {
   addGameDetails: (id: number) => void;
   getSteamGames: () => void;
   importSteamGames: (games: GameDto[]) => void;
+  getActivity: () => void;
 }
 
 export interface IgdbService {

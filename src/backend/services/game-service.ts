@@ -2,8 +2,9 @@ import { open } from "node:fs/promises";
 import { Database } from "../database/database";
 import GameDto from "../dtos/game";
 import DashboardDto from "../dtos/dashboard";
+import ActivityDto from "../dtos/activity";
 import dayjs from "dayjs";
-import { DbGame } from "../types/db";
+import { DbGame, DbActivity } from "../types/db";
 import { IgdbGame } from "../types/igdb";
 
 export default class GameService {
@@ -65,11 +66,18 @@ export default class GameService {
       )
     `);
     statement.run(data);
+
+    const gameId = Number(this.database.instance.lastInsertRowid);
+    await this.logActivity(gameId, "added", null, entity.status ?? "Not started");
   };
 
   update = async (entity: GameDto): Promise<void> => {
     const data = this.toDbEntity(entity);
     data.updated = new Date().toISOString();
+
+    const existing = this.database.instance
+      .prepare("SELECT status FROM Game WHERE id = @id")
+      .get({ id: data.id });
 
     const statement = this.database.instance.prepare(`
       UPDATE Game 
@@ -105,6 +113,20 @@ export default class GameService {
       playtime_minutes: data.playtime_minutes,
       status: data.status,
     });
+
+    const oldStatus = existing?.status ?? null;
+    const newStatus = data.status;
+    if (oldStatus !== newStatus) {
+      const actionMap: Record<string, string> = {
+        "Started": "started",
+        "Completed": "completed",
+        "Paused": "paused",
+        "Dropped": "dropped",
+        "Replaying": "replaying",
+      };
+      const action = actionMap[newStatus] ?? "updated";
+      await this.logActivity(data.id, action, oldStatus, newStatus);
+    }
   };
 
   delete = async (id: number): Promise<void> => {
@@ -117,6 +139,41 @@ export default class GameService {
   deleteAll = async (): Promise<void> => {
     const statement = this.database.instance.prepare("DELETE FROM Game");
     statement.run();
+  };
+
+  logActivity = async (gameId: number, action: string, oldStatus: string | null, newStatus: string): Promise<void> => {
+    this.database.instance.prepare(`
+      INSERT INTO GameActivity (game_id, action, old_status, new_status, created)
+      VALUES (@game_id, @action, @old_status, @new_status, @created)
+    `).run({
+      game_id: gameId,
+      action,
+      old_status: oldStatus,
+      new_status: newStatus,
+      created: new Date().toISOString(),
+    });
+  };
+
+  getRecentActivity = async (limit: number = 10): Promise<ActivityDto[]> => {
+    const results = this.database.instance.prepare(`
+      SELECT ga.*, g.name as game_name
+      FROM GameActivity ga
+      JOIN Game g ON ga.game_id = g.id
+      ORDER BY ga.created DESC
+      LIMIT ${limit}
+    `).all() as (DbActivity & { game_name: string })[];
+
+    return results.map((r) => {
+      const dto = new ActivityDto();
+      dto.id = r.id;
+      dto.gameId = r.game_id;
+      dto.gameName = r.game_name;
+      dto.action = r.action;
+      dto.oldStatus = r.old_status;
+      dto.newStatus = r.new_status;
+      dto.created = new Date(r.created);
+      return dto;
+    });
   };
 
   dashboard = async (): Promise<DashboardDto> => {
@@ -212,7 +269,6 @@ export default class GameService {
 
     results.startedGames = data
       .filter((g) => g.status === "Started" || g.status === "Replaying")
-      .slice(0, 8)
       .map((g) => ({
         id: g.id as number,
         name: g.name,

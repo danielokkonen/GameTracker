@@ -22,4 +22,7 @@ export const Channels = {
   GET_STEAM_GAMES_ERROR: "get-steam-games-error",
   IMPORT_STEAM_GAMES: "import-steam-games",
   IMPORT_STEAM_GAMES_SUCCESS: "import-steam-games-success",
+
+  GET_ACTIVITY: "get-activity",
+  GET_ACTIVITY_SUCCESS: "get-activity-success",
 };

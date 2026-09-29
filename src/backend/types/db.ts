@@ -23,3 +23,12 @@ export class DbToken {
   type!: string;
   expires_at!: number;
 }
+
+export class DbActivity {
+  id!: number;
+  game_id!: number;
+  action!: string;
+  old_status: string | null = null;
+  new_status!: string;
+  created!: string;
+}

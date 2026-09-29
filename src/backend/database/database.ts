@@ -99,5 +99,16 @@ export class Database {
     } catch {
       // Column already exists
     }
+
+    this.instance.prepare(`
+      CREATE TABLE IF NOT EXISTS "GameActivity" (
+        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "game_id" INTEGER NOT NULL,
+        "action" TEXT NOT NULL,
+        "old_status" TEXT,
+        "new_status" TEXT NOT NULL,
+        "created" TEXT NOT NULL
+      );
+    `).run();
   }
 }
