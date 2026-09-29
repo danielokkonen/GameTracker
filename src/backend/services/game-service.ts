@@ -211,7 +211,7 @@ export default class GameService {
       .slice(0, 10);
 
     results.startedGames = data
-      .filter((g) => g.status === "Started")
+      .filter((g) => g.status === "Started" || g.status === "Replaying")
       .slice(0, 8)
       .map((g) => ({
         id: g.id as number,
