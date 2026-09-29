@@ -52,10 +52,7 @@ const Games = () => {
     [games]
   );
 
-  const statuses = useMemo(
-    () => Array.from(new Set(games?.map((g) => g.status))).sort(),
-    [games]
-  );
+  const statuses = ["Not started", "Started", "Completed", "Paused", "Dropped", "Replaying"];
 
   const refreshTable = () => {
     setLoading(true);

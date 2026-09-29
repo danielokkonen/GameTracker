@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef } from "react";
-import { Autocomplete, Box, Button, Stack, TextField } from "@mui/material";
+import { Autocomplete, Box, Button, MenuItem, Select, Stack, TextField } from "@mui/material";
 import GameDto from "../../../backend/dtos/game";
 import SaveIcon from "@mui/icons-material/Save";
 import { LoadingButton } from "@mui/lab";
@@ -7,6 +7,8 @@ import { useFormik } from "formik";
 import { array, date, number, object, string } from "yup";
 import SettingsContext from "../../../client/context/SettingsContext";
 import dayjs from "dayjs";
+
+const GAME_STATUSES = ["Not started", "Started", "Completed", "Paused", "Dropped", "Replaying"];
 
 interface CreateGameFormProps {
   value: GameDto;
@@ -55,7 +57,7 @@ const CreateGameForm = ({
   };
 
   const formik = useFormik({
-    initialValues: value ?? new GameDto(),
+    initialValues: value ?? { ...new GameDto(), status: "Not started" },
     onSubmit: handleSubmit,
     validationSchema: validationSchema,
   });
@@ -122,6 +124,18 @@ const CreateGameForm = ({
         helperText={formik.touched.completed && <>{formik.errors.completed}</>}
         error={formik.touched.completed && !!formik.errors.completed}
       />
+      <Select
+        name="status"
+        value={formik.values.status || "Not started"}
+        onChange={formik.handleChange}
+        fullWidth
+      >
+        {GAME_STATUSES.map((status) => (
+          <MenuItem key={status} value={status}>
+            {status}
+          </MenuItem>
+        ))}
+      </Select>
       <Stack direction="row" justifyContent="flex-end" spacing={2}>
         <Button variant="outlined" onClick={onClose}>
           Close

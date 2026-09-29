@@ -9,7 +9,9 @@ import {
   Chip,
   Grid,
   IconButton,
+  MenuItem,
   Paper,
+  Select,
   Skeleton,
   Stack,
   TextField,
@@ -23,6 +25,8 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
+
+const GAME_STATUSES = ["Not started", "Started", "Completed", "Paused", "Dropped", "Replaying"];
 
 const GameDetails = () => {
   const { id } = useParams();
@@ -195,6 +199,21 @@ const GameDetails = () => {
               fullWidth
               disabled
             />
+            <Select
+              value={game.status || "Not started"}
+              onChange={(e) => {
+                const updatedGame = { ...game, status: e.target.value };
+                setGame(updatedGame);
+                window.gameService.update(updatedGame);
+              }}
+              fullWidth
+            >
+              {GAME_STATUSES.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {status}
+                </MenuItem>
+              ))}
+            </Select>
           </Box>
           <Grid container mt={2}>
             <Grid item xs={6}>

@@ -60,7 +60,8 @@ export default class GameService {
         @publisher,
         @summary,
         @appId,
-        @playtime_minutes
+        @playtime_minutes,
+        @status
       )
     `);
     statement.run(data);
@@ -84,7 +85,8 @@ export default class GameService {
         platforms = @platforms, 
         coverImage = @coverImage,
         appId = @appId,
-        playtime_minutes = @playtime_minutes
+        playtime_minutes = @playtime_minutes,
+        status = @status
       WHERE id = @id`);
     statement.run({
       id: data.id,
@@ -101,6 +103,7 @@ export default class GameService {
       coverImage: data.coverImage,
       appId: data.appId,
       playtime_minutes: data.playtime_minutes,
+      status: data.status,
     });
   };
 
@@ -123,9 +126,12 @@ export default class GameService {
 
     const results = new DashboardDto();
 
-    results.notStarted = data.filter((d) => !d.start && !d.end).length;
-    results.started = data.filter((d) => d.start && !d.end).length;
-    results.completed = data.filter((d) => d.start && d.end).length;
+    results.notStarted = data.filter((d) => d.status === "Not started").length;
+    results.started = data.filter((d) => d.status === "Started").length;
+    results.completed = data.filter((d) => d.status === "Completed").length;
+    results.paused = data.filter((d) => d.status === "Paused").length;
+    results.dropped = data.filter((d) => d.status === "Dropped").length;
+    results.replaying = data.filter((d) => d.status === "Replaying").length;
 
     const threshold = dayjs().add(-30, "days").toDate().getTime();
     results.startedLast30Days = data.filter(
@@ -135,6 +141,74 @@ export default class GameService {
     results.completedLast30Days = data.filter(
       (d) => d.start && new Date(d.end!).getTime() >= threshold
     ).length;
+
+    const totalGames = data.length;
+    results.completionRate = totalGames > 0 ? Math.round((results.completed / totalGames) * 100) : 0;
+
+    const playtimes = data.map((d) => d.playtime_minutes || 0);
+    results.totalPlaytime = playtimes.reduce((sum, t) => sum + t, 0);
+    results.avgPlaytime = totalGames > 0 ? Math.round(results.totalPlaytime / totalGames) : 0;
+
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const startedByMonth: Record<string, number> = {};
+    const completedByMonth: Record<string, number> = {};
+
+    data.forEach((game) => {
+      if (game.start) {
+        const date = new Date(game.start);
+        const key = `${months[date.getMonth()]} ${date.getFullYear()}`;
+        startedByMonth[key] = (startedByMonth[key] || 0) + 1;
+      }
+      if (game.end) {
+        const date = new Date(game.end);
+        const key = `${months[date.getMonth()]} ${date.getFullYear()}`;
+        completedByMonth[key] = (completedByMonth[key] || 0) + 1;
+      }
+    });
+
+    results.gamesStartedByMonth = Object.entries(startedByMonth)
+      .map(([month, count]) => ({ month, count }))
+      .sort((a, b) => {
+        const [aMonth, aYear] = a.month.split(" ");
+        const [bMonth, bYear] = b.month.split(" ");
+        return parseInt(bYear) - parseInt(aYear) || months.indexOf(aMonth) - months.indexOf(bMonth);
+      })
+      .slice(0, 12);
+
+    results.gamesCompletedByMonth = Object.entries(completedByMonth)
+      .map(([month, count]) => ({ month, count }))
+      .sort((a, b) => {
+        const [aMonth, aYear] = a.month.split(" ");
+        const [bMonth, bYear] = b.month.split(" ");
+        return parseInt(bYear) - parseInt(aYear) || months.indexOf(aMonth) - months.indexOf(bMonth);
+      })
+      .slice(0, 12);
+
+    const genreCount: Record<string, number> = {};
+    const platformCount: Record<string, number> = {};
+
+    data.forEach((game) => {
+      if (game.genres) {
+        game.genres.split(";").forEach((genre) => {
+          genreCount[genre] = (genreCount[genre] || 0) + 1;
+        });
+      }
+      if (game.platforms) {
+        game.platforms.split(";").forEach((platform) => {
+          platformCount[platform] = (platformCount[platform] || 0) + 1;
+        });
+      }
+    });
+
+    results.topGenres = Object.entries(genreCount)
+      .map(([genre, count]) => ({ genre, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    results.topPlatforms = Object.entries(platformCount)
+      .map(([platform, count]) => ({ platform, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
 
     return results;
   };
@@ -220,22 +294,15 @@ export default class GameService {
     summary: g.summary ?? null,
     appId: g.appId ?? null,
     playtime_minutes: g.playtimeMinutes ?? 0,
+    status: g.status ?? "Not started",
   });
 
   private toDto = (g: DbGame): GameDto => {
-    let status = "Not started";
-
-    if (g.start && g.end) {
-      status = "Completed";
-    } else if (g.start) {
-      status = "Started";
-    }
-
     const dto = new GameDto();
     dto.id = g.id as number;
     dto.name = g.name;
     dto.franchise = g.franchise;
-    dto.status = status;
+    dto.status = g.status;
     dto.started = g.start ? new Date(g.start) : null;
     dto.completed = g.end ? new Date(g.end) : null;
     dto.summary = g.summary ?? null;

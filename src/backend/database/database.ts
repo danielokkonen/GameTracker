@@ -91,5 +91,13 @@ export class Database {
     } catch {
       // Column already exists
     }
+
+    try {
+      this.instance.prepare(
+        "ALTER TABLE Game ADD COLUMN status TEXT NOT NULL DEFAULT 'Not started'"
+      ).run();
+    } catch {
+      // Column already exists
+    }
   }
 }

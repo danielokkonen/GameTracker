@@ -14,6 +14,7 @@ export class DbGame {
   summary: string | null = null;
   appId: string | null = null;
   playtime_minutes: number = 0;
+  status: string = "Not started";
 }
 
 export class DbToken {
