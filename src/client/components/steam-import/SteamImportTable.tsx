@@ -10,7 +10,7 @@ import {
   Checkbox,
 } from "@mui/material";
 import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
-import { formatPlaytime } from "../../utils/numberUtils";
+import { formatPlaytime } from "../../utils/formatUtils";
 import GameDto from "../../../backend/dtos/game";
 
 interface SteamImportTableProps {
