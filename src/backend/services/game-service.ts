@@ -3,7 +3,6 @@ import { Database } from "../database/database";
 import GameDto from "../dtos/game";
 import DashboardDto from "../dtos/dashboard";
 import ActivityDto from "../dtos/activity";
-import dayjs from "dayjs";
 import { DbGame, DbActivity } from "../types/db";
 import { IgdbGame } from "../types/igdb";
 import { actionFromStatus, type GameStatus } from "../constants/gameStatuses";
@@ -123,7 +122,7 @@ export default class GameService {
     const newStatus = data.status;
     if (oldStatus !== newStatus) {
       const action = actionFromStatus[newStatus] ?? "updated";
-      await this.logActivity(data.id, action, oldStatus, newStatus);
+      await this.logActivity(data.id!, action, oldStatus, newStatus);
     }
   };
 
@@ -188,82 +187,12 @@ export default class GameService {
     results.dropped = data.filter((d) => d.status === "Dropped").length;
     results.replaying = data.filter((d) => d.status === "Replaying").length;
 
-    const threshold = dayjs().add(-30, "days").toDate().getTime();
-    results.startedLast30Days = data.filter(
-      (d) => d.start && !d.end && new Date(d.start!).getTime() >= threshold
-    ).length;
-
-    results.completedLast30Days = data.filter(
-      (d) => d.start && new Date(d.end!).getTime() >= threshold
-    ).length;
-
     const totalGames = data.length;
     results.completionRate = totalGames > 0 ? Math.round((results.completed / totalGames) * 100) : 0;
 
     const playtimes = data.map((d) => d.playtime_minutes || 0);
     results.totalPlaytime = playtimes.reduce((sum, t) => sum + t, 0);
     results.avgPlaytime = totalGames > 0 ? Math.round(results.totalPlaytime / totalGames) : 0;
-
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const startedByMonth: Record<string, number> = {};
-    const completedByMonth: Record<string, number> = {};
-
-    data.forEach((game) => {
-      if (game.start) {
-        const date = new Date(game.start);
-        const key = `${months[date.getMonth()]} ${date.getFullYear()}`;
-        startedByMonth[key] = (startedByMonth[key] || 0) + 1;
-      }
-      if (game.end) {
-        const date = new Date(game.end);
-        const key = `${months[date.getMonth()]} ${date.getFullYear()}`;
-        completedByMonth[key] = (completedByMonth[key] || 0) + 1;
-      }
-    });
-
-    results.gamesStartedByMonth = Object.entries(startedByMonth)
-      .map(([month, count]) => ({ month, count }))
-      .sort((a, b) => {
-        const [aMonth, aYear] = a.month.split(" ");
-        const [bMonth, bYear] = b.month.split(" ");
-        return parseInt(bYear) - parseInt(aYear) || months.indexOf(aMonth) - months.indexOf(bMonth);
-      })
-      .slice(0, 12);
-
-    results.gamesCompletedByMonth = Object.entries(completedByMonth)
-      .map(([month, count]) => ({ month, count }))
-      .sort((a, b) => {
-        const [aMonth, aYear] = a.month.split(" ");
-        const [bMonth, bYear] = b.month.split(" ");
-        return parseInt(bYear) - parseInt(aYear) || months.indexOf(aMonth) - months.indexOf(bMonth);
-      })
-      .slice(0, 12);
-
-    const genreCount: Record<string, number> = {};
-    const platformCount: Record<string, number> = {};
-
-    data.forEach((game) => {
-      if (game.genres) {
-        game.genres.split(";").forEach((genre) => {
-          genreCount[genre] = (genreCount[genre] || 0) + 1;
-        });
-      }
-      if (game.platforms) {
-        game.platforms.split(";").forEach((platform) => {
-          platformCount[platform] = (platformCount[platform] || 0) + 1;
-        });
-      }
-    });
-
-    results.topGenres = Object.entries(genreCount)
-      .map(([genre, count]) => ({ genre, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-
-    results.topPlatforms = Object.entries(platformCount)
-      .map(([platform, count]) => ({ platform, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
 
     results.startedGames = data
       .filter((g) => g.status === "Started" || g.status === "Replaying")
