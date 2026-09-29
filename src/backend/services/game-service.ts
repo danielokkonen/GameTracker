@@ -210,6 +210,15 @@ export default class GameService {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
+    results.startedGames = data
+      .filter((g) => g.status === "Started")
+      .slice(0, 8)
+      .map((g) => ({
+        id: g.id as number,
+        name: g.name,
+        coverImage: g.coverImage ?? null,
+      }));
+
     return results;
   };
 

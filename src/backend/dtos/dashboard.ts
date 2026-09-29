@@ -14,4 +14,5 @@ export default class DashboardDto {
   public avgPlaytime!: number;
   public totalPlaytime!: number;
   public completionRate!: number;
+  public startedGames!: { id: number; name: string; coverImage: string | null }[];
 }
