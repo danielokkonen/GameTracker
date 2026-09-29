@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Tooltip, Typography } from "@mui/material";
 
 interface StartedGame {
   id: number;
@@ -70,19 +70,21 @@ const NowPlayingCard = ({ game, onClick }: NowPlayingCardProps) => {
           background: "linear-gradient(transparent, rgba(0,0,0,0.85))",
         }}
       >
-        <Typography
-          variant="body2"
-          sx={{
-            color: "white",
-            fontWeight: 600,
-            fontSize: "0.85rem",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {game.name}
-        </Typography>
+        <Tooltip title={game.name}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "white",
+              fontWeight: 600,
+              fontSize: "0.85rem",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {game.name}
+          </Typography>
+        </Tooltip>
       </Box>
     </Box>
   );

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, Grid, Typography, Box, Button, ButtonGroup } from "@mui/material";
+import { Card, CardContent, Grid, Typography, Box, Button, ButtonGroup, Tooltip, IconButton } from "@mui/material";
 import DashboardDto from "../../backend/dtos/dashboard";
-import ActivityDto from "../../backend/dtos/activity";
 import { Channels } from "../constants/channels";
 import { IpcRendererEvent } from "electron";
 import Spinner from "../components/common/Spinner";
@@ -11,10 +10,10 @@ import { formatPlaytime } from "../utils/formatUtils";
 import NowPlayingCard from "../components/dashboard/NowPlayingCard";
 import ActivityItem from "../components/dashboard/ActivityItem";
 import EmptyState from "../components/common/EmptyState";
+import { Info } from "@mui/icons-material";
 
 const Home = () => {
   const [dashboard, setDashboard] = useState<DashboardDto | null>(null);
-  const [activity, setActivity] = useState<ActivityDto[] | null>(null);
   const navigate = useNavigate();
 
   const handleDashboardSuccess = (
@@ -24,33 +23,18 @@ const Home = () => {
     setDashboard(data);
   };
 
-  const handleActivitySuccess = (
-    event: IpcRendererEvent,
-    data: ActivityDto[]
-  ) => {
-    setActivity(data);
-  };
-
   useEffect(() => {
     window.gameService.dashboard();
-    window.gameService.getActivity();
   }, []);
 
   useEffect(() => {
     window.electronApi.ipcRenderer.on(
-      Channels.GAMES_DASHBOARD_SUCCESS,
+      Channels.DASHBOARD_SUCCESS,
       handleDashboardSuccess
-    );
-    window.electronApi.ipcRenderer.on(
-      Channels.GET_ACTIVITY_SUCCESS,
-      handleActivitySuccess
     );
     return () => {
       window.electronApi.ipcRenderer.removeAllListeners(
-        Channels.GAMES_DASHBOARD_SUCCESS
-      );
-      window.electronApi.ipcRenderer.removeAllListeners(
-        Channels.GET_ACTIVITY_SUCCESS
+        Channels.DASHBOARD_SUCCESS
       );
     };
   }, []);
@@ -95,6 +79,11 @@ const Home = () => {
             <CardContent>
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 Total Playtime
+                <Tooltip title="Playtime is only fetched from Steam during import and may be out of date.">
+                  <IconButton size="small" sx={{ ml: 0.5, verticalAlign: "middle" }}>
+                    <Info fontSize="inherit" sx={{ color: "text.secondary" }} />
+                  </IconButton>
+                </Tooltip>
               </Typography>
               <Typography variant="h4">
                 {formatPlaytime(dashboard?.totalPlaytime ?? 0)}
@@ -107,6 +96,11 @@ const Home = () => {
             <CardContent>
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 Avg. Playtime
+                <Tooltip title="Playtime is only fetched from Steam during import and may be out of date.">
+                  <IconButton size="small" sx={{ ml: 0.5, verticalAlign: "middle" }}>
+                    <Info fontSize="inherit" sx={{ color: "text.secondary" }} />
+                  </IconButton>
+                </Tooltip>
               </Typography>
               <Typography variant="h4">
                 {formatPlaytime(dashboard?.avgPlaytime ?? 0)}
@@ -147,13 +141,13 @@ const Home = () => {
         Recent Activity
       </Typography>
 
-      {activity === null ? (
+      {dashboard === null ? (
         <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
           <Spinner />
         </Box>
-      ) : activity.length > 0 ? (
+      ) : dashboard.activity.length > 0 ? (
         <Box sx={{ bgcolor: "rgba(255,255,255,0.02)", borderRadius: 2, mb: 4 }}>
-          {activity.map((item) => (
+          {dashboard.activity.map((item) => (
             <ActivityItem
               key={item.id}
               item={item}

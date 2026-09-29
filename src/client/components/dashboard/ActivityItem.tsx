@@ -1,5 +1,5 @@
 import React from "react";
-import { ListItemButton, ListItemIcon, ListItemText, Typography } from "@mui/material";
+import { ListItemButton, ListItemIcon, ListItemText, Tooltip, Typography } from "@mui/material";
 import ActivityDto from "../../../backend/dtos/activity";
 import useActivityItem from "./useActivityItem";
 import { formatActivityDate } from "../../utils/formatUtils";
@@ -24,9 +24,9 @@ const ActivityItem = ({ item, onClick }: ActivityItemProps) => {
         primary={item.gameName}
         secondary={
           <>
-            {label || item.action}
+            {label || (item.action.charAt(0).toUpperCase() + item.action.slice(1))}
             <Typography component="span" variant="body2" color="text.secondary" sx={{ display: "inline", ml: 1 }}>
-              · {formatActivityDate(item.created)}
+              · <Tooltip title={new Date(item.created).toLocaleString()}>{formatActivityDate(item.created)}</Tooltip>
             </Typography>
           </>
         }

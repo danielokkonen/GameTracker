@@ -19,8 +19,7 @@ import {
 } from "@mui/material";
 import Spinner from "../components/common/Spinner";
 import dayjs from "dayjs";
-import { GAME_STATUSES, type GameStatus } from "../constants/gameStatuses";
-import StatusIcon from "../components/games/StatusIcon";
+import { GAME_STATUSES, gameStatusIcons, gameStatusColors, type GameStatus } from "../constants/gameStatuses";
 import MenuButton from "../components/common/MenuButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -126,7 +125,26 @@ const GameDetails = () => {
           <Typography variant="h5" display="inline-block" mr={2}>
             {game.name}
           </Typography>
-          <StatusIcon game={game} />
+          <Select
+            variant="standard"
+            value={game.status || "Not started"}
+            onChange={(e) => {
+              const updatedGame = { ...game, status: e.target.value as GameStatus };
+              setGame(updatedGame);
+              window.gameService.update(updatedGame);
+            }}
+            sx={{ minWidth: 120 }}
+          >
+            {GAME_STATUSES.map((status) => {
+              const Icon = gameStatusIcons[status];
+              return (
+                <MenuItem key={status} value={status}>
+                  <Icon fontSize="small" sx={{ mr: 1, color: gameStatusColors[status] }} />
+                  {status}
+                </MenuItem>
+              );
+            })}
+          </Select>
         </Box>
         <Stack direction="row" spacing={2}>
           <Button
@@ -198,21 +216,6 @@ const GameDetails = () => {
               fullWidth
               disabled
             />
-            <Select
-              value={game.status || "Not started"}
-              onChange={(e) => {
-                const updatedGame = { ...game, status: e.target.value as GameStatus };
-                setGame(updatedGame);
-                window.gameService.update(updatedGame);
-              }}
-              fullWidth
-            >
-              {GAME_STATUSES.map((status) => (
-                <MenuItem key={status} value={status}>
-                  {status}
-                </MenuItem>
-              ))}
-            </Select>
           </Box>
           <Grid container mt={2}>
             <Grid item xs={6}>

@@ -116,9 +116,10 @@ ipcMain.on("delete-all-games", async (event) => {
   event.reply("delete-all-games-success");
 });
 
-ipcMain.on("dashboard-games", async (event) => {
-  const result = await gameService.dashboard();
-  event.reply("dashboard-games-success", result);
+ipcMain.on("dashboard", async (event) => {
+  const dashboard = await gameService.dashboard();
+  dashboard.activity = await gameService.getRecentActivity(10);
+  event.reply("dashboard-success", dashboard);
 });
 
 ipcMain.on("adddetails-game", async (event, id: number) => {
@@ -204,7 +205,4 @@ ipcMain.on("import-steam-games", async (event, games: GameDto[]) => {
   event.reply("import-steam-games-success", { imported, skipped, errors });
 });
 
-ipcMain.on("get-activity", async (event) => {
-  const result = await gameService.getRecentActivity(10);
-  event.reply("get-activity-success", result);
-});
+
