@@ -6,6 +6,7 @@ import ActivityDto from "../dtos/activity";
 import dayjs from "dayjs";
 import { DbGame, DbActivity } from "../types/db";
 import { IgdbGame } from "../types/igdb";
+import { actionFromStatus, type GameStatus } from "../constants/gameStatuses";
 
 export default class GameService {
   private database: Database;
@@ -67,7 +68,11 @@ export default class GameService {
     `);
     statement.run(data);
 
-    const gameId = Number(this.database.instance.lastInsertRowid);
+    const row = this.database.instance.prepare("SELECT last_insert_rowid() as id").get() as { id: bigint } | undefined;
+    const gameId = row ? Number(row.id) : null;
+    if (!gameId) {
+      throw new Error("Failed to get inserted game ID");
+    }
     await this.logActivity(gameId, "added", null, entity.status ?? "Not started");
   };
 
@@ -117,14 +122,7 @@ export default class GameService {
     const oldStatus = existing?.status ?? null;
     const newStatus = data.status;
     if (oldStatus !== newStatus) {
-      const actionMap: Record<string, string> = {
-        "Started": "started",
-        "Completed": "completed",
-        "Paused": "paused",
-        "Dropped": "dropped",
-        "Replaying": "replaying",
-      };
-      const action = actionMap[newStatus] ?? "updated";
+      const action = actionFromStatus[newStatus] ?? "updated";
       await this.logActivity(data.id, action, oldStatus, newStatus);
     }
   };
@@ -169,8 +167,8 @@ export default class GameService {
       dto.gameId = r.game_id;
       dto.gameName = r.game_name;
       dto.action = r.action;
-      dto.oldStatus = r.old_status;
-      dto.newStatus = r.new_status;
+      dto.oldStatus = r.old_status as GameStatus | null;
+      dto.newStatus = r.new_status as GameStatus;
       dto.created = new Date(r.created);
       return dto;
     });

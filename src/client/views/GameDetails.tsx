@@ -19,14 +19,13 @@ import {
 } from "@mui/material";
 import Spinner from "../components/common/Spinner";
 import dayjs from "dayjs";
+import { GAME_STATUSES, type GameStatus } from "../constants/gameStatuses";
 import StatusIcon from "../components/games/StatusIcon";
 import MenuButton from "../components/common/MenuButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
-
-const GAME_STATUSES = ["Not started", "Started", "Completed", "Paused", "Dropped", "Replaying"];
 
 const GameDetails = () => {
   const { id } = useParams();
@@ -202,7 +201,7 @@ const GameDetails = () => {
             <Select
               value={game.status || "Not started"}
               onChange={(e) => {
-                const updatedGame = { ...game, status: e.target.value };
+                const updatedGame = { ...game, status: e.target.value as GameStatus };
                 setGame(updatedGame);
                 window.gameService.update(updatedGame);
               }}

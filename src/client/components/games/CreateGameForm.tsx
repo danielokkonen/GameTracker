@@ -5,10 +5,9 @@ import SaveIcon from "@mui/icons-material/Save";
 import { LoadingButton } from "@mui/lab";
 import { useFormik } from "formik";
 import { array, date, number, object, string } from "yup";
+import { GAME_STATUSES } from "../../../client/constants/gameStatuses";
 import SettingsContext from "../../../client/context/SettingsContext";
 import dayjs from "dayjs";
-
-const GAME_STATUSES = ["Not started", "Started", "Completed", "Paused", "Dropped", "Replaying"];
 
 interface CreateGameFormProps {
   value: GameDto;

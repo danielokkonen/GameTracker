@@ -1,3 +1,5 @@
+import { GameStatus } from "../constants/gameStatuses";
+
 export class DbGame {
   id: number | null = null;
   name!: string;
@@ -14,7 +16,7 @@ export class DbGame {
   summary: string | null = null;
   appId: string | null = null;
   playtime_minutes: number = 0;
-  status: string = "Not started";
+  status: GameStatus = "Not started";
 }
 
 export class DbToken {

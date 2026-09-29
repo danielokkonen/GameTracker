@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import GameList from "../components/games/GameList";
 import GameDto from "../../backend/dtos/game";
+import { GAME_STATUSES } from "../constants/gameStatuses";
 import { Channels } from "../constants/channels";
 import CreateGameForm from "../components/games/CreateGameForm";
 import AddIcon from "@mui/icons-material/Add";
@@ -52,7 +53,7 @@ const Games = () => {
     [games]
   );
 
-  const statuses = ["Not started", "Started", "Completed", "Paused", "Dropped", "Replaying"];
+
 
   const refreshTable = () => {
     setLoading(true);
@@ -270,7 +271,7 @@ const Games = () => {
             onChange={(e) => setFilter({ ...filter, status: e.target.value })}
           >
             <MenuItem value="">Status</MenuItem>
-            {statuses.map((s) => (
+            {GAME_STATUSES.map((s) => (
               <MenuItem key={s} value={s}>
                 {s}
               </MenuItem>
