@@ -131,7 +131,7 @@ const Home = () => {
       ) : (
         <EmptyState title="No games currently being played">
           <ButtonGroup variant="outlined" size="large">
-            <Button onClick={() => navigate("/games")}>Add a Game</Button>
+            <Button onClick={() => navigate("/games", { state: { showCreateForm: true } })}>Add a Game</Button>
             <Button onClick={() => navigate("/steam-import")}>Import from Steam</Button>
           </ButtonGroup>
         </EmptyState>

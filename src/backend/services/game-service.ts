@@ -83,6 +83,10 @@ export default class GameService {
       .prepare("SELECT status FROM Game WHERE id = @id")
       .get({ id: data.id });
 
+    if (!existing) {
+      return;
+    }
+
     const statement = this.database.instance.prepare(`
       UPDATE Game 
       SET name = @name, 
@@ -192,7 +196,10 @@ export default class GameService {
 
     const playtimes = data.map((d) => d.playtime_minutes || 0);
     results.totalPlaytime = playtimes.reduce((sum, t) => sum + t, 0);
-    results.avgPlaytime = totalGames > 0 ? Math.round(results.totalPlaytime / totalGames) : 0;
+    // Average over games that have recorded playtime, so manually added games
+    // without Steam playtime don't drag the average down.
+    const playedGames = data.filter((d) => (d.playtime_minutes || 0) > 0).length;
+    results.avgPlaytime = playedGames > 0 ? Math.round(results.totalPlaytime / playedGames) : 0;
 
     results.startedGames = data
       .filter((g) => g.status === "Started" || g.status === "Replaying")
@@ -201,6 +208,8 @@ export default class GameService {
         name: g.name,
         coverImage: g.coverImage ?? null,
       }));
+
+    results.activity = await this.getRecentActivity(10);
 
     return results;
   };

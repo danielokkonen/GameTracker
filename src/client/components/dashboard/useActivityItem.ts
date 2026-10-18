@@ -3,7 +3,6 @@ import { gameStatusIcons, gameStatusColors, actionFromStatus, type GameStatus } 
 
 interface UseActivityItemResult {
   Icon: React.ComponentType<any>;
-  label: string;
   color: string;
 }
 
@@ -14,10 +13,10 @@ const useActivityItem = (action: string): UseActivityItemResult => {
 
   if (status) {
     const Icon = gameStatusIcons[status];
-    return { Icon, label: "", color: gameStatusColors[status] };
+    return { Icon, color: gameStatusColors[status] };
   }
 
-  return { Icon: EventNote, label: "", color: "#757575" };
+  return { Icon: EventNote, color: "#757575" };
 };
 
 export default useActivityItem;

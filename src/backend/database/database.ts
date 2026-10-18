@@ -4,6 +4,9 @@ import path from 'path';
 
 const { DatabaseSync } = require("node:sqlite");
 
+// Bump when adding a new one-shot data migration to the Database constructor.
+const MIGRATION_VERSION = 1;
+
 export class Database {
   public instance: any;
   
@@ -100,15 +103,23 @@ export class Database {
       // Column already exists
     }
 
-    try {
+    // One-shot data migration: derive initial statuses from legacy start/end dates.
+    // Gated by PRAGMA user_version so it runs exactly once per database, even though
+    // the Database constructor runs multiple times per app launch. The version is
+    // only bumped after both UPDATEs succeed, so an interrupted run retries cleanly.
+    const { user_version: currentVersion } = this.instance.prepare(
+      "PRAGMA user_version"
+    ).get() as { user_version: number };
+
+    if (currentVersion < MIGRATION_VERSION) {
       this.instance.prepare(
         "UPDATE Game SET status = 'Completed' WHERE status = 'Not started' AND end IS NOT NULL"
       ).run();
       this.instance.prepare(
         "UPDATE Game SET status = 'Started' WHERE status = 'Not started' AND start IS NOT NULL AND end IS NULL"
       ).run();
-    } catch {
-      // Migration already ran or no games to migrate
+
+      this.instance.exec(`PRAGMA user_version = ${MIGRATION_VERSION}`);
     }
 
     this.instance.prepare(`

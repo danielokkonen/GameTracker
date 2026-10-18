@@ -35,7 +35,6 @@ contextBridge.exposeInMainWorld("gameService", {
   addGameDetails: (id: number) => ipcRenderer.send("adddetails-game", id),
   getSteamGames: () => ipcRenderer.send("get-steam-games"),
   importSteamGames: (games: GameDto[]) => ipcRenderer.send("import-steam-games", games),
-
 });
 
 contextBridge.exposeInMainWorld("igdbService", {

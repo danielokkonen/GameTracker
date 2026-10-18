@@ -10,7 +10,7 @@ interface ActivityItemProps {
 }
 
 const ActivityItem = ({ item, onClick }: ActivityItemProps) => {
-  const { Icon, label, color } = useActivityItem(item.action);
+  const { Icon, color } = useActivityItem(item.action);
 
   return (
     <ListItemButton
@@ -24,9 +24,11 @@ const ActivityItem = ({ item, onClick }: ActivityItemProps) => {
         primary={item.gameName}
         secondary={
           <>
-            {label || (item.action.charAt(0).toUpperCase() + item.action.slice(1))}
+            {item.action.charAt(0).toUpperCase() + item.action.slice(1)}
             <Typography component="span" variant="body2" color="text.secondary" sx={{ display: "inline", ml: 1 }}>
-              · <Tooltip title={new Date(item.created).toLocaleString()}>{formatActivityDate(item.created)}</Tooltip>
+              · <Tooltip title={new Date(item.created).toLocaleString()}>
+                <Typography component="span" variant="inherit">{formatActivityDate(item.created)}</Typography>
+              </Tooltip>
             </Typography>
           </>
         }

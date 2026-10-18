@@ -118,7 +118,6 @@ ipcMain.on("delete-all-games", async (event) => {
 
 ipcMain.on("dashboard", async (event) => {
   const dashboard = await gameService.dashboard();
-  dashboard.activity = await gameService.getRecentActivity(10);
   event.reply("dashboard-success", dashboard);
 });
 
@@ -204,5 +203,3 @@ ipcMain.on("import-steam-games", async (event, games: GameDto[]) => {
 
   event.reply("import-steam-games-success", { imported, skipped, errors });
 });
-
-
