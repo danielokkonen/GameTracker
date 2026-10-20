@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import GameList from "../components/games/GameList";
 import GameDto from "../../backend/dtos/game";
+import { GAME_STATUSES } from "../constants/gameStatuses";
 import { Channels } from "../constants/channels";
 import CreateGameForm from "../components/games/CreateGameForm";
 import AddIcon from "@mui/icons-material/Add";
@@ -18,10 +19,12 @@ import MenuButton from "../components/common/MenuButton";
 import Spinner from "../components/common/Spinner";
 import GamesContext from "../context/GamesContext";
 import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
+import { useLocation } from "react-router-dom";
 
 const Games = () => {
   const snackbarDispatch = useContext(SnackbarContext);
   const gamesContext = useContext(GamesContext);
+  const location = useLocation();
 
   const [games, setGames] = useState<GameDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,11 +55,6 @@ const Games = () => {
     [games]
   );
 
-  const statuses = useMemo(
-    () => Array.from(new Set(games?.map((g) => g.status))).sort(),
-    [games]
-  );
-
   const refreshTable = () => {
     setLoading(true);
     window.gameService.list();
@@ -64,6 +62,13 @@ const Games = () => {
 
   useEffect(() => {
     refreshTable();
+  }, []);
+
+  // Open the create form when navigated here from the dashboard's "Add a Game" button.
+  useEffect(() => {
+    if (location.state?.showCreateForm) {
+      showForm();
+    }
   }, []);
 
   const showForm = () => {
@@ -273,7 +278,7 @@ const Games = () => {
             onChange={(e) => setFilter({ ...filter, status: e.target.value })}
           >
             <MenuItem value="">Status</MenuItem>
-            {statuses.map((s) => (
+            {GAME_STATUSES.map((s) => (
               <MenuItem key={s} value={s}>
                 {s}
               </MenuItem>

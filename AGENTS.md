@@ -23,7 +23,7 @@ IPC uses `send`/`on` with event replies (not `invoke`). Channels are defined in 
 ## Key quirks
 - Vite is wired through Electron Forge's VitePlugin (`forge.config.ts`). The three vite configs are `vite.main.config.ts`, `vite.preload.config.ts`, `vite.renderer.config.ts`. Do not run `vite build` directly.
 - Main process bundles include the React plugin, even though main.ts has no JSX.
-- IPC channels: `list-games`, `get-game`, `create-game`, `update-game`, `delete-game`, `dashboard-games`, `adddetails-game`, `import-games`, `igdb-get-game`, `get-settings`, `upsert-settings`. Reply events follow the pattern `<channel>-success`.
+- IPC channels: `list-games`, `get-game`, `create-game`, `update-game`, `delete-game`, `dashboard`, `adddetails-game`, `import-games`, `igdb-get-game`, `get-settings`, `upsert-settings`. Reply events follow the pattern `<channel>-success`.
 - Game import reads CSV files split by semicolons (`;`), skipping the header row.
 - IGDB integration downloads cover images and stores them as base64 data URIs in SQLite.
 

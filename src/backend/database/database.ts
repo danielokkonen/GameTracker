@@ -4,6 +4,9 @@ import path from 'path';
 
 const { DatabaseSync } = require("node:sqlite");
 
+// Bump when adding a new one-shot data migration to the Database constructor.
+const MIGRATION_VERSION = 1;
+
 export class Database {
   public instance: any;
   
@@ -91,5 +94,43 @@ export class Database {
     } catch {
       // Column already exists
     }
+
+    try {
+      this.instance.prepare(
+        "ALTER TABLE Game ADD COLUMN status TEXT NOT NULL DEFAULT 'Not started'"
+      ).run();
+    } catch {
+      // Column already exists
+    }
+
+    // One-shot data migration: derive initial statuses from legacy start/end dates.
+    // Gated by PRAGMA user_version so it runs exactly once per database, even though
+    // the Database constructor runs multiple times per app launch. The version is
+    // only bumped after both UPDATEs succeed, so an interrupted run retries cleanly.
+    const { user_version: currentVersion } = this.instance.prepare(
+      "PRAGMA user_version"
+    ).get() as { user_version: number };
+
+    if (currentVersion < MIGRATION_VERSION) {
+      this.instance.prepare(
+        "UPDATE Game SET status = 'Completed' WHERE status = 'Not started' AND end IS NOT NULL"
+      ).run();
+      this.instance.prepare(
+        "UPDATE Game SET status = 'Started' WHERE status = 'Not started' AND start IS NOT NULL AND end IS NULL"
+      ).run();
+
+      this.instance.exec(`PRAGMA user_version = ${MIGRATION_VERSION}`);
+    }
+
+    this.instance.prepare(`
+      CREATE TABLE IF NOT EXISTS "GameActivity" (
+        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "game_id" INTEGER NOT NULL,
+        "action" TEXT NOT NULL,
+        "old_status" TEXT,
+        "new_status" TEXT NOT NULL,
+        "created" TEXT NOT NULL
+      );
+    `).run();
   }
 }

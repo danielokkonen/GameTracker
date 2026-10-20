@@ -1,0 +1,26 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+context: |
+  Tech stack: TypeScript, React, Node.js
+  Package manager: npm
+  UI Framework: Material UI (MUI)
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+rules:
+  proposal:
+    - Keep proposals under 500 words
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+operations:
+  apply:
+    guidance:
+      - Prefer MUI components
+      - Avoid magic values and use constants when applicable
+  archive:
+    guidance:
+      - Keep the completion summary concise

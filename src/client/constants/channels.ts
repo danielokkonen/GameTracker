@@ -6,7 +6,8 @@ export const Channels = {
   GAMES_DELETE_SUCCESS: "delete-game-success",
   GAMES_DELETE_ALL: "delete-all-games",
   GAMES_DELETE_ALL_SUCCESS: "delete-all-games-success",
-  GAMES_DASHBOARD_SUCCESS: "dashboard-games-success",
+  DASHBOARD: "dashboard",
+  DASHBOARD_SUCCESS: "dashboard-success",
   GAMES_IMPORT_SUCCESS: "import-games-success",
   GAMES_ADDDETAILS_SUCCESS: "adddetails-game-success",
 
