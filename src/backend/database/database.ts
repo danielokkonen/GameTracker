@@ -9,26 +9,29 @@ const MIGRATION_VERSION = 1;
 
 export class Database {
   public instance: any;
-  
-  constructor() {
+
+  static getDbFolder(): string {
     if (app.isPackaged) {
       const isWindows = process.platform === "win32";
-      const dbName = "GameTracker.db";
-      
-      let dbPath: string;
       if (isWindows) {
-        dbPath = path.join(app.getPath("appData").replace("Roaming", "Local"), "GameTracker");
-      } else {
-        dbPath = app.getPath("userData");
+        return path.join(app.getPath("appData").replace("Roaming", "Local"), "GameTracker");
       }
-  
-      mkdir(dbPath, (err) => {
+      return app.getPath("userData");
+    }
+    return process.cwd();
+  }
+
+  constructor() {
+    const dbFolder = Database.getDbFolder();
+
+    if (app.isPackaged) {
+      mkdir(dbFolder, (err) => {
         if (err?.code !== "EEXIST") {
           console.error(err);
         }
       });
 
-      this.instance = new DatabaseSync(path.join(dbPath, dbName));
+      this.instance = new DatabaseSync(path.join(dbFolder, "GameTracker.db"));
     }
     else {
       this.instance = new DatabaseSync('dev.db');

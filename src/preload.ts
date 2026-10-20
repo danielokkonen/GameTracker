@@ -45,4 +45,5 @@ contextBridge.exposeInMainWorld("settingsService", {
   get: () => ipcRenderer.send("get-settings"),
   upsert: (entity: SettingsDto) => ipcRenderer.send("upsert-settings", entity),
   clearTokens: () => ipcRenderer.send("clear-tokens"),
+  openDatabaseFolder: () => ipcRenderer.send("open-database-folder"),
 });

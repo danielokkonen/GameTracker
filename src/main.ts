@@ -1,5 +1,6 @@
-import { app, BrowserWindow, ipcMain, nativeTheme } from "electron";
+import { app, BrowserWindow, ipcMain, nativeTheme, shell } from "electron";
 import path from "path";
+import { Database } from "./backend/database/database";
 import GameService from "./backend/services/game-service";
 import GameDto from "./backend/dtos/game";
 import { IgdbService } from "./backend/services/igdb-service";
@@ -165,6 +166,15 @@ ipcMain.on("upsert-settings", async (event, payload: SettingsDto) => {
 ipcMain.on("clear-tokens", async (event) => {
   await settingService.clearTokens();
   event.reply("clear-tokens-success");
+});
+
+ipcMain.on("open-database-folder", async (event) => {
+  const error = await shell.openPath(Database.getDbFolder());
+  if (error) {
+    event.reply("open-database-folder-error", { error });
+  } else {
+    event.reply("open-database-folder-success");
+  }
 });
 
 ipcMain.on("get-steam-games", async (event) => {

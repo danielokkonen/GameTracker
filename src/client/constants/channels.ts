@@ -18,6 +18,9 @@ export const Channels = {
   CLEAR_TOKENS: "clear-tokens",
   CLEAR_TOKENS_SUCCESS: "clear-tokens-success",
 
+  OPEN_DATABASE_FOLDER_SUCCESS: "open-database-folder-success",
+  OPEN_DATABASE_FOLDER_ERROR: "open-database-folder-error",
+
   GET_STEAM_GAMES: "get-steam-games",
   GET_STEAM_GAMES_SUCCESS: "get-steam-games-success",
   GET_STEAM_GAMES_ERROR: "get-steam-games-error",

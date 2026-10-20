@@ -21,6 +21,7 @@ import {
 import { useFormik } from "formik";
 import SettingsDto from "../../../backend/dtos/settings";
 import DeleteIcon from "@mui/icons-material/Delete";
+import FolderIcon from "@mui/icons-material/Folder";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
@@ -29,9 +30,10 @@ interface ISettingsFormProps {
   onSubmit: (value: SettingsDto) => void;
   onClearTokens: () => void;
   onDeleteAllGames: () => void;
+  onOpenDatabaseFolder: () => void;
 }
 
-const SettingsForm = ({ value, onSubmit, onClearTokens, onDeleteAllGames }: ISettingsFormProps) => {
+const SettingsForm = ({ value, onSubmit, onClearTokens, onDeleteAllGames, onOpenDatabaseFolder }: ISettingsFormProps) => {
   const theme = useTheme();
   const [showDialog, setShowDialog] = React.useState(false);
   const [showGamesDialog, setShowGamesDialog] = React.useState(false);
@@ -193,6 +195,14 @@ const SettingsForm = ({ value, onSubmit, onClearTokens, onDeleteAllGames }: ISet
           >
             Delete All Games
           </Button>
+            <Box sx={{ height: theme.spacing(1) }} />
+            <Button
+              variant="outlined"
+              startIcon={<FolderIcon />}
+              onClick={onOpenDatabaseFolder}
+            >
+              Open Database Folder
+            </Button>
             </Stack>
           </Collapse>
         </Stack>

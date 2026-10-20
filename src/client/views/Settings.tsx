@@ -54,9 +54,26 @@ const Settings = () => {
     handleDeleteAllSuccess
   );
 
+  const onOpenDatabaseFolder = () => {
+    window.settingsService.openDatabaseFolder();
+  };
+
+  const handleOpenDatabaseFolderError = (data: { error: string }) => {
+    snackbarDispatch({
+      type: "show_message",
+      payload: `Could not open database folder: ${data.error}`,
+    });
+  };
+
+  useIpcRendererCallback(
+    Channels.OPEN_DATABASE_FOLDER_ERROR,
+    null,
+    handleOpenDatabaseFolderError
+  );
+
   return (
     <Box>
-      <SettingsForm value={settings} onSubmit={onSubmit} onClearTokens={onClearTokens} onDeleteAllGames={onDeleteAllGames} />
+      <SettingsForm value={settings} onSubmit={onSubmit} onClearTokens={onClearTokens} onDeleteAllGames={onDeleteAllGames} onOpenDatabaseFolder={onOpenDatabaseFolder} />
     </Box>
   );
 };
