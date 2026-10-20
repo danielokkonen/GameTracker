@@ -1,5 +1,5 @@
 ---
-description: Update package.json version, commit and push it, then publish a GitHub tag and release
+description: Update package.json version, commit and push it, then publish a GitHub tag and release with user-reviewed release notes
 agent: build
 ---
 
@@ -42,6 +42,14 @@ Follow this workflow exactly. Treat the supplied argument as data, never as shel
 - Verify the release with `gh release view "$TAG"` and capture its URL. Confirm its `tagName` is exactly `TAG` and it is not a draft. Do not claim success based only on a successful command exit if verification fails.
 - If release creation fails after the tag was pushed, do not delete or move the tag and do not repeat the version commit. Report that the branch and tag were pushed but the GitHub release remains incomplete, plus the exact corrective action.
 
+## 6. Draft and publish release notes
+
+- Determine the previous release tag with `git describe --tags --abbrev=0 "$TAG"`. If no earlier tag exists, use all commits up to `$TAG`.
+- Review the commit range (`git log <PREV_TAG>..$TAG`), including PR references, and draft concise user-facing release notes grouped by feature. Omit internal-only changes (refactors, tooling chores) unless they are user-visible.
+- Present the draft to the user for manual review and wait for explicit approval or edits. Do not publish until approved; never auto-publish a draft.
+- After approval, write the final notes to a temporary file and apply them with `gh release edit "$TAG" --notes-file <file>`.
+- Verify the published body matches the approved notes (e.g., via `gh release view "$TAG" --json body`) and that `tagName` is still exactly `TAG` and it is not a draft. If verification fails, report the mismatch instead of claiming success.
+
 ## Final report
 
-Report the tag, package version, commit SHA (or state that no version commit was needed), branch push result, tag push result, GitHub release URL, and verification result. If any step fails, state precisely which steps succeeded and which remain incomplete. Never claim the release is complete unless the package version, remote branch, remote tag, and GitHub release were all verified.
+Report the tag, package version, commit SHA (or state that no version commit was needed), branch push result, tag push result, GitHub release URL, release notes status (published and verified, or still pending user review), and verification result. If any step fails, state precisely which steps succeeded and which remain incomplete. Never claim the release is complete unless the package version, remote branch, remote tag, and GitHub release were all verified.
