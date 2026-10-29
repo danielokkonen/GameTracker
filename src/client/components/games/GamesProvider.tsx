@@ -3,7 +3,7 @@ import React, { useReducer } from "react";
 import GamesContext from "../../../client/context/GamesContext";
 
 export interface IGamesState {
-  selectedGames: any;
+  selectedGames: Record<number, { selected: boolean; loading: boolean }>;
 }
 
 const initialState: IGamesState = {

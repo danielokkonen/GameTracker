@@ -2,13 +2,16 @@ import React, { useEffect, useState } from "react";
 import GameDto from "../../backend/dtos/game";
 import { useParams } from "react-router-dom";
 import { Channels } from "../constants/channels";
+import { IgdbGame } from "../../backend/types/igdb";
 import {
   Box,
   Button,
   Chip,
   Grid,
   IconButton,
+  MenuItem,
   Paper,
+  Select,
   Skeleton,
   Stack,
   TextField,
@@ -16,7 +19,7 @@ import {
 } from "@mui/material";
 import Spinner from "../components/common/Spinner";
 import dayjs from "dayjs";
-import StatusIcon from "../components/games/StatusIcon";
+import { GAME_STATUSES, gameStatusIcons, gameStatusColors, type GameStatus } from "../constants/gameStatuses";
 import MenuButton from "../components/common/MenuButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -26,8 +29,8 @@ import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
 const GameDetails = () => {
   const { id } = useParams();
 
-  const [game, setGame] = useState<GameDto>(null);
-  const [gameDetails, setGameDetails] = useState<any[]>([]);
+  const [game, setGame] = useState<GameDto | null>(null);
+  const [gameDetails, setGameDetails] = useState<IgdbGame[]>([]);
   const [gameDetailsIndex, setGameDetailsIndex] = useState(0);
   const [gameDetailsLoading, setGameDetailsLoading] = useState(false);
 
@@ -56,21 +59,21 @@ const GameDetails = () => {
         });
       })
       .then(() => {
-        const coverImage = reader.result.toString();
+        const coverImage = (reader.result as string).toString();
 
-        const updatedGame: GameDto = { ...game };
+        const updatedGame: GameDto = { ...game!, id: game!.id };
         updatedGame.summary = selectedGameDetails.summary;
         updatedGame.developer = selectedGameDetails?.involved_companies?.find(
-          (i: any) => i.developer
-        )?.company.name;
+          (i) => i.developer
+        )?.company.name ?? null;
         updatedGame.publisher = selectedGameDetails?.involved_companies?.find(
-          (i: any) => i.publisher
-        )?.company.name;
+          (i) => i.publisher
+        )?.company.name ?? null;
         updatedGame.genres = selectedGameDetails.genres?.map(
-          (g: any) => g.name
+          (g) => g.name
         );
         updatedGame.platforms = selectedGameDetails.platforms?.map(
-          (p: any) => p.name
+          (p) => p.name
         );
         updatedGame.coverImage = coverImage;
 
@@ -84,18 +87,20 @@ const GameDetails = () => {
     }
   }, [id]);
 
-  useIpcRendererCallback(Channels.IGDB_GET_GAME, null, (result: any) => {
-    setGameDetails(result.filter((r: any) => !!r.cover));
+  useIpcRendererCallback(Channels.IGDB_GET_GAME, () => {}, (result: IgdbGame[]) => {
+    setGameDetails(result.filter((r: IgdbGame) => !!r.cover));
     setGameDetailsLoading(false);
   });
 
-  useIpcRendererCallback(Channels.GAMES_GET_SUCCESS, null, (game: GameDto) => {
+  useIpcRendererCallback(Channels.GAMES_GET_SUCCESS, () => {}, (game: GameDto) => {
     setGame(game);
     setGameDetails([]);
   });
 
-  useIpcRendererCallback(Channels.GAMES_UPDATE_SUCCESS, null, () => {
-    window.gameService.get(parseInt(id));
+  useIpcRendererCallback(Channels.GAMES_UPDATE_SUCCESS, () => {}, () => {
+    if (id) {
+      window.gameService.get(parseInt(id));
+    }
   });
 
   const getGameDetails = (name: string) => {
@@ -104,7 +109,9 @@ const GameDetails = () => {
   };
 
   const saveGameDetails = () => {
-    window.gameService.update(game);
+    if (game) {
+      window.gameService.update(game);
+    }
   };
 
   if (!game) {
@@ -118,7 +125,26 @@ const GameDetails = () => {
           <Typography variant="h5" display="inline-block" mr={2}>
             {game.name}
           </Typography>
-          <StatusIcon game={game} />
+          <Select
+            variant="standard"
+            value={game.status || "Not started"}
+            onChange={(e) => {
+              const updatedGame = { ...game, status: e.target.value as GameStatus };
+              setGame(updatedGame);
+              window.gameService.update(updatedGame);
+            }}
+            sx={{ minWidth: 120 }}
+          >
+            {GAME_STATUSES.map((status) => {
+              const Icon = gameStatusIcons[status];
+              return (
+                <MenuItem key={status} value={status}>
+                  <Icon fontSize="small" sx={{ mr: 1, color: gameStatusColors[status] }} />
+                  {status}
+                </MenuItem>
+              );
+            })}
+          </Select>
         </Box>
         <Stack direction="row" spacing={2}>
           <Button
@@ -249,7 +275,7 @@ const GameDetails = () => {
             component="img"
             width={400}
             sx={{ minHeight: 500 }}
-            src={game?.coverImage}
+            src={game?.coverImage ?? undefined}
             elevation={3}
           ></Paper>
         )}

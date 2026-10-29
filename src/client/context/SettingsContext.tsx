@@ -9,7 +9,7 @@ export interface ISettingsContext {
   dispatch: Dispatch<SettingsAction>;
 }
 
-const context: ISettingsContext = null;
+const context: ISettingsContext = undefined as unknown as ISettingsContext;
 
 const SettingsContext = createContext(context);
 

@@ -3,9 +3,11 @@ import SettingsContext from "../../../client/context/SettingsContext";
 
 export interface ISettingsState {
   developerMode: boolean;
-  darkMode: boolean;
-  igdbClientId: string;
-  igdbSecret: string;
+  darkMode: boolean | null;
+  igdbClientId: string | null;
+  igdbSecret: string | null;
+  steamApiKey: string | null;
+  steamId: string | null;
 }
 
 const initialState: ISettingsState = {
@@ -13,6 +15,8 @@ const initialState: ISettingsState = {
   darkMode: null,
   igdbClientId: null,
   igdbSecret: null,
+  steamApiKey: null,
+  steamId: null,
 };
 
 export type SettingsPayload = {
@@ -27,6 +31,7 @@ export type SettingsAction =
 const reducer = (state: ISettingsState, action: SettingsAction) => {
   switch (action.type) {
     case "init":
+      if (!action.payload) return state;
       return {
         ...action.payload,
       };

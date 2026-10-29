@@ -9,7 +9,7 @@ interface ISnackbarState {
 
 const initialState: ISnackbarState = {
   open: false,
-  message: null,
+  message: "",
 };
 
 export type SnackbarAction =

@@ -1,6 +1,8 @@
 import { Database } from "../database/database";
 import SettingsService from "./settings-service";
 import dayjs from "dayjs";
+import { DbToken } from "../types/db";
+import { IgdbGame } from "../types/igdb";
 
 interface AccessToken {
   access_token: string;
@@ -17,10 +19,14 @@ export class IgdbService {
     this.database = new Database();
   }
 
-  getGameDetails = async (title: string): Promise<any> => {
+  getGameDetails = async (title: string): Promise<IgdbGame[]> => {
     const settings = await this.settingsService.get();
 
-    let token = await this.getAccessToken(
+    if (!settings) {
+      throw new Error("Settings not found. Please configure IGDB credentials first.");
+    }
+
+    const token = await this.getAccessToken(
       settings.igdbClientId,
       settings.igdbSecret
     );
@@ -38,7 +44,7 @@ export class IgdbService {
 
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
-        token = await this.getAccessToken(
+        await this.getAccessToken(
           settings.igdbClientId,
           settings.igdbSecret,
           true
@@ -52,7 +58,7 @@ export class IgdbService {
       }
     }
 
-    const body = await response.json();
+    const body = (await response.json()) as IgdbGame[];
 
     return body;
   };
@@ -62,13 +68,13 @@ export class IgdbService {
     secret: string,
     force = false
   ): Promise<AccessToken> => {
-    const token: any = this.database.instance
+    const dbToken: DbToken = this.database.instance
       .prepare("SELECT * FROM Tokens WHERE service = @service")
       .get({ service: "IGDB" });
 
     const now = dayjs().subtract(2, "hour").unix();
 
-    if (!token || now >= token?.expires_at || force) {
+    if (!dbToken || now >= dbToken?.expires_at || force) {
       const response = await fetch("https://id.twitch.tv/oauth2/token", {
         method: "POST",
         headers: {
@@ -124,9 +130,9 @@ export class IgdbService {
     }
 
     return {
-      access_token: token.token,
-      expires_in: token.expires_at,
-      token_type: token.type,
+      access_token: dbToken.token,
+      expires_in: dbToken.expires_at,
+      token_type: dbToken.type,
     };
   };
 }

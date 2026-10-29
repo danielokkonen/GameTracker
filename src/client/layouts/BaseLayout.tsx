@@ -33,14 +33,16 @@ const Container = styled(ContainerBase)(({ theme }) => ({
 const BaseLayout = () => {
   const { state, dispatch } = useContext(SettingsContext);
 
-  useIpcRendererCallback<SettingsDto>(
+  useIpcRendererCallback<SettingsDto | null>(
     Channels.SETTINGS_GET_SUCCESS,
     () => window.settingsService.get(),
     (settings) => {
-      dispatch({
-        type: "init",
-        payload: settings,
-      });
+      if (settings) {
+        dispatch({
+          type: "init",
+          payload: settings,
+        });
+      }
     }
   );
 

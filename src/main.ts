@@ -1,15 +1,25 @@
-import { app, BrowserWindow, ipcMain, nativeTheme } from "electron";
+import { app, BrowserWindow, ipcMain, nativeTheme, shell } from "electron";
 import path from "path";
+import { Database } from "./backend/database/database";
 import GameService from "./backend/services/game-service";
 import GameDto from "./backend/dtos/game";
 import { IgdbService } from "./backend/services/igdb-service";
 import SettingsService from "./backend/services/settings-service";
+import EncryptionService from "./backend/services/encryption-service";
 import SettingsDto from "./backend/dtos/settings";
+import SteamService from "./backend/services/steam-service";
+
 const dialog = require("electron").dialog;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require("electron-squirrel-startup")) {
-  app.quit();
+if (process.platform === "win32") {
+  try {
+    if (require("electron-squirrel-startup")) {
+      app.quit();
+    }
+  } catch {
+    // electron-squirrel-startup not available
+  }
 }
 
 const createWindow = () => {
@@ -73,9 +83,15 @@ ipcMain.handle("dark-mode", () => {
   return nativeTheme.shouldUseDarkColors;
 });
 
+ipcMain.handle("is-encryption-available", () => {
+  const encryptionService = new EncryptionService();
+  return encryptionService.isEncryptionAvailable;
+});
+
 const gameService = new GameService();
 const igdbService = new IgdbService();
 const settingService = new SettingsService();
+const steamService = new SteamService(settingService);
 
 ipcMain.on("list-games", async (event) => {
   const result = await gameService.list();
@@ -102,17 +118,22 @@ ipcMain.on("delete-game", async (event, data: number) => {
   event.reply("delete-game-success");
 });
 
-ipcMain.on("dashboard-games", async (event) => {
-  const result = await gameService.dashboard();
-  event.reply("dashboard-games-success", result);
+ipcMain.on("delete-all-games", async (event) => {
+  await gameService.deleteAll();
+  event.reply("delete-all-games-success");
+});
+
+ipcMain.on("dashboard", async (event) => {
+  const dashboard = await gameService.dashboard();
+  event.reply("dashboard-success", dashboard);
 });
 
 ipcMain.on("adddetails-game", async (event, id: number) => {
   const game = await gameService.get(id);
   const gameDetails = await igdbService.getGameDetails(game.name);
-  const result = await gameService.addGameDetails(
+  await gameService.addGameDetails(
     id,
-    gameDetails.filter((r: any) => !!r.cover)[0]
+    gameDetails.filter((r) => !!r.cover)[0]
   );
   event.reply("adddetails-game-success", id);
 });
@@ -123,7 +144,7 @@ ipcMain.on("import-games", async (event) => {
       properties: ["openFile"],
       filters: [{ name: "", extensions: ["csv"] }],
     })
-    .then((value) => {
+    .then((value: Electron.OpenDialogReturnValue) => {
       const path = value.filePaths[0];
       if (!path) {
         throw new Error("Parameter path cannot be empty");
@@ -146,4 +167,55 @@ ipcMain.on("get-settings", async (event) => {
 ipcMain.on("upsert-settings", async (event, payload: SettingsDto) => {
   await settingService.upsert(payload);
   event.reply("upsert-settings-success");
+});
+
+ipcMain.on("clear-tokens", async (event) => {
+  await settingService.clearTokens();
+  event.reply("clear-tokens-success");
+});
+
+ipcMain.on("open-database-folder", async (event) => {
+  const error = await shell.openPath(Database.getDbFolder());
+  if (error) {
+    event.reply("open-database-folder-error", { error });
+  } else {
+    event.reply("open-database-folder-success");
+  }
+});
+
+ipcMain.on("get-steam-games", async (event) => {
+  try {
+    const games: GameDto[] = await steamService.getOwnedGames();
+    event.reply("get-steam-games-success", games);
+  } catch (error: any) {
+    event.reply("get-steam-games-error", { error: error.message });
+  }
+});
+
+ipcMain.on("import-steam-games", async (event, games: GameDto[]) => {
+  if (!Array.isArray(games)) {
+    event.reply("import-steam-games-success", { imported: 0, skipped: 0, errors: ["Invalid payload: games must be an array"] });
+    return;
+  }
+
+  let imported = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  for (const game of games) {
+    try {
+      await gameService.create(game);
+      imported++;
+    } catch (error: any) {
+      if (error.message === "DUPLICATE") {
+        skipped++;
+      } else {
+        errors.push(`${game.name}: ${error.message || "Unknown error"}`);
+      }
+    }
+
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+
+  event.reply("import-steam-games-success", { imported, skipped, errors });
 });
