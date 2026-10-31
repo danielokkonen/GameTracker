@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { IpcRendererEvent } from "electron";
 
 const useIpcRendererCallback = <T,>(
@@ -6,8 +6,11 @@ const useIpcRendererCallback = <T,>(
   method: (() => void) | null,
   callback: (data: T) => void
 ) => {
+  const callbackRef = useRef(callback);
+  callbackRef.current = callback;
+
   const handleEvent = (event: IpcRendererEvent, data: T) => {
-    callback(data);
+    callbackRef.current(data);
   };
 
   useEffect(() => {
@@ -18,7 +21,7 @@ const useIpcRendererCallback = <T,>(
     }
 
     return () => {
-      window.electronApi.ipcRenderer.removeAllListeners(channel);
+      window.electronApi.ipcRenderer.off(channel, handleEvent);
     };
   }, []);
 };
