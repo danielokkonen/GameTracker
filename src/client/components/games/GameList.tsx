@@ -90,7 +90,6 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
     const tag = target.nodeName.toLowerCase();
 
     if (["tr", "td", "p", "img"].some((arr) => arr === tag)) {
-      sessionStorage.setItem('games.lastclicked', id.toString());
       navgiate(`/games/${id}`);
     }
   };

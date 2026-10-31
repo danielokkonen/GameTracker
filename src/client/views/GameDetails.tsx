@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
 import GameDto from "../../backend/dtos/game";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Channels } from "../constants/channels";
 import { IgdbGame } from "../../backend/types/igdb";
 import {
   Box,
   Button,
   Chip,
+  Container,
   Grid,
   IconButton,
   MenuItem,
+  Modal,
   Paper,
   Select,
   Skeleton,
@@ -24,10 +26,16 @@ import MenuButton from "../components/common/MenuButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import CloseIcon from "@mui/icons-material/Close";
 import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
 
 const GameDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+
+  const closeDetails = () => {
+    navigate("/games");
+  };
 
   const [game, setGame] = useState<GameDto | null>(null);
   const [gameDetails, setGameDetails] = useState<IgdbGame[]>([]);
@@ -115,172 +123,214 @@ const GameDetails = () => {
   };
 
   if (!game) {
-    return <Spinner />;
+    return (
+      <Modal open onClose={closeDetails}>
+        <Paper
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "95vw",
+            maxWidth: 1200,
+            maxHeight: "90vh",
+            bgcolor: "background.default",
+            outline: 0,
+          }}
+        >
+          <Container maxWidth="xl" sx={{ pt: 2 }}>
+            <Spinner />
+          </Container>
+        </Paper>
+      </Modal>
+    );
   }
 
   return (
-    <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-        <Box>
-          <Typography variant="h5" display="inline-block" mr={2}>
-            {game.name}
-          </Typography>
-          <Select
-            variant="standard"
-            value={game.status || "Not started"}
-            onChange={(e) => {
-              const updatedGame = { ...game, status: e.target.value as GameStatus };
-              setGame(updatedGame);
-              window.gameService.update(updatedGame);
-            }}
-            sx={{ minWidth: 120 }}
-          >
-            {GAME_STATUSES.map((status) => {
-              const Icon = gameStatusIcons[status];
-              return (
-                <MenuItem key={status} value={status}>
-                  <Icon fontSize="small" sx={{ mr: 1, color: gameStatusColors[status] }} />
-                  {status}
-                </MenuItem>
-              );
-            })}
-          </Select>
-        </Box>
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="contained"
-            disabled={!gameDetails.length}
-            onClick={saveGameDetails}
-          >
-            Save
-          </Button>
-          <IconButton
-            disabled={gameDetailsIndex <= 0}
-            onClick={() => setGameDetailsIndex(gameDetailsIndex - 1)}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-          <IconButton
-            disabled={gameDetailsIndex + 1 >= gameDetails.length}
-            onClick={() => setGameDetailsIndex(gameDetailsIndex + 1)}
-          >
-            <ArrowForwardIcon />
-          </IconButton>
-          <MenuButton
-            component={IconButton}
-            icon={MoreVertIcon}
-            items={[
-              {
-                name: "Add details from IGDB",
-                onClick: () => getGameDetails(game.name),
-              },
-            ]}
-          />
-        </Stack>
-      </Box>
-      <Box
+    <Modal open onClose={closeDetails}>
+      <Paper
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          "& h6:not(:first-of-type)": { mt: 2 },
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "95vw",
+          maxWidth: 1200,
+          height: "90vh",
+          overflowY: "auto",
+          bgcolor: "background.default",
+          outline: 0,
         }}
       >
-        <Box flex={1} mr={2}>
-          <Typography variant="h6">Progress</Typography>
-          <Box
-            display="flex"
-            flexDirection="row"
-            justifyContent="space-between"
-          >
-            <TextField
-              variant="standard"
-              type="date"
-              name="started"
-              label="Started"
-              value={
-                game.started ? dayjs(game.started).format("YYYY-MM-DD") : " "
-              }
-              fullWidth
-              disabled
-            />
-            <TextField
-              variant="standard"
-              type="date"
-              name="completed"
-              label="Completed"
-              value={
-                game.completed
-                  ? dayjs(game.completed).format("YYYY-MM-DD")
-                  : " "
-              }
-              fullWidth
-              disabled
-            />
+        <Container maxWidth="xl" sx={{ pt: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+            <Box display="flex" alignItems="center">
+              <Typography variant="h5" display="inline-block" mr={2}>
+                {game.name}
+              </Typography>
+              <Select
+                variant="standard"
+                value={game.status || "Not started"}
+                onChange={(e) => {
+                  const updatedGame = { ...game, status: e.target.value as GameStatus };
+                  setGame(updatedGame);
+                  window.gameService.update(updatedGame);
+                }}
+                sx={{ minWidth: 120 }}
+              >
+                {GAME_STATUSES.map((status) => {
+                  const Icon = gameStatusIcons[status];
+                  return (
+                    <MenuItem key={status} value={status}>
+                      <Icon fontSize="small" sx={{ mr: 1, color: gameStatusColors[status] }} />
+                      {status}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </Box>
+            <IconButton onClick={closeDetails}>
+              <CloseIcon />
+            </IconButton>
           </Box>
-          <Grid container mt={2}>
-            <Grid item xs={6}>
-              <Typography variant="h6">Developer</Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              "& h6:not(:first-of-type)": { mt: 2 },
+            }}
+          >
+            <Box flex={1} mr={2}>
+              <Typography variant="h6">Progress</Typography>
+              <Box
+                display="flex"
+                flexDirection="row"
+                justifyContent="space-between"
+              >
+                <TextField
+                  variant="standard"
+                  type="date"
+                  name="started"
+                  label="Started"
+                  value={
+                    game.started ? dayjs(game.started).format("YYYY-MM-DD") : " "
+                  }
+                  fullWidth
+                  disabled
+                />
+                <TextField
+                  variant="standard"
+                  type="date"
+                  name="completed"
+                  label="Completed"
+                  value={
+                    game.completed
+                      ? dayjs(game.completed).format("YYYY-MM-DD")
+                      : " "
+                  }
+                  fullWidth
+                  disabled
+                />
+              </Box>
+              <Grid container mt={2}>
+                <Grid item xs={6}>
+                  <Typography variant="h6">Developer</Typography>
+                  <Typography>
+                    {gameDetailsLoading ? (
+                      <Skeleton width={100} />
+                    ) : (
+                      game?.developer ?? "Unknown"
+                    )}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="h6">Publisher</Typography>
+                  <Typography>
+                    {gameDetailsLoading ? (
+                      <Skeleton width={100} />
+                    ) : (
+                      game.publisher ?? "Unknown"
+                    )}
+                  </Typography>
+                </Grid>
+              </Grid>
+              <Typography variant="h6">Description</Typography>
               <Typography>
                 {gameDetailsLoading ? (
-                  <Skeleton width={100} />
+                  <Skeleton />
                 ) : (
-                  game?.developer ?? "Unknown"
+                  game?.summary ?? "No description"
                 )}
               </Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="h6">Publisher</Typography>
-              <Typography>
+              <Typography variant="h6">Genres</Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap">
                 {gameDetailsLoading ? (
-                  <Skeleton width={100} />
+                  <Skeleton height={32} width={100} />
                 ) : (
-                  game.publisher ?? "Unknown"
+                  game?.genres?.map((g) => (
+                    <Chip key={g} label={g} variant="outlined" />
+                  )) ?? "Unknown"
                 )}
-              </Typography>
-            </Grid>
-          </Grid>
-          <Typography variant="h6">Description</Typography>
-          <Typography>
-            {gameDetailsLoading ? (
-              <Skeleton />
-            ) : (
-              game?.summary ?? "No description"
-            )}
-          </Typography>
-          <Typography variant="h6">Genres</Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            {gameDetailsLoading ? (
-              <Skeleton height={32} width={100} />
-            ) : (
-              game?.genres?.map((g) => (
-                <Chip key={g} label={g} variant="outlined" />
-              )) ?? "Unknown"
-            )}
-          </Stack>
-          <Typography variant="h6">Platforms</Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            {gameDetailsLoading ? (
-              <Skeleton height={32} width={100} />
-            ) : (
-              game?.platforms?.map((p) => (
-                <Chip key={p} label={p} variant="outlined" />
-              )) ?? "Unknown"
-            )}
-          </Stack>
-        </Box>
-        {gameDetailsLoading ? (
-          <Skeleton variant="rectangular" width={400} height={500} />
-        ) : (
-          <Paper
-            component="img"
-            width={400}
-            sx={{ minHeight: 500 }}
-            src={game?.coverImage ?? undefined}
-            elevation={3}
-          ></Paper>
-        )}
-      </Box>
-    </Box>
+              </Stack>
+              <Typography variant="h6">Platforms</Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {gameDetailsLoading ? (
+                  <Skeleton height={32} width={100} />
+                ) : (
+                  game?.platforms?.map((p) => (
+                    <Chip key={p} label={p} variant="outlined" />
+                  )) ?? "Unknown"
+                )}
+              </Stack>
+            </Box>
+            <Box display="flex" flexDirection="column" alignItems="center">
+              {gameDetailsLoading ? (
+                <Skeleton variant="rectangular" width={400} height={500} />
+              ) : (
+                <Paper
+                  component="img"
+                  width={400}
+                  sx={{ minHeight: 500 }}
+                  src={game?.coverImage ?? undefined}
+                  elevation={3}
+                ></Paper>
+              )}
+              <Stack direction="row" spacing={2} mt={2}>
+                <Button
+                  variant="contained"
+                  disabled={!gameDetails.length}
+                  onClick={saveGameDetails}
+                >
+                  Save
+                </Button>
+                <IconButton
+                  disabled={gameDetailsIndex <= 0}
+                  onClick={() => setGameDetailsIndex(gameDetailsIndex - 1)}
+                >
+                  <ArrowBackIcon />
+                </IconButton>
+                <IconButton
+                  disabled={gameDetailsIndex + 1 >= gameDetails.length}
+                  onClick={() => setGameDetailsIndex(gameDetailsIndex + 1)}
+                >
+                  <ArrowForwardIcon />
+                </IconButton>
+                <MenuButton
+                  component={IconButton}
+                  icon={MoreVertIcon}
+                  items={[
+                    {
+                      name: "Add details from IGDB",
+                      onClick: () => getGameDetails(game.name),
+                    },
+                  ]}
+                />
+              </Stack>
+            </Box>
+          </Box>
+        </Container>
+      </Paper>
+    </Modal>
   );
 };
 

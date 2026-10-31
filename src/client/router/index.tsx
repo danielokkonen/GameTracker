@@ -14,8 +14,9 @@ import SteamImport from "../views/SteamImport";
 const routes = [
   <Route path="/" element={<BaseLayout />}>
     <Route index element={<Home />} />,
-    <Route path="/games" element={<Games />} />,
-    <Route path="/games/:id" element={<GameDetails />} />,
+    <Route path="/games" element={<Games />}>
+      <Route path=":id" element={<GameDetails />} />
+    </Route>,
     <Route path="/steam-import" element={<SteamImport />} />,
     <Route path="/settings" element={<Settings />} />,
   </Route>,

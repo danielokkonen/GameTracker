@@ -19,7 +19,7 @@ import MenuButton from "../components/common/MenuButton";
 import Spinner from "../components/common/Spinner";
 import GamesContext from "../context/GamesContext";
 import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
-import { useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 const Games = () => {
   const snackbarDispatch = useContext(SnackbarContext);
@@ -150,13 +150,6 @@ const Games = () => {
   const handleListGamesSuccess = (payload: GameDto[]) => {
     setGames(payload);
     setLoading(false);
-
-    setTimeout(() => {
-      const lastClickedGameId = sessionStorage.getItem('games.lastclicked');
-      if (lastClickedGameId) {
-        document.querySelector(`[data-gameid="${lastClickedGameId}"]`).scrollIntoView();
-      }
-    }, 1000);
   };
 
   useIpcRendererCallback(
@@ -181,12 +174,14 @@ const Games = () => {
   );
 
   const handleUpdateSuccess = () => {
-    hideForm();
     refreshTable();
-    snackbarDispatch({
-      type: "show_message",
-      payload: "Game updated",
-    });
+    if (location.pathname === "/games") {
+      hideForm();
+      snackbarDispatch({
+        type: "show_message",
+        payload: "Game updated",
+      });
+    }
   };
 
   useIpcRendererCallback(
@@ -299,6 +294,7 @@ const Games = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
+      <Outlet />
     </Box>
   );
 };
