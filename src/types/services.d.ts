@@ -16,6 +16,10 @@ export interface IpcRenderer {
     channel: string,
     listener: (event: Electron.IpcRendererEvent, ...args: unknown[]) => void
   ) => Electron.IpcRenderer;
+  off: (
+    channel: string,
+    listener: (event: Electron.IpcRendererEvent, ...args: unknown[]) => void
+  ) => Electron.IpcRenderer;
   removeAllListeners: (channel: string) => Electron.IpcRenderer;
 }
 

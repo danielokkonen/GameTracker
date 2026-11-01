@@ -12,6 +12,10 @@ contextBridge.exposeInMainWorld("electronApi", {
       channel: string,
       listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void
     ) => ipcRenderer.on(channel, listener),
+    off: (
+      channel: string,
+      listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void
+    ) => ipcRenderer.off(channel, listener),
     removeAllListeners: (channel: string) =>
       ipcRenderer.removeAllListeners(channel),
   },

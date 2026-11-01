@@ -86,7 +86,7 @@ const GameList = ({ items, onEdit, onDelete }: GameListProps) => {
   };
 
   const onRowClick = (event: React.MouseEvent, id: number) => {
-    const target = event.target as HTMLInputElement;
+    const target = event.target as HTMLElement;
     const tag = target.nodeName.toLowerCase();
 
     if (["tr", "td", "p", "img"].some((arr) => arr === tag)) {

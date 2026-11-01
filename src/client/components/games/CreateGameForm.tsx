@@ -58,7 +58,7 @@ const CreateGameForm = ({
   const formik = useFormik({
     initialValues: value ?? { ...new GameDto(), status: "Not started" },
     onSubmit: handleSubmit,
-    validationSchema: validationSchema,
+    validationSchema: validationSchema
   });
 
   return (
