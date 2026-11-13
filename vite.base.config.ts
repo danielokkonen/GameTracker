@@ -1,7 +1,6 @@
 import { builtinModules } from 'node:module';
 import type { AddressInfo } from 'node:net';
 import type { ConfigEnv, Plugin, UserConfig } from 'vite';
-import pkg from './package.json';
 
 export const builtins = ['electron', ...builtinModules.map((m) => [m, `node:${m}`]).flat()];
 
@@ -65,8 +64,9 @@ export function pluginExposeRenderer(name: string): Plugin {
       // Expose server for preload scripts hot reload.
       process.viteDevServers[name] = server;
 
-      server.httpServer?.once('listening', () => {
-        const addressInfo = server.httpServer.address() as AddressInfo;
+      const httpServer = server.httpServer;
+      httpServer?.once('listening', () => {
+        const addressInfo = httpServer.address() as AddressInfo;
         // Expose env constant for main process use.
         process.env[VITE_DEV_SERVER_URL] = `http://localhost:${addressInfo?.port}`;
       });
