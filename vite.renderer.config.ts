@@ -14,6 +14,14 @@ export default defineConfig((env) => {
     base: './',
     build: {
       outDir: `.vite/renderer/${name}`,
+      rollupOptions: {
+        // MUI ships "use client" banners for React Server Components; they are inert in a desktop renderer.
+        onwarn(warning, defaultHandler) {
+          if (warning.code !== 'MODULE_LEVEL_DIRECTIVE') {
+            defaultHandler(warning);
+          }
+        },
+      },
     },
     plugins: [pluginExposeRenderer(name)],
     resolve: {
