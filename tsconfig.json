@@ -12,5 +12,12 @@
     "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "lib": ["DOM"]
-  }
+  },
+  "exclude": [
+    "forge.config.ts",
+    "vite.base.config.ts",
+    "vite.main.config.ts",
+    "vite.preload.config.ts",
+    "vite.renderer.config.ts"
+  ]
 }
