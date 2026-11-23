@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Divider,
   ExtendButtonBase,
   IconButtonTypeMap,
   Menu,
@@ -11,12 +12,15 @@ import { OverridableComponent } from "@mui/material/OverridableComponent";
 export interface MenuButtonItem {
   name: string;
   onClick: () => void;
+  color?: "error" | "warning" | "success" | "info";
+  divider?: boolean;
 }
 
 interface MenuButtonProps {
   component: ExtendButtonBase<IconButtonTypeMap>;
   icon: OverridableComponent<SvgIconTypeMap<object, "svg">>;
   items: MenuButtonItem[];
+  disabled?: boolean;
 }
 
 interface MenuButtonState {
@@ -61,9 +65,15 @@ const MenuButton = (props: MenuButtonProps) => {
         anchorEl={state.anchorEl}
       >
         {items.map((i) => (
-          <MenuItem key={i.name} onClick={() => handleClickItem(i.onClick)}>
-            {i.name}
-          </MenuItem>
+          <React.Fragment key={i.name}>
+            {i.divider && <Divider />}
+            <MenuItem
+              onClick={() => handleClickItem(i.onClick)}
+              sx={i.color ? { color: `${i.color}.main` } : undefined}
+            >
+              {i.name}
+            </MenuItem>
+          </React.Fragment>
         ))}
       </Menu>
     </>

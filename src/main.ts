@@ -9,6 +9,7 @@ import EncryptionService from "./backend/services/encryption-service";
 import SettingsDto from "./backend/dtos/settings";
 import SteamService from "./backend/services/steam-service";
 import AiService from "./backend/services/ai-service";
+import { DownloadCancelledError } from "./backend/services/model-manager";
 
 const dialog = require("electron").dialog;
 
@@ -255,8 +256,17 @@ ipcMain.on("ai-model-download", async (event, modelId: string) => {
     });
     event.reply("ai-model-download-success");
   } catch (error: any) {
-    event.reply("ai-model-download-error", { modelId, error: error.message });
+    if (error instanceof DownloadCancelledError) {
+      event.reply("ai-model-download-cancelled", { modelId });
+    } else {
+      event.reply("ai-model-download-error", { modelId, error: error.message });
+    }
   }
+});
+
+ipcMain.on("ai-model-download-cancel", (event, modelId: string) => {
+  aiService.cancelDownload(modelId);
+  event.reply("ai-model-download-cancel-success");
 });
 
 ipcMain.on("ai-model-select", async (event, modelId: string) => {
@@ -286,12 +296,23 @@ ipcMain.on("ai-model-add", async (event, filePath?: string) => {
         filters: [{ name: "GGUF model", extensions: ["gguf"] }],
       });
       chosen = result.filePaths[0];
+      if (!chosen) {
+        return;
+      }
     }
-    if (chosen) {
-      await aiService.addCustomModel(chosen);
-    }
+    await aiService.addCustomModel(chosen);
     event.reply("ai-model-add-success");
   } catch (error: any) {
     event.reply("ai-model-add-error", { error: error.message });
+  }
+});
+
+ipcMain.on("ai-model-reveal", async (event, modelId: string) => {
+  try {
+    const filePath = await aiService.getModelFilePath(modelId);
+    shell.showItemInFolder(filePath);
+    event.reply("ai-model-reveal-success");
+  } catch (error: any) {
+    event.reply("ai-model-reveal-error", { error: error.message });
   }
 });

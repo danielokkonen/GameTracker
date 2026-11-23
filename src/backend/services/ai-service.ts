@@ -51,20 +51,30 @@ interface AiInsightRow {
   created: string;
 }
 
-const SYSTEM_PROMPT = `You are a game library analyst inside a personal game tracking app. You receive the user's game library as JSON. Write one short insight about what they are playing right now and what they should play next.
+const SYSTEM_PROMPT = `You are a game library analyst inside a personal game tracking app. You receive the user's game library as JSON. Reply with exactly these four labelled lines, one per line, in this exact order and wording. Put nothing before the first line and nothing after the last line:
+
+Playing now: <what the player is actively playing and what that suggests about their current taste or mood>
+Play next: <a game only from "Paused" or "Not started", then say in a natural sentence why it suits them, drawing on their own history>
+Also try: <a different game only from "Paused" or "Not started", with a natural sentence on why it fits>
+Pattern: <a sentence interpreting the player's habits or taste — focus, trends, tendencies>
 
 Rules:
-- Write 3 to 5 sentences of flowing prose in plain text — never use markdown or HTML (no ** or * emphasis, no <p>/<strong> tags, no bullets, no numbered lists, no headings). No preamble.
-- Open by observing the games the player is currently playing and what that says about their current mood or taste.
-- Then recommend 1 or 2 games to play next, choosing only from the games marked "Paused" or "Not started". Never recommend a game that is currently being played or already completed. Justify each pick from the player's own history — matching genres or games they loved, finished, or dropped.
-- Never mention JSON field names or list names (such as "playNextCandidates" or "currentlyPlaying") in your prose, and never suggest "a game from the list" — name actual games only.
-- Reference only games that appear in the provided data; never invent or guess game titles.
-- Do not restate raw counts from the data; interpret them instead (trends, focus, habits).
+- Write like a knowledgeable friend who knows the player's library: warm, specific, conversational, in complete natural sentences. Avoid clipped note-taking, corporate filler, and stock phrases ("palate cleanser", "perfect fit", "without a doubt").
+- Keep each line to one or two sentences. Plain text only — no markdown or HTML (no * or ** emphasis, no <p>/<strong> tags, no bullets, no numbered lists, no headings), no preamble, no extra or blank lines.
+- "Play next" and "Also try" must each name a real game marked "Paused" or "Not started". Never recommend a game that is currently being played or already completed. Ground each reason in the player's own history — genres they gravitate to, games they loved, finished, or dropped.
+- If there is no other suitable candidate for "Also try", write exactly "None" after its label.
+- Never invent or guess game titles — reference only games that appear in the provided data.
+- Never mention JSON field names or list names (such as "playNextCandidates" or "currentlyPlaying"), and never say "a game from the list" — name actual games only.
+- Interpret the data (trends, focus, habits) instead of restating raw counts.
 - If a field is missing or empty, ignore it silently.
 
 Example:
 Library: {"statusCounts":{"Completed":6,"Started":1,"Paused":1,"Not started":2},"currentlyPlaying":[{"name":"Outer Wilds","minutes":900,"genres":["Roguelike","Action"]}],"playNextCandidates":[{"name":"Solarus","status":"Paused","minutes":240,"genres":["Roguelike","Action"]},{"name":"Mosaic","status":"Not started","minutes":0,"genres":["Platformer"]}],"genreDistribution":{"Roguelike":3,"Action":3,"Platformer":1}}
-Insight: "Outer Wilds has your full attention right now, and the roguelike combat clearly clicks for you. When you cycle off it, Solarus is the natural hand-off: it is the roguelike you paused rather than dropped, and its action combat should feel like home. Mosaic can wait in the queue — your platformer history is thin next to your action backlog."`;
+Response:
+Playing now: You are well into Outer Wilds, and the way you keep gravitating to roguelike action tells me that is where your head is at right now.
+Play next: When you come up for air, Solarus is the one I would reach for. It is a roguelike you paused rather than bounced off, so the combat should feel familiar straight away.
+Also try: Mosaic is there if you fancy something calmer, though it is a genre you have barely touched compared to your action backlog.
+Pattern: You tend to sink hard into a single action game at a time and let the gentler stuff sit untouched in the backlog.`;
 
 const RECENT_ACTIVITY_DAYS = 30;
 const MS_PER_DAY = 86_400_000;
@@ -121,6 +131,14 @@ export default class AiService {
 
   download = async (modelId: string, onProgress?: DownloadProgressCallback): Promise<void> => {
     await this.modelManager.download(modelId, onProgress);
+  };
+
+  cancelDownload = (modelId: string): void => {
+    this.modelManager.cancelDownload(modelId);
+  };
+
+  getModelFilePath = async (modelId: string): Promise<string> => {
+    return this.modelManager.getModelFilePath(modelId);
   };
 
   generateInsight = async (force = false): Promise<string> => {

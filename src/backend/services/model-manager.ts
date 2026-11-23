@@ -55,12 +55,23 @@ export interface DownloadProgress {
 
 export type DownloadProgressCallback = (modelId: string, downloadedBytes: number, totalBytes: number) => void;
 
+export class DownloadCancelledError extends Error {
+  public modelId: string;
+
+  constructor(modelId: string) {
+    super("Model download cancelled");
+    this.name = "DownloadCancelledError";
+    this.modelId = modelId;
+  }
+}
+
 const PROGRESS_THROTTLE_MS = 250;
 
 export default class ModelManager {
   private modelsDir: string;
   private downloadingIds = new Set<string>();
   private activeDownloads = new Map<string, DownloadProgress>();
+  private abortControllers = new Map<string, AbortController>();
 
   constructor() {
     this.modelsDir = path.join(Database.getDbFolder(), "models");
@@ -89,6 +100,8 @@ export default class ModelManager {
         };
       })
     );
+    catalogRows.sort((a, b) => Number(b.recommended) - Number(a.recommended) || a.sizeBytes - b.sizeBytes);
+
     const customRows = await Promise.all(
       (await this.readCustomModels()).map((entry) => this.toCustomStatus(entry, selectedId, machineRamMb))
     );
@@ -183,7 +196,7 @@ export default class ModelManager {
     }
 
     if (wasSelected) {
-      await this.applySelectionFallback(modelId);
+      await this.unlinkIfExists(this.selectedFilePath());
     }
   };
 
@@ -215,6 +228,8 @@ export default class ModelManager {
     }
 
     this.downloadingIds.add(modelId);
+    const controller = new AbortController();
+    this.abortControllers.set(modelId, controller);
     try {
       await mkdir(this.modelsDir, { recursive: true });
 
@@ -236,11 +251,11 @@ export default class ModelManager {
         if (offset > 0) {
           headers["Range"] = `bytes=${offset}-`;
         }
-        let response = await fetch(this.sourceUrl(entry), { headers });
+        let response = await fetch(this.sourceUrl(entry), { headers, signal: controller.signal });
         if (response.status === 416) {
           await this.unlinkIfExists(partPath);
           offset = 0;
-          response = await fetch(this.sourceUrl(entry));
+          response = await fetch(this.sourceUrl(entry), { signal: controller.signal });
         }
         if (!response.ok || !response.body) {
           throw new Error(`Model download failed: ${response.status} ${response.statusText}`);
@@ -259,10 +274,20 @@ export default class ModelManager {
       if (!(await this.getSelectedModelId())) {
         await this.writeSelected(modelId);
       }
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw new DownloadCancelledError(modelId);
+      }
+      throw error;
     } finally {
       this.downloadingIds.delete(modelId);
       this.activeDownloads.delete(modelId);
+      this.abortControllers.delete(modelId);
     }
+  };
+
+  cancelDownload = (modelId: string): void => {
+    this.abortControllers.get(modelId)?.abort();
   };
 
   private getModel = (modelId: string): AiModel => {
@@ -296,15 +321,6 @@ export default class ModelManager {
       custom: true,
       filePath: entry.filePath,
     };
-  };
-
-  private applySelectionFallback = async (excludeId: string): Promise<void> => {
-    const replacement = await this.findInstalledReplacement(excludeId);
-    if (replacement) {
-      await this.writeSelected(replacement);
-    } else {
-      await this.unlinkIfExists(this.selectedFilePath());
-    }
   };
 
   private getInstallState = async (entry: AiModel): Promise<ModelInstallState> => {
@@ -354,23 +370,6 @@ export default class ModelManager {
       await this.unlinkIfExists(filePath);
       throw new Error("Model download failed verification: checksum mismatch");
     }
-  };
-
-  private findInstalledReplacement = async (excludeId: string): Promise<string | null> => {
-    const ordered = [...AI_MODELS].sort((a, b) => Number(b.recommended) - Number(a.recommended));
-    for (const candidate of ordered) {
-      if (candidate.id === excludeId) continue;
-      if ((await this.statOrNull(this.modelFilePath(candidate))) !== null) {
-        return candidate.id;
-      }
-    }
-    for (const candidate of await this.readCustomModels()) {
-      if (candidate.id === excludeId) continue;
-      if ((await this.statOrNull(candidate.filePath)) !== null) {
-        return candidate.id;
-      }
-    }
-    return null;
   };
 
   private readCustomModels = async (): Promise<CustomModelEntry[]> => {
