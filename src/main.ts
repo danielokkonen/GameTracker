@@ -49,6 +49,13 @@ const createWindow = () => {
   // Open the DevTools.
   // mainWindow.webContents.openDevTools();
 
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("https://") || url.startsWith("http://")) {
+      shell.openExternal(url);
+    }
+    return { action: "deny" };
+  });
+
   mainWindow.once("ready-to-show", () => {
     setTimeout(() => {
       mainWindow.show();

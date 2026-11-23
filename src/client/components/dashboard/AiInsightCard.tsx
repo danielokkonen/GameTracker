@@ -7,6 +7,7 @@ import { stripHtmlTags, stripMarkdown, stripThinkTags } from "../../utils/format
 import useIpcRendererCallback from "../../hooks/UseIpcRendererCallback";
 import type { AiStatus } from "../../../backend/services/ai-service";
 import { useNavigate } from "react-router-dom";
+import { SETTINGS_TAB_QUERY_KEY, SETTINGS_TABS } from "../../constants/settings-tabs";
 
 const AiInsightCard = () => {
   const navigate = useNavigate();
@@ -102,7 +103,9 @@ const AiInsightCard = () => {
           <Button
             variant="outlined"
             startIcon={<SettingsIcon />}
-            onClick={() => navigate("/settings", { state: { focusAiSection: true } })}
+            onClick={() =>
+              navigate(`/settings?${SETTINGS_TAB_QUERY_KEY}=${SETTINGS_TABS.ai}`)
+            }
           >
             Set up AI Insights
           </Button>
