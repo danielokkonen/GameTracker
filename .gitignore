@@ -93,4 +93,4 @@ out/
 
 # Custom
 *.db
-models/
+/models/

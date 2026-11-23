@@ -29,6 +29,10 @@ const AiInsightCard = () => {
     if (data.insight) {
       setInsightText(data.insight.text);
     }
+    if (!generatingRef.current && data.generating) {
+      generatingRef.current = true;
+      setGenerating(true);
+    }
   };
 
   useIpcRendererCallback<AiStatus>(
@@ -36,6 +40,12 @@ const AiInsightCard = () => {
     () => window.aiService.status(),
     handleStatusSuccess
   );
+
+  const handleStatusError = (data: { error: string }) => {
+    setError(data.error);
+  };
+
+  useIpcRendererCallback<{ error: string }>(Channels.AI_STATUS_ERROR, null, handleStatusError);
 
   const handleAnalyze = () => {
     startGeneration(insightText !== null);
@@ -64,7 +74,23 @@ const AiInsightCard = () => {
 
   useIpcRendererCallback<{ error: string }>(Channels.AI_INSIGHT_GENERATE_ERROR, null, handleGenerateError);
 
-  if (!status) return null;
+  if (!status) {
+    if (!error) return null;
+    return (
+      <Box sx={{ mt: 4 }}>
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" size="small" onClick={() => window.aiService.status()}>
+              Retry
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      </Box>
+    );
+  }
 
   const noModel = !status.modelInstalled;
 

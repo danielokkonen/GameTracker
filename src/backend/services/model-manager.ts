@@ -379,7 +379,15 @@ export default class ModelManager {
     }
     try {
       const parsed = JSON.parse(raw) as { models?: unknown };
-      return Array.isArray(parsed.models) ? (parsed.models as CustomModelEntry[]) : [];
+      return Array.isArray(parsed.models)
+        ? parsed.models.filter(
+          (entry): entry is CustomModelEntry =>
+            !!entry &&
+            typeof (entry as CustomModelEntry).id === "string" &&
+            typeof (entry as CustomModelEntry).name === "string" &&
+            typeof (entry as CustomModelEntry).filePath === "string"
+        )
+        : [];
     } catch {
       return [];
     }

@@ -29,6 +29,7 @@ export const Channels = {
 
   AI_STATUS: "ai-status",
   AI_STATUS_SUCCESS: "ai-status-success",
+  AI_STATUS_ERROR: "ai-status-error",
   AI_INSIGHT_GENERATE: "ai-insight-generate",
   AI_INSIGHT_GENERATE_SUCCESS: "ai-insight-generate-success",
   AI_INSIGHT_GENERATE_ERROR: "ai-insight-generate-error",
@@ -36,6 +37,7 @@ export const Channels = {
   AI_INSIGHT_DISMISS_SUCCESS: "ai-insight-dismiss-success",
   AI_MODEL_LIST: "ai-model-list",
   AI_MODEL_LIST_SUCCESS: "ai-model-list-success",
+  AI_MODEL_LIST_ERROR: "ai-model-list-error",
   AI_MODEL_DOWNLOAD: "ai-model-download",
   AI_MODEL_DOWNLOAD_PROGRESS: "ai-model-download-progress",
   AI_MODEL_DOWNLOAD_SUCCESS: "ai-model-download-success",

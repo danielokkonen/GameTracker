@@ -6,3 +6,7 @@ export const AI_MAX_OUTPUT_TOKENS = 256;
 export const AI_INSIGHT_PLAYING_LIMIT = 8;
 export const AI_INSIGHT_CANDIDATE_LIMIT = 12;
 export const AI_INSIGHT_GENRE_LIMIT = 3;
+export const AI_INSIGHT_GENRE_AGGREGATE_LIMIT = 15;
+export const AI_INSIGHT_GENRE_OTHER_KEY = "Other";
+export const AI_INSIGHT_TOP_PLAYED_LIMIT = 5;
+export const AI_INSIGHT_ACTIVITY_DAYS = 30;

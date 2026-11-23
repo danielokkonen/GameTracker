@@ -230,8 +230,12 @@ const replyToSender = (event: Electron.IpcMainEvent, channel: string, payload?: 
 };
 
 ipcMain.on("ai-status", async (event) => {
-  const result = await aiService.getStatus();
-  replyToSender(event, "ai-status-success", result);
+  try {
+    const result = await aiService.getStatus();
+    replyToSender(event, "ai-status-success", result);
+  } catch (error: any) {
+    replyToSender(event, "ai-status-error", { error: error.message });
+  }
 });
 
 ipcMain.on("ai-insight-generate", async (event, data?: { force?: boolean }) => {
@@ -249,8 +253,12 @@ ipcMain.on("ai-insight-dismiss", (event) => {
 });
 
 ipcMain.on("ai-model-list", async (event) => {
-  const result = await aiService.listModels();
-  replyToSender(event, "ai-model-list-success", result);
+  try {
+    const result = await aiService.listModels();
+    replyToSender(event, "ai-model-list-success", result);
+  } catch (error: any) {
+    replyToSender(event, "ai-model-list-error", { error: error.message });
+  }
 });
 
 ipcMain.on("ai-model-download", async (event, modelId: string) => {

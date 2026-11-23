@@ -1,8 +1,17 @@
 import { createHash } from "node:crypto";
+import dayjs from "dayjs";
 import { Database } from "../database/database";
 import InferenceEngine from "./inference-engine";
 import ModelManager, { type DownloadProgressCallback, type ModelStatus } from "./model-manager";
-import { AI_INSIGHT_CANDIDATE_LIMIT, AI_INSIGHT_GENRE_LIMIT, AI_INSIGHT_PLAYING_LIMIT } from "../constants/ai-engine";
+import {
+  AI_INSIGHT_ACTIVITY_DAYS,
+  AI_INSIGHT_CANDIDATE_LIMIT,
+  AI_INSIGHT_GENRE_AGGREGATE_LIMIT,
+  AI_INSIGHT_GENRE_LIMIT,
+  AI_INSIGHT_GENRE_OTHER_KEY,
+  AI_INSIGHT_PLAYING_LIMIT,
+  AI_INSIGHT_TOP_PLAYED_LIMIT,
+} from "../constants/ai-engine";
 import type { GameStatus } from "../constants/gameStatuses";
 import type { DbGame } from "../types/db";
 
@@ -48,6 +57,11 @@ interface ActivityRow {
   created: string;
 }
 
+interface GenreAggregates {
+  genreDistribution: Record<string, number>;
+  genreOutcomes: Record<string, { completed: number; dropped: number }>;
+}
+
 interface AiInsightRow {
   fingerprint: string;
   model: string;
@@ -79,9 +93,6 @@ Playing now: You are well into Outer Wilds, and the way you keep gravitating to 
 Play next: When you come up for air, Solarus is the one I would reach for. It is a roguelike you paused rather than bounced off, so the combat should feel familiar straight away.
 Also try: Mosaic is there if you fancy something calmer, though it is a genre you have barely touched compared to your action backlog.
 Pattern: You tend to sink hard into a single action game at a time and let the gentler stuff sit untouched in the backlog.`;
-
-const RECENT_ACTIVITY_DAYS = 30;
-const MS_PER_DAY = 86_400_000;
 
 const isInstalled = (model: ModelStatus): boolean => model.installState === "installed";
 
@@ -186,33 +197,18 @@ export default class AiService {
     const played = games.filter((game) => (game.playtime_minutes ?? 0) > 0);
     const totalPlaytimeMinutes = played.reduce((sum, game) => sum + (game.playtime_minutes ?? 0), 0);
 
-    const genreDistribution: Record<string, number> = {};
-    for (const game of games) {
-      for (const genre of this.splitList(game.genres)) {
-        genreDistribution[genre] = (genreDistribution[genre] ?? 0) + 1;
-      }
-    }
-
-    const genreOutcomes: Record<string, { completed: number; dropped: number }> = {};
-    for (const game of games) {
-      if (game.status !== "Completed" && game.status !== "Dropped") continue;
-      for (const genre of this.splitList(game.genres)) {
-        const entry = (genreOutcomes[genre] ??= { completed: 0, dropped: 0 });
-        if (game.status === "Completed") entry.completed += 1;
-        else entry.dropped += 1;
-      }
-    }
+    const { genreDistribution, genreOutcomes } = this.buildGenreAggregates(games);
 
     const durationsDays = games
       .filter((game) => game.status === "Completed" && game.start && game.end)
-      .map((game) => (Date.parse(game.end as string) - Date.parse(game.start as string)) / MS_PER_DAY)
+      .map((game) => dayjs(game.end as string).diff(dayjs(game.start as string), "day", true))
       .sort((a, b) => a - b);
     const medianTimeToCompletionDays = durationsDays.length
       ? Math.round(durationsDays[Math.floor(durationsDays.length / 2)])
       : null;
 
-    const cutoff = Date.now() - RECENT_ACTIVITY_DAYS * MS_PER_DAY;
-    const recent = activities.filter((activity) => Date.parse(activity.created) >= cutoff);
+    const cutoff = dayjs().subtract(AI_INSIGHT_ACTIVITY_DAYS, "day");
+    const recent = activities.filter((activity) => !dayjs(activity.created).isBefore(cutoff));
     const last30DaysActivity: Record<string, number> = { total: recent.length };
     for (const activity of recent) {
       last30DaysActivity[activity.action] = (last30DaysActivity[activity.action] ?? 0) + 1;
@@ -241,7 +237,7 @@ export default class AiService {
       averagePlaytimePerPlayedGameMinutes: played.length ? Math.round(totalPlaytimeMinutes / played.length) : null,
       top5ByPlaytime: [...played]
         .sort((a, b) => (b.playtime_minutes ?? 0) - (a.playtime_minutes ?? 0))
-        .slice(0, 5)
+        .slice(0, AI_INSIGHT_TOP_PLAYED_LIMIT)
         .map((game) => ({ name: game.name, minutes: game.playtime_minutes ?? 0 })),
       currentlyPlaying,
       playNextCandidates,
@@ -250,6 +246,56 @@ export default class AiService {
       medianTimeToCompletionDays,
       last30DaysActivity,
     };
+  };
+
+  private buildGenreAggregates = (games: DbGame[]): GenreAggregates => {
+    const counts = new Map<string, number>();
+    const outcomes = new Map<string, { completed: number; dropped: number }>();
+    for (const game of games) {
+      const hasOutcome = game.status === "Completed" || game.status === "Dropped";
+      for (const genre of this.splitList(game.genres)) {
+        counts.set(genre, (counts.get(genre) ?? 0) + 1);
+        if (!hasOutcome) continue;
+        const outcome = outcomes.get(genre) ?? { completed: 0, dropped: 0 };
+        if (game.status === "Completed") outcome.completed += 1;
+        else outcome.dropped += 1;
+        outcomes.set(genre, outcome);
+      }
+    }
+
+    const kept = [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, AI_INSIGHT_GENRE_AGGREGATE_LIMIT)
+      .map(([genre]) => genre);
+    const keptSet = new Set(kept);
+    const overflow = [...counts.keys()].filter((genre) => !keptSet.has(genre));
+
+    const genreDistribution: Record<string, number> = {};
+    for (const genre of kept) genreDistribution[genre] = counts.get(genre) ?? 0;
+    if (overflow.length) {
+      genreDistribution[AI_INSIGHT_GENRE_OTHER_KEY] = overflow.reduce(
+        (sum, genre) => sum + (counts.get(genre) ?? 0),
+        0
+      );
+    }
+
+    const genreOutcomes: Record<string, { completed: number; dropped: number }> = {};
+    for (const genre of kept) {
+      const outcome = outcomes.get(genre);
+      if (outcome) genreOutcomes[genre] = outcome;
+    }
+    if (overflow.length) {
+      const other = { completed: 0, dropped: 0 };
+      for (const genre of overflow) {
+        const outcome = outcomes.get(genre);
+        if (!outcome) continue;
+        other.completed += outcome.completed;
+        other.dropped += outcome.dropped;
+      }
+      genreOutcomes[AI_INSIGHT_GENRE_OTHER_KEY] = other;
+    }
+
+    return { genreDistribution, genreOutcomes };
   };
 
   private toPlayingEntry = (game: DbGame): InsightPlayingEntry => ({

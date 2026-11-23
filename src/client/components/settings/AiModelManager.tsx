@@ -53,6 +53,7 @@ const AiModelManager = () => {
   const location = useLocation();
   const snackbarDispatch = useContext(SnackbarContext);
   const [models, setModels] = useState<ModelStatus[] | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [error, setError] = useState<{ modelId: string; message: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ModelStatus | null>(null);
@@ -71,6 +72,11 @@ const AiModelManager = () => {
 
   useIpcRendererCallback<ModelStatus[]>(Channels.AI_MODEL_LIST_SUCCESS, refreshModels, (data) => {
     setModels(data);
+    setListError(null);
+  });
+
+  useIpcRendererCallback<{ error: string }>(Channels.AI_MODEL_LIST_ERROR, null, (data) => {
+    setListError(data.error);
   });
 
   useIpcRendererCallback<DownloadProgress>(Channels.AI_MODEL_DOWNLOAD_PROGRESS, null, (p) => {
@@ -196,9 +202,23 @@ const AiModelManager = () => {
       </Typography>
 
       {models === null ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
-          <Spinner />
-        </Box>
+        listError ? (
+          <Alert
+            severity="error"
+            sx={{ mt: 2 }}
+            action={
+              <Button color="inherit" size="small" onClick={refreshModels}>
+                Retry
+              </Button>
+            }
+          >
+            {listError}
+          </Alert>
+        ) : (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+            <Spinner />
+          </Box>
+        )
       ) : (
         <Stack spacing={2}>
           <Typography variant="body2" color="text.secondary">
