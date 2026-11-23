@@ -26,6 +26,7 @@ const AiInsightCard = () => {
 
   const handleStatusSuccess = (data: AiStatus) => {
     setStatus(data);
+    setError(null);
     if (data.insight) {
       setInsightText(data.insight.text);
     }
