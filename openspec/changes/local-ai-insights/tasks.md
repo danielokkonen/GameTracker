@@ -61,6 +61,7 @@
 - [x] 6.25 `ai-model-download` replies (progress, success, cancelled, error) all pass through a `replyToSender` helper that checks `event.sender.isDestroyed()`, so closing the window mid-download no longer throws in main
 - [x] 6.26 Auto-select narrowed to the recommended catalog entry on its first successful download when nothing is selected; any other download leaves the selection untouched (matches the spec requirement)
 - [x] 6.27 Insight state fixes: `modelInstalled` derived from any installed model (a vanished custom model no longer forces the setup state) with selection tracked separately and an accurate error when nothing is active; unused `upToDate` dropped from `AiInsightState` and `getStatus`; `top5ByPlaytime` skips games with no playtime; activity rows typed as `ActivityRow` instead of cast to `DbActivity[]`
+- [x] 6.28 Settings AI imports `AI_MAX_MODEL_SIZE_BYTES` from the new `src/client/constants/ai-models.ts` re-export instead of the backend path; "Custom" chip switched to `color="success"` (green outlined) per 6.13
 
 ## 7. Verification
 

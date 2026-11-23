@@ -24,8 +24,8 @@ import Spinner from "../common/Spinner";
 import { Channels } from "../../constants/channels";
 import useIpcRendererCallback from "../../hooks/UseIpcRendererCallback";
 import SnackbarContext from "../../context/SnackbarContext";
-import { ModelStatus, DownloadProgress } from "../../../backend/services/model-manager";
-import { AI_MAX_MODEL_SIZE_BYTES } from "../../../backend/constants/ai-models";
+import type { ModelStatus, DownloadProgress } from "../../../backend/services/model-manager";
+import { AI_MAX_MODEL_SIZE_BYTES } from "../../constants/ai-models";
 import { formatBytes } from "../../utils/formatUtils";
 
 const modelStatusSummary = (model: ModelStatus): string => {
@@ -239,7 +239,7 @@ const AiModelManager = () => {
                         <Chip label="Recommended" size="small" variant="outlined" color="primary" />
                       )}
                       {model.custom && (
-                        <Chip label="Custom" size="small" variant="outlined" color="secondary" />
+                        <Chip label="Custom" size="small" variant="outlined" color="success" />
                       )}
                       {model.selected && (
                         <Chip label="Active" size="small" color="success" icon={<CheckIcon />} />
