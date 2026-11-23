@@ -6,5 +6,6 @@ declare global {
     gameService: GameService;
     igdbService: IgdbService;
     settingsService: SettingsService;
+    aiService: AiService;
   }
 }

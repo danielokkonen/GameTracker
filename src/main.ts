@@ -8,6 +8,7 @@ import SettingsService from "./backend/services/settings-service";
 import EncryptionService from "./backend/services/encryption-service";
 import SettingsDto from "./backend/dtos/settings";
 import SteamService from "./backend/services/steam-service";
+import AiService from "./backend/services/ai-service";
 
 const dialog = require("electron").dialog;
 
@@ -92,6 +93,7 @@ const gameService = new GameService();
 const igdbService = new IgdbService();
 const settingService = new SettingsService();
 const steamService = new SteamService(settingService);
+const aiService = new AiService();
 
 ipcMain.on("list-games", async (event) => {
   const result = await gameService.list();
@@ -218,4 +220,78 @@ ipcMain.on("import-steam-games", async (event, games: GameDto[]) => {
   }
 
   event.reply("import-steam-games-success", { imported, skipped, errors });
+});
+
+ipcMain.on("ai-status", async (event) => {
+  const result = await aiService.getStatus();
+  event.reply("ai-status-success", result);
+});
+
+ipcMain.on("ai-insight-generate", async (event, data?: { force?: boolean }) => {
+  try {
+    const insight = await aiService.generateInsight(data?.force ?? false);
+    event.reply("ai-insight-generate-success", insight);
+  } catch (error: any) {
+    event.reply("ai-insight-generate-error", { error: error.message });
+  }
+});
+
+ipcMain.on("ai-insight-dismiss", (event) => {
+  aiService.dismissInsight();
+  event.reply("ai-insight-dismiss-success");
+});
+
+ipcMain.on("ai-model-list", async (event) => {
+  const result = await aiService.listModels();
+  event.reply("ai-model-list-success", result);
+});
+
+ipcMain.on("ai-model-download", async (event, modelId: string) => {
+  try {
+    await aiService.download(modelId, (id, downloadedBytes, totalBytes) => {
+      if (!event.sender.isDestroyed()) {
+        event.sender.send("ai-model-download-progress", { modelId: id, downloadedBytes, totalBytes });
+      }
+    });
+    event.reply("ai-model-download-success");
+  } catch (error: any) {
+    event.reply("ai-model-download-error", { modelId, error: error.message });
+  }
+});
+
+ipcMain.on("ai-model-select", async (event, modelId: string) => {
+  try {
+    await aiService.selectModel(modelId);
+    event.reply("ai-model-select-success");
+  } catch (error: any) {
+    event.reply("ai-model-select-error", { error: error.message });
+  }
+});
+
+ipcMain.on("ai-model-delete", async (event, modelId: string) => {
+  try {
+    await aiService.deleteModel(modelId);
+    event.reply("ai-model-delete-success");
+  } catch (error: any) {
+    event.reply("ai-model-delete-error", { modelId, error: error.message });
+  }
+});
+
+ipcMain.on("ai-model-add", async (event, filePath?: string) => {
+  try {
+    let chosen = filePath;
+    if (!chosen) {
+      const result = await dialog.showOpenDialog({
+        properties: ["openFile"],
+        filters: [{ name: "GGUF model", extensions: ["gguf"] }],
+      });
+      chosen = result.filePaths[0];
+    }
+    if (chosen) {
+      await aiService.addCustomModel(chosen);
+    }
+    event.reply("ai-model-add-success");
+  } catch (error: any) {
+    event.reply("ai-model-add-error", { error: error.message });
+  }
 });

@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { formatPlaytime } from "../utils/formatUtils";
 import NowPlayingCard from "../components/dashboard/NowPlayingCard";
 import ActivityItem from "../components/dashboard/ActivityItem";
+import AiInsightCard from "../components/ai/AiInsightCard";
 import EmptyState from "../components/common/EmptyState";
 import { Info } from "@mui/icons-material";
 
@@ -136,6 +137,8 @@ const Home = () => {
           </ButtonGroup>
         </EmptyState>
       )}
+
+      <AiInsightCard />
 
       <Typography variant="h5" sx={{ mt: 4, mb: 2, fontWeight: 600 }}>
         Recent Activity
