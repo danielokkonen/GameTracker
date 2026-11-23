@@ -56,6 +56,7 @@
 - [x] 6.20 Show file location: `ai-model-reveal` IPC resolves the model path (`getModelFilePath`) and `shell.showItemInFolder` reveals it; offered from the menu and the details dialog for installed models; failures surface as a snackbar
 - [x] 6.21 Catalog ordering in `listModels`: recommended model first, remaining models ascending by `sizeBytes` (custom entries still appended after the catalog)
 - [x] 6.22 Add-custom-model feedback: success snackbar ("Model added"); `ai-model-add` handler returns silently when the file dialog is cancelled so no bogus success fires; delete/removal unified to one red "Delete" action with confirm-dialog copy clarifying a custom file is not deleted
+- [x] 6.23 Migration gating split: `AiInsight` table creation stays under `MIGRATION_VERSION` (2) while the legacy start/end status backfill is gated by its own frozen `STATUS_BACKFILL_VERSION` (1), so it can never re-run over user-set statuses
 
 ## 7. Verification
 

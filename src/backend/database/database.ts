@@ -7,6 +7,9 @@ const { DatabaseSync } = require("node:sqlite");
 // Bump when adding a new one-shot data migration to the Database constructor.
 const MIGRATION_VERSION = 2;
 
+// Frozen threshold for the legacy start/end-date status backfill, so it never re-runs for databases that already recorded it.
+const STATUS_BACKFILL_VERSION = 1;
+
 export class Database {
   public instance: any;
 
@@ -110,6 +113,15 @@ export class Database {
       "PRAGMA user_version"
     ).get() as { user_version: number };
 
+    if (currentVersion < STATUS_BACKFILL_VERSION) {
+      this.instance.prepare(
+        "UPDATE Game SET status = 'Completed' WHERE status = 'Not started' AND end IS NOT NULL"
+      ).run();
+      this.instance.prepare(
+        "UPDATE Game SET status = 'Started' WHERE status = 'Not started' AND start IS NOT NULL AND end IS NULL"
+      ).run();
+    }
+
     if (currentVersion < MIGRATION_VERSION) {
       this.instance.prepare(`
         CREATE TABLE IF NOT EXISTS "AiInsight" (
@@ -119,13 +131,6 @@ export class Database {
           "created" TEXT NOT NULL
         );
       `).run();
-
-      this.instance.prepare(
-        "UPDATE Game SET status = 'Completed' WHERE status = 'Not started' AND end IS NOT NULL"
-      ).run();
-      this.instance.prepare(
-        "UPDATE Game SET status = 'Started' WHERE status = 'Not started' AND start IS NOT NULL AND end IS NULL"
-      ).run();
 
       this.instance.exec(`PRAGMA user_version = ${MIGRATION_VERSION}`);
     }
