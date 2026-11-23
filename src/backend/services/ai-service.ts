@@ -273,10 +273,9 @@ export default class AiService {
     const genreDistribution: Record<string, number> = {};
     for (const genre of kept) genreDistribution[genre] = counts.get(genre) ?? 0;
     if (overflow.length) {
-      genreDistribution[AI_INSIGHT_GENRE_OTHER_KEY] = overflow.reduce(
-        (sum, genre) => sum + (counts.get(genre) ?? 0),
-        0
-      );
+      genreDistribution[AI_INSIGHT_GENRE_OTHER_KEY] =
+        (genreDistribution[AI_INSIGHT_GENRE_OTHER_KEY] ?? 0) +
+        overflow.reduce((sum, genre) => sum + (counts.get(genre) ?? 0), 0);
     }
 
     const genreOutcomes: Record<string, { completed: number; dropped: number }> = {};
@@ -285,7 +284,7 @@ export default class AiService {
       if (outcome) genreOutcomes[genre] = outcome;
     }
     if (overflow.length) {
-      const other = { completed: 0, dropped: 0 };
+      const other = genreOutcomes[AI_INSIGHT_GENRE_OTHER_KEY] ?? { completed: 0, dropped: 0 };
       for (const genre of overflow) {
         const outcome = outcomes.get(genre);
         if (!outcome) continue;
