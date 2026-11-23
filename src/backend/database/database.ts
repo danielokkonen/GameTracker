@@ -106,11 +106,6 @@ export class Database {
       // Column already exists
     }
 
-    // One-shot migrations: create the AiInsight cache table and derive initial
-    // statuses from legacy start/end dates. Gated by PRAGMA user_version so they
-    // run exactly once per database, even though the Database constructor runs
-    // multiple times per app launch. The version is only bumped after all
-    // statements succeed, so an interrupted run retries cleanly.
     const { user_version: currentVersion } = this.instance.prepare(
       "PRAGMA user_version"
     ).get() as { user_version: number };

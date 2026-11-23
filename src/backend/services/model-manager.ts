@@ -162,7 +162,7 @@ export default class ModelManager {
         return modelId;
       }
     } catch {
-      // corrupt selection file: treat as no selection
+      return null;
     }
     return null;
   };

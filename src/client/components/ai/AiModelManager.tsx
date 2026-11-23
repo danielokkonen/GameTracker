@@ -61,7 +61,6 @@ const AiModelManager = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  // Scroll the section into view when navigated here from the dashboard's "Set up AI Insights" button.
   useEffect(() => {
     if (location.state?.focusAiSection) {
       sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });

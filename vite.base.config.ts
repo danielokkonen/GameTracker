@@ -4,7 +4,6 @@ import type { ConfigEnv, Plugin, UserConfig } from 'vite';
 
 export const builtins = ['electron', ...builtinModules.map((m) => [m, `node:${m}`]).flat()];
 
-// node-llama-cpp is ESM with top-level await and loads a native addon, so it cannot be bundled into the CJS main process output.
 export const external = [...builtins, 'node-llama-cpp'];
 
 export function getBuildConfig(env: ConfigEnv<'build'>): UserConfig {

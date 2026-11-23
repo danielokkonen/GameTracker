@@ -9,17 +9,10 @@ export interface AiModel {
   recommended: boolean;
 }
 
-// Electron's allocator shim cannot satisfy single allocations of 2 GiB or more during
-// model load; the failed allocation aborts the whole process before any JS code runs.
-// Every catalog model file must stay under this size.
 export const AI_MAX_MODEL_SIZE_BYTES = 2 * 1024 * 1024 * 1024;
 
-// Files smaller than this are never a usable GGUF model (corrupt file, wrong format).
 export const AI_MIN_MODEL_SIZE_BYTES = 10 * 1024 * 1024;
 
-// RAM figures are measured process usage with the context pinned to 4096 tokens.
-// A model is flagged as a poor fit when total system RAM cannot cover its usage plus this
-// margin for the OS and the app itself.
 export const AI_SYSTEM_RAM_HEADROOM_MB = 2048;
 
 export const AI_MODELS: AiModel[] = [

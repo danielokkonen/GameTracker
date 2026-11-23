@@ -9,9 +9,6 @@ import { VitePlugin } from '@electron-forge/plugin-vite';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
-// node-llama-cpp is external (ESM with a native addon, cannot be bundled into the CJS main output), so it and its
-// production dependency closure must ship in the asar. Everything else the app needs at runtime is bundled by Vite
-// into `.vite`, so nothing else from node_modules belongs in the package.
 const llamaPlatformPackage = `@node-llama-cpp/${process.platform}-${process.arch}`;
 
 function isModuleDir(dir: string): boolean {
@@ -23,7 +20,6 @@ function isModuleDir(dir: string): boolean {
 }
 
 function findModuleRoot(entryPath: string): string {
-  // The module root is the directory directly under a node_modules folder, not any nested package.json stub.
   let dir = path.dirname(entryPath);
   while (true) {
     if (isModuleDir(dir)) {
@@ -44,7 +40,6 @@ function collectLlamaModuleDirs(): string[] {
 
   for (let i = 0; i < queue.length; i++) {
     const { spec, fromDir } = queue[i];
-    // Only the host platform's prebuilt binary package is needed at runtime.
     if (spec.startsWith('@node-llama-cpp/') && spec !== llamaPlatformPackage) continue;
 
     let entryPath: string;
@@ -67,8 +62,6 @@ function collectLlamaModuleDirs(): string[] {
   return moduleDirs;
 }
 
-// Module dirs ship with their full contents; traversal dirs (node_modules itself and scope dirs) are kept only so the
-// copy descends into them.
 const shippedModuleDirs = new Set(collectLlamaModuleDirs());
 const traversalDirs = new Set(['node_modules']);
 for (const dir of [...shippedModuleDirs]) {
@@ -81,8 +74,6 @@ const inDir = (file: string, dir: string) => {
   return file === posixDir || file.startsWith(`${posixDir}/`);
 };
 
-// Source-build artifacts and the offline clone bundle are never needed at runtime: source builds are disabled in
-// Electron (`build: "never"`) and inside the asar, so these paths would only bloat the package.
 const nlcBuildOnlyPaths = [
   'node_modules/node-llama-cpp/llama/gitRelease.bundle',
   'node_modules/node-llama-cpp/llama/localBuilds',
@@ -101,15 +92,14 @@ const isShippedNodeModulesPath = (file: string) => {
 
 const config: ForgeConfig = {
   packagerConfig: {
-    // The platform package's native binaries cannot live inside the asar: dlopen needs real file paths so that the
-    // addon's $ORIGIN-based RUNPATH finds its sibling .so files. node-llama-cpp rewrites `.asar/` to `.asar.unpacked/`
-    // when resolving its binding path, which is exactly where these unpacked files land.
+    // Native binaries must sit outside the asar: dlopen needs real file paths for the addon's $ORIGIN-based RUNPATH to
+    // find sibling .so files. node-llama-cpp resolves its binding under `.asar.unpacked/`, exactly where these land.
     asar: {
       unpackDir: `node_modules/${llamaPlatformPackage}`,
     },
-    // The pruner would keep the project's entire production closure (react, @mui, ...), which is already bundled into `.vite`.
+    // Without this, the pruner keeps the whole production closure (react, @mui, ...) that Vite already bundles into `.vite`.
     prune: false,
-    // `file` is the path relative to the project root; it is empty for the root itself, which must be kept.
+    // `file` is empty for the project root, which must always be kept.
     ignore: (file) => !!file && !(file.startsWith('/.vite') || isShippedNodeModulesPath(file)),
   },
   rebuildConfig: {},
@@ -120,11 +110,8 @@ const config: ForgeConfig = {
   ],
   plugins: [
     new VitePlugin({
-      // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
-      // If you are familiar with Vite configuration, it will look really familiar.
       build: [
         {
-          // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
           entry: 'src/main.ts',
           config: 'vite.main.config.ts',
         },
@@ -140,8 +127,6 @@ const config: ForgeConfig = {
         },
       ],
     }),
-    // Fuses are used to enable/disable various Electron functionality
-    // at package time, before code signing the application
     new FusesPlugin({
       version: FuseVersion.V1,
       [FuseV1Options.RunAsNode]: false,
