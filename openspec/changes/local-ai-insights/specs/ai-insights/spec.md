@@ -5,7 +5,7 @@ Generates short, personal insights about the player's game library on the dashbo
 ## ADDED Requirements
 
 ### Requirement: Insights are generated locally from library data
-The system SHALL generate an insight of 3–5 sentences analyzing the player's library using only locally stored data (status distribution, playtime per game, genres, time-to-completion, franchise groupings, recent activity). Generation MUST NOT make any external network call.
+The system SHALL generate a structured insight using only locally stored data (status distribution, playtime per game, genres, time-to-completion, franchise groupings, recent activity). The insight SHALL follow a fixed template of labelled lines — what the player is currently playing, a next-to-play pick, an optional second pick, and an interpreted pattern — each written as natural, conversational sentences rather than clipped notes. Generation MUST NOT make any external network call.
 
 #### Scenario: Insight reflects real library patterns
 - **WHEN** an insight is generated for a library with games across multiple statuses and recorded playtimes
@@ -16,15 +16,15 @@ The system SHALL generate an insight of 3–5 sentences analyzing the player's l
 - **THEN** insights are still generated successfully
 
 ### Requirement: Insight focuses on current play and recommends what to play next
-The insight SHALL be directed at the player's present state: it SHALL open on the games currently being played (Started/Replaying) and SHALL recommend what to play next, choosing only from the not-started and paused entries provided in the analysis data. Recommended titles MUST come from the player's own library data.
+The insight SHALL be directed at the player's present state: it SHALL open on the games currently being played (Started/Replaying) and SHALL recommend what to play next, choosing only from the not-started and paused entries provided in the analysis data — a primary pick plus an optional second pick. Recommended titles MUST come from the player's own library data.
 
 #### Scenario: Recommendations drawn from the backlog
 - **WHEN** an insight is generated for a library that has games in progress plus not-started or paused entries
-- **THEN** the insight reflects what is being played currently and names one or more next-to-play picks taken only from the not-started and paused entries
+- **THEN** the insight reflects what is being played currently and names one or two next-to-play picks taken only from the not-started and paused entries
 
 #### Scenario: Empty backlog yields no invented picks
 - **WHEN** an insight is generated for a library with no not-started and no paused entries
-- **THEN** the insight omits play-next recommendations rather than naming titles outside the provided data
+- **THEN** the insight omits or marks the next-to-play picks as having nothing to recommend, rather than naming titles outside the provided data
 
 ### Requirement: Insights are cached by data fingerprint
 The system SHALL compute a fingerprint over the library data used for insights and serve the cached insight without regenerating when the fingerprint is unchanged. The cached insight SHALL be valid only for the current application run: the insight store MUST be cleared when the application starts. Insight generation SHALL start only from an explicit quick-action on the dashboard — the "Analyze library" button when no insight is cached, or the "Analyze again" button (which forces regeneration regardless of the fingerprint) once an insight exists — and MUST NOT start automatically when the dashboard loads. The quick actions render as a button row below the Now Playing section, with the insight text displayed as an info Alert underneath the row.
