@@ -37,13 +37,17 @@ export default class InferenceEngine {
       throw new Error("Insight generation already in progress");
     }
 
-    const entry = await this.getModelEntry(modelId);
     this.generating = true;
+    this.clearIdleTimer();
     try {
+      const entry = await this.getModelEntry(modelId);
       const { model, sequence } = await this.ensureLoaded(entry);
       return await this.runGeneration(model, sequence, params);
     } finally {
       this.generating = false;
+      if (this.loadedModelId) {
+        this.scheduleIdleUnload();
+      }
     }
   };
 
@@ -83,7 +87,6 @@ export default class InferenceEngine {
     } finally {
       clearTimeout(timer);
       session.dispose();
-      this.scheduleIdleUnload();
     }
   };
 
@@ -107,16 +110,18 @@ export default class InferenceEngine {
 
     const nlc = await import("node-llama-cpp");
     const llama = await nlc.getLlama({ gpu: false });
-    const model = await llama.loadModel({ modelPath: entry.filePath });
-    const context = await model.createContext({ contextSize: AI_CONTEXT_SIZE });
-    const sequence = context.getSequence();
-
     this.llama = llama;
-    this.model = model;
-    this.context = context;
-    this.sequence = sequence;
-    this.loadedModelId = entry.id;
-    return { model, sequence };
+    try {
+      this.model = await llama.loadModel({ modelPath: entry.filePath });
+      this.context = await this.model.createContext({ contextSize: AI_CONTEXT_SIZE });
+      this.sequence = this.context.getSequence();
+
+      this.loadedModelId = entry.id;
+      return { model: this.model, sequence: this.sequence };
+    } catch (error) {
+      await this.unload().catch((err) => console.error(err));
+      throw error;
+    }
   };
 
   private unload = async (): Promise<void> => {
