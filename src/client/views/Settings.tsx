@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Box, Divider } from "@mui/material";
 import SettingsForm from "../components/settings/SettingsForm";
-import AiModelManager from "../components/ai/AiModelManager";
+import AiModelManager from "../components/settings/AiModelManager";
 import SettingsDto from "../../backend/dtos/settings";
 import { Channels } from "../constants/channels";
 import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";

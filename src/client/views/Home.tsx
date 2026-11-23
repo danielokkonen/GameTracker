@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { formatPlaytime } from "../utils/formatUtils";
 import NowPlayingCard from "../components/dashboard/NowPlayingCard";
 import ActivityItem from "../components/dashboard/ActivityItem";
-import AiInsightCard from "../components/ai/AiInsightCard";
+import AiInsightCard from "../components/dashboard/AiInsightCard";
 import EmptyState from "../components/common/EmptyState";
 import { Info } from "@mui/icons-material";
 

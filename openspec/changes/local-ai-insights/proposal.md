@@ -27,6 +27,6 @@ The dashboard shows static counts (completion rate, total playtime) but never te
 
 - **Dependencies**: add `node-llama-cpp` (native per-platform binaries).
 - **Main process**: new `ai-service.ts` (+ model manager / inference engine), registered in `main.ts`; new IPC channels (kebab-case) for status, generate, model list/download with progress events.
-- **Preload/renderer**: bridges + types in `services.d.ts`; new Settings "AI Insights" section; new insights quick-actions component on Home (`src/client/components/ai/`).
+- **Preload/renderer**: bridges + types in `services.d.ts`; new Settings "AI Insights" section (`src/client/components/settings/`); new insights quick-actions component on Home (`src/client/components/dashboard/`).
 - **Packaging risk**: native module must survive electron-forge packaging/signing on win32/darwin/linux — spike first (see design.md).
 - **No schema migration**: all insight payload data already exists in `Game` and `GameActivity`.
