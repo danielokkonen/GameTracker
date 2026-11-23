@@ -60,6 +60,14 @@ The system SHALL allow the user to select which installed model is used for insi
 - **WHEN** two or more models are installed and the user changes selection in Settings
 - **THEN** subsequent insight generations use the newly selected model
 
+#### Scenario: Recommended model becomes active on its first download
+- **WHEN** the recommended catalog model finishes downloading and no model is currently selected
+- **THEN** that model becomes the selected model without further action
+
+#### Scenario: Other downloads never change the selection
+- **WHEN** a model other than the recommended one finishes downloading, or the recommended model finishes while another model is already selected
+- **THEN** the selection stays as it was and the user picks a model in Settings
+
 ### Requirement: Per-model actions menu
 The system SHALL expose secondary actions for each catalog or added model through a per-row menu (a three-dots control) separate from its primary download/select action. The menu SHALL always be present on every model row, disabled when that model has no secondary action available. Available actions SHALL include: viewing the model's details, revealing the model's file in the operating system's file manager (installed models only), cancelling an in-flight download (downloading models only), and deleting or removing the model (installed or added models only), the latter separated from the informational actions by a divider.
 

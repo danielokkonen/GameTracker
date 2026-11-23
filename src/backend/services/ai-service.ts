@@ -4,11 +4,10 @@ import InferenceEngine from "./inference-engine";
 import ModelManager, { type DownloadProgressCallback, type ModelStatus } from "./model-manager";
 import { AI_INSIGHT_CANDIDATE_LIMIT, AI_INSIGHT_GENRE_LIMIT, AI_INSIGHT_PLAYING_LIMIT } from "../constants/ai-engine";
 import type { GameStatus } from "../constants/gameStatuses";
-import type { DbActivity, DbGame } from "../types/db";
+import type { DbGame } from "../types/db";
 
 export interface AiInsightState {
   text: string;
-  upToDate: boolean;
 }
 
 export interface AiStatus {
@@ -42,6 +41,11 @@ interface InsightPayload {
   genreOutcomes: Record<string, { completed: number; dropped: number }>;
   medianTimeToCompletionDays: number | null;
   last30DaysActivity: Record<string, number>;
+}
+
+interface ActivityRow {
+  action: string;
+  created: string;
 }
 
 interface AiInsightRow {
@@ -79,6 +83,8 @@ Pattern: You tend to sink hard into a single action game at a time and let the g
 const RECENT_ACTIVITY_DAYS = 30;
 const MS_PER_DAY = 86_400_000;
 
+const isInstalled = (model: ModelStatus): boolean => model.installState === "installed";
+
 export default class AiService {
   private database = new Database();
   private modelManager = new ModelManager();
@@ -91,17 +97,13 @@ export default class AiService {
   getStatus = async (): Promise<AiStatus> => {
     const models = await this.modelManager.listModels();
     const selectedModel = models.find((model) => model.selected);
-
-    const games = this.getGames();
-    const activities = this.getActivities();
-    const fingerprint = this.computeFingerprint(this.buildPayload(games, activities));
     const cached = this.readCache();
 
     return {
-      modelInstalled: selectedModel?.installState === "installed",
+      modelInstalled: models.some(isInstalled),
       selectedModelId: selectedModel?.id ?? null,
       generating: this.engine.isGenerating(),
-      insight: cached ? { text: cached.insight, upToDate: cached.fingerprint === fingerprint } : null,
+      insight: cached ? { text: cached.insight } : null,
     };
   };
 
@@ -144,7 +146,8 @@ export default class AiService {
   generateInsight = async (force = false): Promise<string> => {
     const selectedModelId = await this.modelManager.getSelectedModelId();
     if (!selectedModelId) {
-      throw new Error("No AI model is installed");
+      const models = await this.modelManager.listModels();
+      throw new Error(models.some(isInstalled) ? "No model is active — select one in Settings" : "No AI model is installed");
     }
 
     const games = this.getGames();
@@ -167,7 +170,7 @@ export default class AiService {
     return text;
   };
 
-  private buildPayload = (games: DbGame[], activities: DbActivity[]): InsightPayload => {
+  private buildPayload = (games: DbGame[], activities: ActivityRow[]): InsightPayload => {
     const statusCounts: Record<GameStatus, number> = {
       "Not started": 0,
       Started: 0,
@@ -236,7 +239,7 @@ export default class AiService {
       statusCounts,
       totalPlaytimeMinutes,
       averagePlaytimePerPlayedGameMinutes: played.length ? Math.round(totalPlaytimeMinutes / played.length) : null,
-      top5ByPlaytime: [...games]
+      top5ByPlaytime: [...played]
         .sort((a, b) => (b.playtime_minutes ?? 0) - (a.playtime_minutes ?? 0))
         .slice(0, 5)
         .map((game) => ({ name: game.name, minutes: game.playtime_minutes ?? 0 })),
@@ -294,10 +297,10 @@ export default class AiService {
     return this.database.instance.prepare("SELECT * FROM Game").all() as DbGame[];
   };
 
-  private getActivities = (): DbActivity[] => {
+  private getActivities = (): ActivityRow[] => {
     return this.database.instance
       .prepare("SELECT action, created FROM GameActivity")
-      .all() as DbActivity[];
+      .all() as ActivityRow[];
   };
 
   private splitList = (value: string | null): string[] => {

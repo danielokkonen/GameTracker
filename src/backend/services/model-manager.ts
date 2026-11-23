@@ -271,7 +271,7 @@ export default class ModelManager {
       await this.verifyChecksum(partPath, entry.sha256);
       await rename(partPath, finalPath);
 
-      if (!(await this.getSelectedModelId())) {
+      if (entry.recommended && !(await this.getSelectedModelId())) {
         await this.writeSelected(modelId);
       }
     } catch (error) {

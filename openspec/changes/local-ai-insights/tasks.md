@@ -59,6 +59,8 @@
 - [x] 6.23 Migration gating split: `AiInsight` table creation stays under `MIGRATION_VERSION` (2) while the legacy start/end status backfill is gated by its own frozen `STATUS_BACKFILL_VERSION` (1), so it can never re-run over user-set statuses
 - [x] 6.24 `InferenceEngine` generation lifecycle: `generating` set before the first await (two rapid requests can no longer share one sequence); idle-unload timer cleared when generation starts and re-armed in the `finally`, so a pending unload cannot dispose the sequence mid-generation
 - [x] 6.25 `ai-model-download` replies (progress, success, cancelled, error) all pass through a `replyToSender` helper that checks `event.sender.isDestroyed()`, so closing the window mid-download no longer throws in main
+- [x] 6.26 Auto-select narrowed to the recommended catalog entry on its first successful download when nothing is selected; any other download leaves the selection untouched (matches the spec requirement)
+- [x] 6.27 Insight state fixes: `modelInstalled` derived from any installed model (a vanished custom model no longer forces the setup state) with selection tracked separately and an accurate error when nothing is active; unused `upToDate` dropped from `AiInsightState` and `getStatus`; `top5ByPlaytime` skips games with no playtime; activity rows typed as `ActivityRow` instead of cast to `DbActivity[]`
 
 ## 7. Verification
 
