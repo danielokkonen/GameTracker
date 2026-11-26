@@ -42,12 +42,14 @@ const SteamImportToolbar = ({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           sx={{ width: 300 }}
-          InputProps={{
-            endAdornment: search ? (
-              <IconButton size="small" onClick={() => onSearchChange("")}>
-                <Close fontSize="small" />
-              </IconButton>
-            ) : null,
+          slotProps={{
+            input: {
+              endAdornment: search ? (
+                <IconButton size="small" onClick={() => onSearchChange("")}>
+                  <Close fontSize="small" />
+                </IconButton>
+              ) : null,
+            },
           }}
         />
         <Box

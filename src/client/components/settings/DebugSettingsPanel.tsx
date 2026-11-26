@@ -71,7 +71,7 @@ const DebugSettingsPanel = () => {
         )}
 
         <Typography variant="h6">Storage</Typography>
-        <Stack direction="row" spacing={SETTINGS_PANEL_SPACING} flexWrap="wrap">
+        <Stack direction="row" spacing={SETTINGS_PANEL_SPACING} sx={{ flexWrap: "wrap" }}>
           <ConfirmActionButton
             label="Clear Tokens"
             icon={DeleteIcon}

@@ -231,7 +231,7 @@ const Games = () => {
           <Divider sx={{ mt: 2, mb: 2 }} />
         </>
       )}
-      <Stack direction="row" justifyContent="space-between">
+      <Stack direction="row" sx={{ justifyContent: "space-between" }}>
         <Box>
           <MenuButton
             component={IconButton}

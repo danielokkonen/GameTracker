@@ -135,7 +135,7 @@ const CreateGameForm = ({
           </MenuItem>
         ))}
       </Select>
-      <Stack direction="row" justifyContent="flex-end" spacing={2}>
+      <Stack direction="row" spacing={2} sx={{ justifyContent: "flex-end" }}>
         <Button variant="outlined" onClick={onClose}>
           Close
         </Button>

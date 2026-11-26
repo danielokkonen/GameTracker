@@ -63,7 +63,7 @@ const Navigation = ({ open }: NavigationProps) => {
       anchor="left"
       open={open}
     >
-      <Box display="flex" justifyContent="center" padding={2}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
         <Typography variant="h5" sx={{ userSelect: "none" }}>
           Game Tracker
         </Typography>
