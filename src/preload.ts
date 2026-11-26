@@ -51,3 +51,16 @@ contextBridge.exposeInMainWorld("settingsService", {
   clearTokens: () => ipcRenderer.send("clear-tokens"),
   openDatabaseFolder: () => ipcRenderer.send("open-database-folder"),
 });
+
+contextBridge.exposeInMainWorld("aiService", {
+  status: () => ipcRenderer.send("ai-status"),
+  generateInsight: (force?: boolean) => ipcRenderer.send("ai-insight-generate", { force }),
+  dismissInsight: () => ipcRenderer.send("ai-insight-dismiss"),
+  listModels: () => ipcRenderer.send("ai-model-list"),
+  download: (modelId: string) => ipcRenderer.send("ai-model-download", modelId),
+  cancelDownload: (modelId: string) => ipcRenderer.send("ai-model-download-cancel", modelId),
+  selectModel: (modelId: string) => ipcRenderer.send("ai-model-select", modelId),
+  deleteModel: (modelId: string) => ipcRenderer.send("ai-model-delete", modelId),
+  addCustomModel: (filePath?: string) => ipcRenderer.send("ai-model-add", filePath),
+  revealModelFile: (modelId: string) => ipcRenderer.send("ai-model-reveal", modelId),
+});

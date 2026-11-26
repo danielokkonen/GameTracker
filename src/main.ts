@@ -8,6 +8,8 @@ import SettingsService from "./backend/services/settings-service";
 import EncryptionService from "./backend/services/encryption-service";
 import SettingsDto from "./backend/dtos/settings";
 import SteamService from "./backend/services/steam-service";
+import AiService from "./backend/services/ai-service";
+import { DownloadCancelledError } from "./backend/services/model-manager";
 
 const dialog = require("electron").dialog;
 
@@ -92,6 +94,7 @@ const gameService = new GameService();
 const igdbService = new IgdbService();
 const settingService = new SettingsService();
 const steamService = new SteamService(settingService);
+const aiService = new AiService();
 
 ipcMain.on("list-games", async (event) => {
   const result = await gameService.list();
@@ -218,4 +221,110 @@ ipcMain.on("import-steam-games", async (event, games: GameDto[]) => {
   }
 
   event.reply("import-steam-games-success", { imported, skipped, errors });
+});
+
+const replyToSender = (event: Electron.IpcMainEvent, channel: string, payload?: unknown): void => {
+  if (!event.sender.isDestroyed()) {
+    event.reply(channel, payload);
+  }
+};
+
+ipcMain.on("ai-status", async (event) => {
+  try {
+    const result = await aiService.getStatus();
+    replyToSender(event, "ai-status-success", result);
+  } catch (error: any) {
+    replyToSender(event, "ai-status-error", { error: error.message });
+  }
+});
+
+ipcMain.on("ai-insight-generate", async (event, data?: { force?: boolean }) => {
+  try {
+    const insight = await aiService.generateInsight(data?.force ?? false);
+    replyToSender(event, "ai-insight-generate-success", insight);
+  } catch (error: any) {
+    replyToSender(event, "ai-insight-generate-error", { error: error.message });
+  }
+});
+
+ipcMain.on("ai-insight-dismiss", (event) => {
+  aiService.dismissInsight();
+  event.reply("ai-insight-dismiss-success");
+});
+
+ipcMain.on("ai-model-list", async (event) => {
+  try {
+    const result = await aiService.listModels();
+    replyToSender(event, "ai-model-list-success", result);
+  } catch (error: any) {
+    replyToSender(event, "ai-model-list-error", { error: error.message });
+  }
+});
+
+ipcMain.on("ai-model-download", async (event, modelId: string) => {
+  try {
+    await aiService.download(modelId, (id, downloadedBytes, totalBytes) => {
+      replyToSender(event, "ai-model-download-progress", { modelId: id, downloadedBytes, totalBytes });
+    });
+    replyToSender(event, "ai-model-download-success");
+  } catch (error: any) {
+    if (error instanceof DownloadCancelledError) {
+      replyToSender(event, "ai-model-download-cancelled", { modelId });
+    } else {
+      replyToSender(event, "ai-model-download-error", { modelId, error: error.message });
+    }
+  }
+});
+
+ipcMain.on("ai-model-download-cancel", (event, modelId: string) => {
+  aiService.cancelDownload(modelId);
+  event.reply("ai-model-download-cancel-success");
+});
+
+ipcMain.on("ai-model-select", async (event, modelId: string) => {
+  try {
+    await aiService.selectModel(modelId);
+    replyToSender(event, "ai-model-select-success");
+  } catch (error: any) {
+    replyToSender(event, "ai-model-select-error", { error: error.message });
+  }
+});
+
+ipcMain.on("ai-model-delete", async (event, modelId: string) => {
+  try {
+    await aiService.deleteModel(modelId);
+    replyToSender(event, "ai-model-delete-success");
+  } catch (error: any) {
+    replyToSender(event, "ai-model-delete-error", { modelId, error: error.message });
+  }
+});
+
+ipcMain.on("ai-model-add", async (event, filePath?: string) => {
+  try {
+    let chosen = filePath;
+    if (!chosen) {
+      const result = await dialog.showOpenDialog({
+        properties: ["openFile"],
+        filters: [{ name: "GGUF model", extensions: ["gguf"] }],
+      });
+      chosen = result.filePaths[0];
+      if (!chosen) {
+        return;
+      }
+    }
+    await aiService.addCustomModel(chosen);
+    replyToSender(event, "ai-model-add-success");
+  } catch (error: any) {
+    replyToSender(event, "ai-model-add-error", { error: error.message });
+  }
+});
+
+ipcMain.on("ai-model-reveal", async (event, modelId: string) => {
+  try {
+    const filePath = await aiService.getModelFilePath(modelId);
+    shell.showItemInFolder(filePath);
+    replyToSender(event, "ai-model-reveal-success");
+  } catch (error: any) {
+    replyToSender(event, "ai-model-reveal-error", { error: error.message });
+  }
 });

@@ -1,0 +1,12 @@
+export const AI_CONTEXT_SIZE = 4096;
+export const AI_GENERATION_TIMEOUT_MS = 120 * 1000;
+export const AI_IDLE_UNLOAD_MS = 10 * 60 * 1000;
+export const AI_TEMPERATURE = 0.4;
+export const AI_MAX_OUTPUT_TOKENS = 192;
+export const AI_INSIGHT_PLAYING_LIMIT = 8;
+export const AI_INSIGHT_CANDIDATE_LIMIT = 12;
+export const AI_INSIGHT_GENRE_LIMIT = 3;
+export const AI_INSIGHT_GENRE_AGGREGATE_LIMIT = 15;
+export const AI_INSIGHT_GENRE_OTHER_KEY = "Other";
+export const AI_INSIGHT_TOP_PLAYED_LIMIT = 5;
+export const AI_INSIGHT_ACTIVITY_DAYS = 30;

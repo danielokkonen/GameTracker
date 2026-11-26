@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
-import { Box } from "@mui/material";
+import { Box, Divider } from "@mui/material";
 import SettingsForm from "../components/settings/SettingsForm";
+import AiModelManager from "../components/settings/AiModelManager";
 import SettingsDto from "../../backend/dtos/settings";
 import { Channels } from "../constants/channels";
 import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
@@ -74,6 +75,8 @@ const Settings = () => {
   return (
     <Box>
       <SettingsForm value={settings} onSubmit={onSubmit} onClearTokens={onClearTokens} onDeleteAllGames={onDeleteAllGames} onOpenDatabaseFolder={onOpenDatabaseFolder} />
+      <Divider sx={{ my: 4 }} />
+      <AiModelManager />
     </Box>
   );
 };

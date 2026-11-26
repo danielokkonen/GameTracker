@@ -4,7 +4,7 @@ import type { ConfigEnv, Plugin, UserConfig } from 'vite';
 
 export const builtins = ['electron', ...builtinModules.map((m) => [m, `node:${m}`]).flat()];
 
-export const external = builtins;
+export const external = [...builtins, 'node-llama-cpp'];
 
 export function getBuildConfig(env: ConfigEnv<'build'>): UserConfig {
   const { root, mode, command } = env;
