@@ -60,6 +60,7 @@
     "yup": "^1.7.1"
   },
   "allowScripts": {
-    "electron-winstaller@5.4.4": true
+    "electron-winstaller@5.4.4": true,
+    "electron@45.5.0": true
   }
 }
