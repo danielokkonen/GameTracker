@@ -56,6 +56,16 @@ const createWindow = () => {
     return { action: "deny" };
   });
 
+  // Keeps the renderer on the document that carries our CSP meta tag; hash-router
+  // navigations share the same base URL and stay allowed.
+  mainWindow.webContents.on("will-navigate", (event, url) => {
+    const [targetBase] = url.split("#");
+    const [currentBase] = mainWindow.webContents.getURL().split("#");
+    if (targetBase !== currentBase) {
+      event.preventDefault();
+    }
+  });
+
   mainWindow.once("ready-to-show", () => {
     setTimeout(() => {
       mainWindow.show();
