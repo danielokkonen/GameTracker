@@ -21,7 +21,7 @@ const EmptyState = ({ title, children }: EmptyStateProps) => {
         bgcolor: "rgba(255,255,255,0.03)",
       }}
     >
-      <Typography variant="h6" color="text.secondary">
+      <Typography variant="h6">
         {title}
       </Typography>
       {children}

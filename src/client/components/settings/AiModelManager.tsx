@@ -94,7 +94,7 @@ const liveDownloadProgress = (model: ModelStatus, progress: DownloadProgress | n
 
 const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <Box sx={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: 2, alignItems: "baseline" }}>
-    <Typography variant="body2" color="text.secondary">
+    <Typography variant="body2">
       {label}
     </Typography>
     <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
@@ -243,7 +243,7 @@ const AiModelManager = () => {
   return (
     <Box>
       <Typography variant="h6">AI Insights</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+      <Typography variant="body2" sx={{ mb: 2 }}>
         Download a small model to enable on-device library insights. Everything runs locally — nothing leaves your machine.
       </Typography>
 
@@ -267,7 +267,7 @@ const AiModelManager = () => {
         )
       ) : (
         <Stack spacing={2}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2">
             Detected {formatMegabytes(modelList.machineRamMb)} of system RAM.
           </Typography>
 
@@ -275,7 +275,7 @@ const AiModelManager = () => {
             <Button variant="outlined" startIcon={<FileUploadIcon />} onClick={() => window.aiService.addCustomModel()}>
               Use my own model
             </Button>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2">
               Already have a GGUF file? Add it here (up to {formatBytes(AI_MAX_MODEL_SIZE_BYTES)}).
             </Typography>
           </Box>
@@ -310,12 +310,12 @@ const AiModelManager = () => {
                       )}
                     </Box>
                     {model.source === "custom" && model.installState === "none" ? (
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2">
                         File not found: {model.filePath}
                       </Typography>
                     ) : (
                       <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2">
                           {formatBytes(model.sizeBytes)} · ~{model.ramMb} MB RAM
                         </Typography>
                         {!model.fitsRam && (
@@ -324,7 +324,7 @@ const AiModelManager = () => {
                       </Box>
                     )}
                     {!model.fitsRam && (
-                      <Typography variant="body2" color="warning.main">
+                      <Typography variant="body2">
                         Needs ~{formatMegabytes(model.requiredRamMb)} of the detected{" "}
                         {formatMegabytes(modelList.machineRamMb)} system RAM — it may run slowly or fail.
                       </Typography>
@@ -336,13 +336,13 @@ const AiModelManager = () => {
                       {isDownloading ? (
                         <Box sx={{ width: 184 }}>
                           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-                            <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
+                            <Typography variant="caption" sx={{ whiteSpace: "nowrap" }}>
                               {hasProgress
                                 ? `${formatBytes(liveProgress.downloadedBytes)} of ${formatBytes(liveProgress.totalBytes)}`
                                 : "Downloading…"}
                             </Typography>
                             {hasProgress && (
-                              <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                              <Typography variant="caption" sx={{ ml: 1 }}>
                                 {progressPct}%
                               </Typography>
                             )}

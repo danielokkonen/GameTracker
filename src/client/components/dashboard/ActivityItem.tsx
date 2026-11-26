@@ -24,7 +24,7 @@ const ActivityItem = ({ item, onClick }: ActivityItemProps) => {
         secondary={
           <>
             {item.action.charAt(0).toUpperCase() + item.action.slice(1)}
-            <Typography component="span" variant="body2" color="text.secondary" sx={{ display: "inline", ml: 1 }}>
+            <Typography component="span" variant="body2" sx={{ display: "inline", ml: 1 }}>
               · <Tooltip title={new Date(item.created).toLocaleString()}>
                 <Typography component="span" variant="inherit">{formatActivityDate(item.created)}</Typography>
               </Tooltip>

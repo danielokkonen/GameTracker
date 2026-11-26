@@ -120,7 +120,7 @@ const AiInsightCard = () => {
       </Box>
 
       {noModel && (
-        <Typography color="text.secondary" sx={{ mt: 1 }}>
+        <Typography sx={{ mt: 1 }}>
           Get a short analysis of your library, generated entirely on this device. No cloud, no API keys.
         </Typography>
       )}

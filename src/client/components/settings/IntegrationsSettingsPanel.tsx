@@ -22,12 +22,12 @@ const IntegrationsSettingsPanel = () => {
       <Stack spacing={SETTINGS_PANEL_SPACING}>
         <Box>
           <Typography variant="h6">IGDB</Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2">
             Used to fetch cover art, summary, developer, publisher, genres and platforms for games in your library.
           </Typography>
         </Box>
 
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2">
           Get your credentials at{" "}
           <Link
             href={IGDB_ACCOUNT_URL}
@@ -60,12 +60,12 @@ const IntegrationsSettingsPanel = () => {
 
         <Box>
           <Typography variant="h6">Steam</Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2">
             Used to import your Steam library and playtime on the Import from Steam page.
           </Typography>
         </Box>
 
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2">
           Get your API key at{" "}
           <Link
             href={STEAM_API_KEY_URL}

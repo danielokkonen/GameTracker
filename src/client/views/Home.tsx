@@ -54,10 +54,10 @@ const Home = () => {
         <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Completion Rate
               </Typography>
-              <Typography variant="h4" color="success.main">
+              <Typography variant="h4">
                 {dashboard?.completionRate ?? 0}%
               </Typography>
             </CardContent>
@@ -66,7 +66,7 @@ const Home = () => {
         <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Total Games
               </Typography>
               <Typography variant="h4">
@@ -78,7 +78,7 @@ const Home = () => {
         <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Total Playtime
                 <Tooltip title="Playtime is only fetched from Steam during import and may be out of date.">
                   <IconButton size="small" sx={{ ml: 0.5, verticalAlign: "middle" }}>
@@ -95,7 +95,7 @@ const Home = () => {
         <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Avg. Playtime
                 <Tooltip title="Playtime is only fetched from Steam during import and may be out of date.">
                   <IconButton size="small" sx={{ ml: 0.5, verticalAlign: "middle" }}>
