@@ -37,6 +37,7 @@ const ConfirmActionButton = ({
   return (
     <>
       <Button
+        type="button"
         variant="outlined"
         color="error"
         startIcon={<Icon />}

@@ -64,16 +64,3 @@ export interface AiService {
   addCustomModel: (filePath?: string) => void;
   revealModelFile: (modelId: string) => void;
 }
-
-export interface AiService {
-  status: () => void;
-  generateInsight: (force?: boolean) => void;
-  dismissInsight: () => void;
-  listModels: () => void;
-  download: (modelId: string) => void;
-  cancelDownload: (modelId: string) => void;
-  selectModel: (modelId: string) => void;
-  deleteModel: (modelId: string) => void;
-  addCustomModel: (filePath?: string) => void;
-  revealModelFile: (modelId: string) => void;
-}

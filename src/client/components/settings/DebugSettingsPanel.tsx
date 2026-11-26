@@ -88,7 +88,7 @@ const DebugSettingsPanel = () => {
             confirmLabel="Delete All"
             onConfirm={handleDeleteAllGames}
           />
-          <Button variant="outlined" startIcon={<FolderIcon />} onClick={handleOpenDatabaseFolder}>
+          <Button type="button" variant="outlined" startIcon={<FolderIcon />} onClick={handleOpenDatabaseFolder}>
             Open Database Folder
           </Button>
         </Stack>

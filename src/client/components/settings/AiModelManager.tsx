@@ -1,5 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useContext, useState } from "react";
 import {
   Alert,
   Box,
@@ -105,7 +104,6 @@ const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) 
 );
 
 const AiModelManager = () => {
-  const location = useLocation();
   const snackbarDispatch = useContext(SnackbarContext);
   const [modelList, setModelList] = useState<ModelList | null>(null);
   const [listError, setListError] = useState<string | null>(null);
@@ -115,13 +113,6 @@ const AiModelManager = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailsModel, setDetailsModel] = useState<ModelStatus | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (location.state?.focusAiSection) {
-      sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, []);
 
   const refreshModels = () => window.aiService.listModels();
 
@@ -250,7 +241,7 @@ const AiModelManager = () => {
   useIpcRendererCallback<{ error: string }>(Channels.AI_MODEL_REVEAL_ERROR, null, handleRevealError);
 
   return (
-    <Box ref={sectionRef} sx={{ mt: 4, mb: 4 }}>
+    <Box>
       <Typography variant="h6">AI Insights</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Download a small model to enable on-device library insights. Everything runs locally — nothing leaves your machine.
@@ -296,8 +287,9 @@ const AiModelManager = () => {
             const isError = error?.modelId === model.id;
             const menuItems = modelMenuItems(model, isDownloading);
             const liveProgress = liveDownloadProgress(model, progress);
+            const hasProgress = liveProgress !== null && liveProgress.totalBytes > 0;
             const progressPct =
-              liveProgress && liveProgress.totalBytes > 0
+              hasProgress
                 ? Math.round((liveProgress.downloadedBytes / liveProgress.totalBytes) * 100)
                 : 0;
 
@@ -345,14 +337,20 @@ const AiModelManager = () => {
                         <Box sx={{ width: 184 }}>
                           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
                             <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
-                              {formatBytes(liveProgress?.downloadedBytes ?? 0)} of{" "}
-                              {formatBytes(liveProgress?.totalBytes || model.sizeBytes)}
+                              {hasProgress
+                                ? `${formatBytes(liveProgress.downloadedBytes)} of ${formatBytes(liveProgress.totalBytes)}`
+                                : "Downloading…"}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                              {progressPct}%
-                            </Typography>
+                            {hasProgress && (
+                              <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                                {progressPct}%
+                              </Typography>
+                            )}
                           </Box>
-                          <LinearProgress variant="determinate" value={progressPct} />
+                          <LinearProgress
+                            variant={hasProgress ? "determinate" : "indeterminate"}
+                            value={progressPct}
+                          />
                         </Box>
                       ) : model.installState === "installed" && !model.selected ? (
                         <Button
