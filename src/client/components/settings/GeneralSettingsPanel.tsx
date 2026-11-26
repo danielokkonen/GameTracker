@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Button, Checkbox, FormControlLabel, Stack, Typography } from "@mui/material";
 import { useFormikContext } from "formik";
 import SettingsDto from "../../../backend/dtos/settings";

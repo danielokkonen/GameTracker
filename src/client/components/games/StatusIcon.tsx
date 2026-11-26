@@ -1,4 +1,3 @@
-import React from "react";
 import { Theme } from "@mui/material";
 import GameDto from "../../../backend/dtos/game";
 import { gameStatusIcons, gameStatusColors } from "../../constants/gameStatuses";

@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 
 interface StartedGame {

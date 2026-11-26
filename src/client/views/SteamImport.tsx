@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Box, Stack, Typography, CircularProgress, Alert } from "@mui/material";
 import GameDto from "../../backend/dtos/game";
 import { Channels } from "../constants/channels";

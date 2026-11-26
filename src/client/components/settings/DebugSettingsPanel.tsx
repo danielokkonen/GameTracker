@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { Box, Button, Checkbox, FormControlLabel, Stack, Typography } from "@mui/material";
 import { useFormikContext } from "formik";
 import DeleteIcon from "@mui/icons-material/Delete";

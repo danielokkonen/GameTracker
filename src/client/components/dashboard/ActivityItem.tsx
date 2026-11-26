@@ -1,4 +1,3 @@
-import React from "react";
 import { ListItemButton, ListItemIcon, ListItemText, Tooltip, Typography } from "@mui/material";
 import ActivityDto from "../../../backend/dtos/activity";
 import useActivityItem from "./useActivityItem";
