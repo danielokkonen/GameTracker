@@ -24,9 +24,20 @@ import Spinner from "../common/Spinner";
 import { Channels } from "../../constants/channels";
 import useIpcRendererCallback from "../../hooks/UseIpcRendererCallback";
 import SnackbarContext from "../../context/SnackbarContext";
-import type { DownloadProgress, ModelStatus } from "../../../backend/types/ai-model";
+import type { DownloadProgress, ModelList, ModelSource, ModelStatus } from "../../../backend/types/ai-model";
 import { AI_MAX_MODEL_SIZE_BYTES } from "../../constants/ai-models";
-import { formatBytes } from "../../utils/formatUtils";
+import { formatBytes, formatMegabytes } from "../../utils/formatUtils";
+
+const matchSource = <Result,>(
+  model: ModelStatus,
+  handlers: { [K in ModelSource]: (model: Extract<ModelStatus, { source: K }>) => Result }
+): Result => handlers[model.source](model as never);
+
+type ModelChip = { label: string; color: "primary" | "success" };
+
+const RECOMMENDED_CHIP: ModelChip = { label: "Recommended", color: "primary" };
+
+const CUSTOM_CHIP: ModelChip = { label: "Custom", color: "success" };
 
 const modelStatusSummary = (model: ModelStatus): string => {
   if (model.installState === "downloading") {
@@ -35,7 +46,51 @@ const modelStatusSummary = (model: ModelStatus): string => {
   if (model.installState === "installed") {
     return model.selected ? "Active (in use)" : "Installed";
   }
-  return model.custom ? "File not found" : "Not downloaded";
+  return matchSource(model, {
+    catalog: () => "Not downloaded",
+    custom: () => "File not found",
+  });
+};
+
+const modelTypeLabel = (model: ModelStatus): string =>
+  matchSource(model, {
+    catalog: (catalog) => (catalog.recommended ? "Recommended" : "Catalog model"),
+    custom: () => "Custom (from your files)",
+  });
+
+const modelTypeChips = (model: ModelStatus): ModelChip[] =>
+  matchSource(model, {
+    catalog: (catalog) => (catalog.recommended ? [RECOMMENDED_CHIP] : []),
+    custom: () => [CUSTOM_CHIP],
+  });
+
+const canDownloadModel = (model: ModelStatus): boolean =>
+  matchSource(model, {
+    catalog: () => true,
+    custom: () => false,
+  });
+
+const canRemoveModel = (model: ModelStatus): boolean =>
+  matchSource(model, {
+    catalog: (catalog) => catalog.installState === "installed",
+    custom: () => true,
+  });
+
+const deleteModelWarning = (model: ModelStatus): string =>
+  matchSource(model, {
+    catalog: (catalog) => `This frees ${formatBytes(catalog.sizeBytes)} on disk. You can download the model again later.`,
+    custom: () =>
+      "It will no longer be available in GameTracker, but the file itself will not be deleted from your disk.",
+  });
+
+const liveDownloadProgress = (model: ModelStatus, progress: DownloadProgress | null): DownloadProgress | null => {
+  if (progress?.modelId === model.id) {
+    return progress;
+  }
+  return matchSource(model, {
+    catalog: (catalog) => catalog.downloadProgress,
+    custom: () => null,
+  });
 };
 
 const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
@@ -52,7 +107,7 @@ const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) 
 const AiModelManager = () => {
   const location = useLocation();
   const snackbarDispatch = useContext(SnackbarContext);
-  const [models, setModels] = useState<ModelStatus[] | null>(null);
+  const [modelList, setModelList] = useState<ModelList | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [error, setError] = useState<{ modelId: string; message: string } | null>(null);
@@ -70,8 +125,8 @@ const AiModelManager = () => {
 
   const refreshModels = () => window.aiService.listModels();
 
-  useIpcRendererCallback<ModelStatus[]>(Channels.AI_MODEL_LIST_SUCCESS, refreshModels, (data) => {
-    setModels(data);
+  useIpcRendererCallback<ModelList>(Channels.AI_MODEL_LIST_SUCCESS, refreshModels, (data) => {
+    setModelList(data);
     setListError(null);
   });
 
@@ -140,7 +195,7 @@ const AiModelManager = () => {
     if (model.installState === "installed") {
       items.push({ name: "Show file location", onClick: () => window.aiService.revealModelFile(model.id) });
     }
-    if (model.custom || model.installState === "installed") {
+    if (canRemoveModel(model)) {
       items.push({ name: "Delete", onClick: () => openDeleteDialog(model), color: "error", divider: true });
     }
     return items;
@@ -201,7 +256,7 @@ const AiModelManager = () => {
         Download a small model to enable on-device library insights. Everything runs locally — nothing leaves your machine.
       </Typography>
 
-      {models === null ? (
+      {modelList === null ? (
         listError ? (
           <Alert
             severity="error"
@@ -222,7 +277,7 @@ const AiModelManager = () => {
       ) : (
         <Stack spacing={2}>
           <Typography variant="body2" color="text.secondary">
-            Detected {formatBytes(models[0].machineRamMb * 1024 * 1024)} of system RAM.
+            Detected {formatMegabytes(modelList.machineRamMb)} of system RAM.
           </Typography>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
@@ -234,13 +289,13 @@ const AiModelManager = () => {
             </Typography>
           </Box>
 
-          {models.map((model) => {
+          {modelList.models.map((model) => {
             const isDownloading = model.installState === "downloading" || progress?.modelId === model.id;
             const anyDownloading =
-              progress !== null || models.some((entry) => entry.installState === "downloading");
+              progress !== null || modelList.models.some((entry) => entry.installState === "downloading");
             const isError = error?.modelId === model.id;
             const menuItems = modelMenuItems(model, isDownloading);
-            const liveProgress = progress?.modelId === model.id ? progress : model.downloadProgress;
+            const liveProgress = liveDownloadProgress(model, progress);
             const progressPct =
               liveProgress && liveProgress.totalBytes > 0
                 ? Math.round((liveProgress.downloadedBytes / liveProgress.totalBytes) * 100)
@@ -255,17 +310,14 @@ const AiModelManager = () => {
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
                       <Typography variant="body1">{model.name}</Typography>
-                      {model.recommended && (
-                        <Chip label="Recommended" size="small" variant="outlined" color="primary" />
-                      )}
-                      {model.custom && (
-                        <Chip label="Custom" size="small" variant="outlined" color="success" />
-                      )}
+                      {modelTypeChips(model).map((chip) => (
+                        <Chip key={chip.label} label={chip.label} size="small" variant="outlined" color={chip.color} />
+                      ))}
                       {model.selected && (
                         <Chip label="Active" size="small" color="success" icon={<CheckIcon />} />
                       )}
                     </Box>
-                    {model.custom && model.installState === "none" ? (
+                    {model.source === "custom" && model.installState === "none" ? (
                       <Typography variant="body2" color="text.secondary">
                         File not found: {model.filePath}
                       </Typography>
@@ -281,8 +333,8 @@ const AiModelManager = () => {
                     )}
                     {!model.fitsRam && (
                       <Typography variant="body2" color="warning.main">
-                        Needs ~{formatBytes(model.requiredRamMb * 1024 * 1024)} of the detected{" "}
-                        {formatBytes(model.machineRamMb * 1024 * 1024)} system RAM — it may run slowly or fail.
+                        Needs ~{formatMegabytes(model.requiredRamMb)} of the detected{" "}
+                        {formatMegabytes(modelList.machineRamMb)} system RAM — it may run slowly or fail.
                       </Typography>
                     )}
                   </Box>
@@ -309,7 +361,7 @@ const AiModelManager = () => {
                         >
                           Use this model
                         </Button>
-                      ) : model.installState === "none" && !model.custom ? (
+                      ) : model.installState === "none" && canDownloadModel(model) ? (
                         <Button
                           variant="outlined"
                           startIcon={<DownloadIcon />}
@@ -346,9 +398,7 @@ const AiModelManager = () => {
         <DialogTitle>Delete {deleteTarget?.name}?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {deleteTarget?.custom
-              ? "It will no longer be available in GameTracker, but the file itself will not be deleted from your disk."
-              : `This frees ${deleteTarget ? formatBytes(deleteTarget.sizeBytes) : ""} on disk. You can download the model again later.`}
+            {deleteTarget && deleteModelWarning(deleteTarget)}
           </DialogContentText>
           {deleteTarget?.selected && (
             <DialogContentText sx={{ mt: 1 }}>
@@ -375,16 +425,7 @@ const AiModelManager = () => {
             <DialogContent>
               <Stack spacing={1.5} sx={{ pt: 0.5 }}>
                 <DetailRow label="Status" value={modelStatusSummary(detailsModel)} />
-                <DetailRow
-                  label="Type"
-                  value={
-                    detailsModel.custom
-                      ? "Custom (from your files)"
-                      : detailsModel.recommended
-                        ? "Recommended"
-                        : "Catalog model"
-                  }
-                />
+                <DetailRow label="Type" value={modelTypeLabel(detailsModel)} />
                 <DetailRow
                   label="File size"
                   value={detailsModel.sizeBytes > 0 ? formatBytes(detailsModel.sizeBytes) : "—"}
@@ -392,17 +433,16 @@ const AiModelManager = () => {
                 <DetailRow label="Estimated RAM" value={`~${detailsModel.ramMb} MB`} />
                 <DetailRow
                   label="RAM needed"
-                  value={`~${formatBytes(detailsModel.requiredRamMb * 1024 * 1024)} (with system headroom)`}
+                  value={`~${formatMegabytes(detailsModel.requiredRamMb)} (with system headroom)`}
                 />
-                <DetailRow
-                  label="System RAM"
-                  value={formatBytes(detailsModel.machineRamMb * 1024 * 1024)}
-                />
+                {modelList && <DetailRow label="System RAM" value={formatMegabytes(modelList.machineRamMb)} />}
                 <DetailRow
                   label="Compatibility"
                   value={detailsModel.fitsRam ? "Fits this machine" : "May not fit — could run slowly or fail"}
                 />
-                {detailsModel.filePath && <DetailRow label="File path" value={detailsModel.filePath} />}
+                {detailsModel.source === "custom" && (
+                  <DetailRow label="File path" value={detailsModel.filePath} />
+                )}
               </Stack>
             </DialogContent>
             <DialogActions>

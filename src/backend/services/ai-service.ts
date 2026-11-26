@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { Database } from "../database/database";
 import InferenceEngine from "./inference-engine";
 import ModelManager from "./model-manager";
-import type { DownloadProgressCallback, ModelStatus } from "../types/ai-model";
+import type { DownloadProgressCallback, ModelList, ModelStatus } from "../types/ai-model";
 import {
   AI_INSIGHT_ACTIVITY_DAYS,
   AI_INSIGHT_CANDIDATE_LIMIT,
@@ -97,7 +97,7 @@ export default class AiService {
   }
 
   getStatus = async (): Promise<AiStatus> => {
-    const models = await this.modelManager.listModels();
+    const { models } = await this.modelManager.listModels();
     const selectedModel = models.find((model) => model.selected);
     const cached = this.readCache();
 
@@ -113,7 +113,7 @@ export default class AiService {
     this.clearCache();
   };
 
-  listModels = async (): Promise<ModelStatus[]> => {
+  listModels = async (): Promise<ModelList> => {
     return this.modelManager.listModels();
   };
 
@@ -148,7 +148,7 @@ export default class AiService {
   generateInsight = async (force = false): Promise<string> => {
     const selectedModelId = await this.modelManager.getSelectedModelId();
     if (!selectedModelId) {
-      const models = await this.modelManager.listModels();
+      const { models } = await this.modelManager.listModels();
       throw new Error(models.some(isInstalled) ? "No model is active — select one in Settings" : "No AI model is installed");
     }
 
