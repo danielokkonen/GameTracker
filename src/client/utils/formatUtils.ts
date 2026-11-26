@@ -12,12 +12,20 @@ export const formatBytes = (bytes: number): string => {
   return `${Math.round(bytes / 1024)} KB`;
 };
 
+export const formatMegabytes = (megabytes: number): string => formatBytes(megabytes * 1024 ** 2);
+
 export const stripMarkdown = (text: string): string => text.replace(/\*+/g, "").replace(/_{2,}/g, "");
 
 export const stripThinkTags = (text: string): string => text.replace(/<\/?think>/gi, "").trim();
 
 export const stripHtmlTags = (text: string): string =>
   text.replace(/<\/?[a-z][^<>]*>/gi, "").replace(/\n{3,}/g, "\n\n").trim();
+
+export const formatInsightLines = (text: string): string[] =>
+  stripHtmlTags(stripThinkTags(stripMarkdown(text)))
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 
 export const formatActivityDate = (date: Date): string => {
   const now = new Date();

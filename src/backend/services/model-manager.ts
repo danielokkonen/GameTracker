@@ -15,45 +15,16 @@ import {
   AI_SYSTEM_RAM_HEADROOM_MB,
 } from "../constants/ai-models";
 import type { AiModel } from "../constants/ai-models";
-
-export type ModelInstallState = "none" | "downloading" | "installed";
-
-export interface ModelStatus {
-  id: string;
-  name: string;
-  sizeBytes: number;
-  ramMb: number;
-  requiredRamMb: number;
-  machineRamMb: number;
-  fitsRam: boolean;
-  recommended: boolean;
-  installState: ModelInstallState;
-  selected: boolean;
-  downloadProgress: DownloadProgress | null;
-  custom: boolean;
-  filePath: string | null;
-}
-
-export interface CustomModelEntry {
-  id: string;
-  name: string;
-  filePath: string;
-}
-
-export interface ResolvedModel {
-  id: string;
-  name: string;
-  sizeBytes: number;
-  filePath: string;
-}
-
-export interface DownloadProgress {
-  modelId: string;
-  downloadedBytes: number;
-  totalBytes: number;
-}
-
-export type DownloadProgressCallback = (modelId: string, downloadedBytes: number, totalBytes: number) => void;
+import type {
+  CatalogModelStatus,
+  CustomModelEntry,
+  CustomModelStatus,
+  DownloadProgress,
+  DownloadProgressCallback,
+  ModelInstallState,
+  ModelList,
+  ResolvedModel,
+} from "../types/ai-model";
 
 export class DownloadCancelledError extends Error {
   public modelId: string;
@@ -77,35 +48,18 @@ export default class ModelManager {
     this.modelsDir = path.join(Database.getDbFolder(), "models");
   }
 
-  listModels = async (): Promise<ModelStatus[]> => {
+  listModels = async (): Promise<ModelList> => {
     const selectedId = await this.getSelectedModelId();
     const machineRamMb = Math.floor(os.totalmem() / (1024 * 1024));
     const catalogRows = await Promise.all(
-      AI_MODELS.map(async (entry) => {
-        const requiredRamMb = entry.ramMb + AI_SYSTEM_RAM_HEADROOM_MB;
-        return {
-          id: entry.id,
-          name: entry.name,
-          sizeBytes: entry.sizeBytes,
-          ramMb: entry.ramMb,
-          requiredRamMb,
-          machineRamMb,
-          fitsRam: machineRamMb >= requiredRamMb,
-          recommended: entry.recommended,
-          installState: await this.getInstallState(entry),
-          selected: entry.id === selectedId,
-          downloadProgress: this.activeDownloads.get(entry.id) ?? null,
-          custom: false,
-          filePath: null,
-        };
-      })
+      AI_MODELS.map((entry) => this.toCatalogStatus(entry, selectedId, machineRamMb))
     );
     catalogRows.sort((a, b) => Number(b.recommended) - Number(a.recommended) || a.sizeBytes - b.sizeBytes);
 
     const customRows = await Promise.all(
       (await this.readCustomModels()).map((entry) => this.toCustomStatus(entry, selectedId, machineRamMb))
     );
-    return [...catalogRows, ...customRows];
+    return { machineRamMb, models: [...catalogRows, ...customRows] };
   };
 
   addCustomModel = async (filePath: string): Promise<CustomModelEntry> => {
@@ -298,28 +252,46 @@ export default class ModelManager {
     return entry;
   };
 
+  private toCatalogStatus = async (
+    entry: AiModel,
+    selectedId: string | null,
+    machineRamMb: number
+  ): Promise<CatalogModelStatus> => {
+    const requiredRamMb = entry.ramMb + AI_SYSTEM_RAM_HEADROOM_MB;
+    return {
+      source: "catalog",
+      id: entry.id,
+      name: entry.name,
+      sizeBytes: entry.sizeBytes,
+      ramMb: entry.ramMb,
+      requiredRamMb,
+      fitsRam: machineRamMb >= requiredRamMb,
+      installState: await this.getInstallState(entry),
+      selected: entry.id === selectedId,
+      recommended: entry.recommended,
+      downloadProgress: this.activeDownloads.get(entry.id) ?? null,
+    };
+  };
+
   private toCustomStatus = async (
     entry: CustomModelEntry,
     selectedId: string | null,
     machineRamMb: number
-  ): Promise<ModelStatus> => {
+  ): Promise<CustomModelStatus> => {
     const sizeBytes = (await this.statOrNull(entry.filePath))?.size ?? 0;
     const ramMb = Math.ceil(sizeBytes / (1024 * 1024));
     const requiredRamMb = ramMb + AI_SYSTEM_RAM_HEADROOM_MB;
     return {
+      source: "custom",
       id: entry.id,
       name: entry.name,
+      filePath: entry.filePath,
       sizeBytes,
       ramMb,
       requiredRamMb,
-      machineRamMb,
       fitsRam: machineRamMb >= requiredRamMb,
-      recommended: false,
       installState: sizeBytes > 0 ? "installed" : "none",
       selected: entry.id === selectedId,
-      downloadProgress: null,
-      custom: true,
-      filePath: entry.filePath,
     };
   };
 

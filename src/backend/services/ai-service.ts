@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import dayjs from "dayjs";
 import { Database } from "../database/database";
 import InferenceEngine from "./inference-engine";
-import ModelManager, { type DownloadProgressCallback, type ModelStatus } from "./model-manager";
+import ModelManager from "./model-manager";
+import type { DownloadProgressCallback, ModelList, ModelStatus } from "../types/ai-model";
 import {
   AI_INSIGHT_ACTIVITY_DAYS,
   AI_INSIGHT_CANDIDATE_LIMIT,
@@ -14,17 +15,7 @@ import {
 } from "../constants/ai-engine";
 import type { GameStatus } from "../constants/gameStatuses";
 import type { DbGame } from "../types/db";
-
-export interface AiInsightState {
-  text: string;
-}
-
-export interface AiStatus {
-  modelInstalled: boolean;
-  selectedModelId: string | null;
-  generating: boolean;
-  insight: AiInsightState | null;
-}
+import type { AiStatus } from "../types/ai-insight";
 
 interface InsightPlayingEntry {
   name: string;
@@ -71,14 +62,14 @@ interface AiInsightRow {
 
 const SYSTEM_PROMPT = `You are a game library analyst inside a personal game tracking app. You receive the user's game library as JSON. Reply with exactly these four labelled lines, one per line, in this exact order and wording. Put nothing before the first line and nothing after the last line:
 
-Playing now: <what the player is actively playing and what that suggests about their current taste or mood>
-Play next: <a game only from "Paused" or "Not started", then say in a natural sentence why it suits them, drawing on their own history>
-Also try: <a different game only from "Paused" or "Not started", with a natural sentence on why it fits>
-Pattern: <a sentence interpreting the player's habits or taste — focus, trends, tendencies>
+Playing now: <what the player is actively playing, and what it suggests about their current mood>
+Play next: <one game marked "Paused" or "Not started", and why it suits them>
+Also try: <a different such game, and why it fits>
+Pattern: <one observation about their habits or taste>
 
 Rules:
 - Write like a knowledgeable friend who knows the player's library: warm, specific, conversational, in complete natural sentences. Avoid clipped note-taking, corporate filler, and stock phrases ("palate cleanser", "perfect fit", "without a doubt").
-- Keep each line to one or two sentences. Plain text only — no markdown or HTML (no * or ** emphasis, no <p>/<strong> tags, no bullets, no numbered lists, no headings), no preamble, no extra or blank lines.
+- Write exactly one sentence per line, under 20 words. Plain text only — no markdown or HTML (no * or ** emphasis, no <p>/<strong> tags, no bullets, no numbered lists, no headings), no preamble, no extra or blank lines.
 - "Play next" and "Also try" must each name a real game marked "Paused" or "Not started". Never recommend a game that is currently being played or already completed. Ground each reason in the player's own history — genres they gravitate to, games they loved, finished, or dropped.
 - If there is no other suitable candidate for "Also try", write exactly "None" after its label.
 - Never invent or guess game titles — reference only games that appear in the provided data.
@@ -89,10 +80,10 @@ Rules:
 Example:
 Library: {"statusCounts":{"Completed":6,"Started":1,"Paused":1,"Not started":2},"currentlyPlaying":[{"name":"Outer Wilds","minutes":900,"genres":["Roguelike","Action"]}],"playNextCandidates":[{"name":"Solarus","status":"Paused","minutes":240,"genres":["Roguelike","Action"]},{"name":"Mosaic","status":"Not started","minutes":0,"genres":["Platformer"]}],"genreDistribution":{"Roguelike":3,"Action":3,"Platformer":1}}
 Response:
-Playing now: You are well into Outer Wilds, and the way you keep gravitating to roguelike action tells me that is where your head is at right now.
-Play next: When you come up for air, Solarus is the one I would reach for. It is a roguelike you paused rather than bounced off, so the combat should feel familiar straight away.
-Also try: Mosaic is there if you fancy something calmer, though it is a genre you have barely touched compared to your action backlog.
-Pattern: You tend to sink hard into a single action game at a time and let the gentler stuff sit untouched in the backlog.`;
+Playing now: You are deep into Outer Wilds, so your head is still in slow-burn exploration.
+Play next: Solarus is a roguelike you paused rather than bounced off, so the combat feels familiar.
+Also try: Mosaic is a gentler pace, a genre your backlog barely touches.
+Pattern: You commit hard to one game at a time and let quieter ones wait.`;
 
 const isInstalled = (model: ModelStatus): boolean => model.installState === "installed";
 
@@ -106,7 +97,7 @@ export default class AiService {
   }
 
   getStatus = async (): Promise<AiStatus> => {
-    const models = await this.modelManager.listModels();
+    const { models } = await this.modelManager.listModels();
     const selectedModel = models.find((model) => model.selected);
     const cached = this.readCache();
 
@@ -122,7 +113,7 @@ export default class AiService {
     this.clearCache();
   };
 
-  listModels = async (): Promise<ModelStatus[]> => {
+  listModels = async (): Promise<ModelList> => {
     return this.modelManager.listModels();
   };
 
@@ -157,7 +148,7 @@ export default class AiService {
   generateInsight = async (force = false): Promise<string> => {
     const selectedModelId = await this.modelManager.getSelectedModelId();
     if (!selectedModelId) {
-      const models = await this.modelManager.listModels();
+      const { models } = await this.modelManager.listModels();
       throw new Error(models.some(isInstalled) ? "No model is active — select one in Settings" : "No AI model is installed");
     }
 

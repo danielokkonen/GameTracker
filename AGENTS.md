@@ -23,6 +23,7 @@ SQLite via `node:sqlite` through `src/backend/database/database.ts`. Dev DB is `
 - No magic values — use constants (`src/*/constants/`). Domain constants live in `src/backend/constants/`, re-exported from `src/client/constants/`
 - File names: React components/hooks/views are PascalCase, backend services/constants/utils are kebab-case
 - Services are default-exported classes with arrow-function methods; map between DB rows and DTOs (`toDto`/`toDbEntity`)
+- Types are inline only while module-private; anything another module uses goes in `src/backend/dtos/` (form/DB-backed) or `src/backend/types/` (rows, read-only view models, e.g. `ai-model.ts`) — the renderer never imports types from `src/backend/services/`
 - Forms use Formik + yup validation schemas
 - Dates stored as ISO strings; format for display via `src/client/utils/formatUtils.ts`
 - IPC: request via `send`, reply on `<channel>-success` (+ `-error` where failure is expected)
