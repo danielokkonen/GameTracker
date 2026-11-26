@@ -13,17 +13,6 @@ import { DownloadCancelledError } from "./backend/services/model-manager";
 
 const dialog = require("electron").dialog;
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (process.platform === "win32") {
-  try {
-    if (require("electron-squirrel-startup")) {
-      app.quit();
-    }
-  } catch {
-    // electron-squirrel-startup not available
-  }
-}
-
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
