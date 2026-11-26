@@ -1,9 +1,9 @@
 import React, { useRef, useState } from "react";
-import { Alert, Box, Button, CircularProgress, Skeleton, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Skeleton, Stack, Typography } from "@mui/material";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { Channels } from "../../constants/channels";
-import { stripHtmlTags, stripMarkdown, stripThinkTags } from "../../utils/formatUtils";
+import { formatInsightLines } from "../../utils/formatUtils";
 import useIpcRendererCallback from "../../hooks/UseIpcRendererCallback";
 import type { AiStatus } from "../../../backend/types/ai-insight";
 import { useNavigate } from "react-router-dom";
@@ -138,7 +138,11 @@ const AiInsightCard = () => {
               <Skeleton variant="text" width="55%" />
             </>
           ) : (
-            <Typography sx={{ whiteSpace: "pre-line" }}>{stripHtmlTags(stripThinkTags(stripMarkdown(insightText)))}</Typography>
+            <Stack spacing={1}>
+              {formatInsightLines(insightText).map((line, index) => (
+                <Typography key={index}>{line}</Typography>
+              ))}
+            </Stack>
           )}
         </Alert>
       )}

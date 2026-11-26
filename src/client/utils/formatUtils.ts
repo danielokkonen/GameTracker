@@ -21,6 +21,12 @@ export const stripThinkTags = (text: string): string => text.replace(/<\/?think>
 export const stripHtmlTags = (text: string): string =>
   text.replace(/<\/?[a-z][^<>]*>/gi, "").replace(/\n{3,}/g, "\n\n").trim();
 
+export const formatInsightLines = (text: string): string[] =>
+  stripHtmlTags(stripThinkTags(stripMarkdown(text)))
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
 export const formatActivityDate = (date: Date): string => {
   const now = new Date();
   const diffMs = now.getTime() - new Date(date).getTime();
