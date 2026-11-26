@@ -104,8 +104,9 @@ const CreateGameForm = ({
         value={
           formik.values.started
             ? dayjs(formik.values.started).format("YYYY-MM-DD")
-            : " "
+            : ""
         }
+        slotProps={{ inputLabel: { shrink: true } }}
         onChange={formik.handleChange}
         helperText={formik.touched.started && <>{formik.errors.started}</>}
         error={formik.touched.started && !!formik.errors.started}
@@ -117,8 +118,9 @@ const CreateGameForm = ({
         value={
           formik.values.completed
             ? dayjs(formik.values.completed).format("YYYY-MM-DD")
-            : " "
+            : ""
         }
+        slotProps={{ inputLabel: { shrink: true } }}
         onChange={formik.handleChange}
         helperText={formik.touched.completed && <>{formik.errors.completed}</>}
         error={formik.touched.completed && !!formik.errors.completed}

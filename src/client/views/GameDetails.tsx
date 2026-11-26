@@ -215,8 +215,9 @@ const GameDetails = () => {
                   name="started"
                   label="Started"
                   value={
-                    game.started ? dayjs(game.started).format("YYYY-MM-DD") : " "
+                    game.started ? dayjs(game.started).format("YYYY-MM-DD") : ""
                   }
+                  slotProps={{ inputLabel: { shrink: true } }}
                   fullWidth
                   disabled
                 />
@@ -228,8 +229,9 @@ const GameDetails = () => {
                   value={
                     game.completed
                       ? dayjs(game.completed).format("YYYY-MM-DD")
-                      : " "
+                      : ""
                   }
+                  slotProps={{ inputLabel: { shrink: true } }}
                   fullWidth
                   disabled
                 />
