@@ -13,13 +13,28 @@ import { DownloadCancelledError } from "./backend/services/model-manager";
 
 const dialog = require("electron").dialog;
 
-const createWindow = () => {
+const DARK_WINDOW_BACKGROUND = "#121212";
+const LIGHT_WINDOW_BACKGROUND = "#FFFFFF";
+
+const applyThemeSource = (darkMode?: boolean | null) => {
+  if (darkMode === null || darkMode === undefined) {
+    return;
+  }
+  nativeTheme.themeSource = darkMode ? "dark" : "light";
+  for (const win of BrowserWindow.getAllWindows()) {
+    win.setBackgroundColor(darkMode ? DARK_WINDOW_BACKGROUND : LIGHT_WINDOW_BACKGROUND);
+  }
+};
+
+const createWindow = async () => {
+  applyThemeSource((await settingService.get())?.darkMode);
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     show: false,
     width: 1400,
     height: 900,
-    backgroundColor: nativeTheme.shouldUseDarkColors ? "#121212" : "#FFF",
+    backgroundColor: nativeTheme.shouldUseDarkColors ? DARK_WINDOW_BACKGROUND : LIGHT_WINDOW_BACKGROUND,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
@@ -174,6 +189,7 @@ ipcMain.on("get-settings", async (event) => {
 
 ipcMain.on("upsert-settings", async (event, payload: SettingsDto) => {
   await settingService.upsert(payload);
+  applyThemeSource(payload.darkMode);
   event.reply("upsert-settings-success");
 });
 
