@@ -344,14 +344,15 @@ const AiModelManager = () => {
                       {isDownloading ? (
                         <Box sx={{ width: 184 }}>
                           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-                            <Typography variant="body2" color="text.secondary">Downloading…</Typography>
-                            <Typography variant="body2" color="text.secondary">{progressPct}%</Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
+                              {formatBytes(liveProgress?.downloadedBytes ?? 0)} of{" "}
+                              {formatBytes(liveProgress?.totalBytes || model.sizeBytes)}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                              {progressPct}%
+                            </Typography>
                           </Box>
                           <LinearProgress variant="determinate" value={progressPct} />
-                          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-                            {formatBytes(liveProgress?.downloadedBytes ?? 0)} of{" "}
-                            {formatBytes(liveProgress?.totalBytes || model.sizeBytes)}
-                          </Typography>
                         </Box>
                       ) : model.installState === "installed" && !model.selected ? (
                         <Button
