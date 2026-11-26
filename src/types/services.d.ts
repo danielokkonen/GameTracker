@@ -46,9 +46,10 @@ export interface IgdbService {
 }
 
 export interface SettingsService {
-  get: () => SettingsDto;
+  get: () => void;
   upsert: (settings: SettingsDto) => void;
   clearTokens: () => void;
+  openDatabaseFolder: () => void;
 }
 
 export interface AiService {

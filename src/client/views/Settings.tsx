@@ -1,83 +1,122 @@
-import React, { useContext, useState } from "react";
-import { Box, Divider } from "@mui/material";
-import SettingsForm from "../components/settings/SettingsForm";
-import AiModelManager from "../components/settings/AiModelManager";
+import React, { useContext, useRef, useState } from "react";
+import { Box, Tab, Tabs } from "@mui/material";
+import { Formik } from "formik";
+import type { FormikHelpers } from "formik";
+import { useSearchParams } from "react-router-dom";
 import SettingsDto from "../../backend/dtos/settings";
 import { Channels } from "../constants/channels";
 import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
 import SettingsContext from "../context/SettingsContext";
-import SnackbarContext from "../context/SnackbarContext";
+import Spinner from "../components/common/Spinner";
+import { settingsValidationSchema } from "../components/settings/settings-validation";
+import GeneralSettingsPanel from "../components/settings/GeneralSettingsPanel";
+import IntegrationsSettingsPanel from "../components/settings/IntegrationsSettingsPanel";
+import AiFeaturesPanel from "../components/settings/AiFeaturesPanel";
+import DebugSettingsPanel from "../components/settings/DebugSettingsPanel";
+import {
+  SETTINGS_TAB_QUERY_KEY,
+  SETTINGS_TABS,
+  SETTINGS_TAB_LABELS,
+  SETTINGS_TAB_ORDER,
+  SettingsTab,
+  resolveSettingsTab,
+} from "../constants/settings-tabs";
+import { SETTINGS_PANEL_SPACING } from "../constants/settings-layout";
+
+const PANELS: Record<SettingsTab, React.ReactElement> = {
+  [SETTINGS_TABS.general]: <GeneralSettingsPanel />,
+  [SETTINGS_TABS.integrations]: <IntegrationsSettingsPanel />,
+  [SETTINGS_TABS.ai]: <AiFeaturesPanel />,
+  [SETTINGS_TABS.debug]: <DebugSettingsPanel />,
+};
+
+interface TabPanelProps {
+  tab: SettingsTab;
+  activeTab: SettingsTab;
+  children: React.ReactNode;
+}
+
+const TabPanel = ({ tab, activeTab, children }: TabPanelProps) =>
+  tab === activeTab ? (
+    <Box
+      role="tabpanel"
+      sx={{ pt: SETTINGS_PANEL_SPACING, pb: SETTINGS_PANEL_SPACING }}
+    >
+      {children}
+    </Box>
+  ) : null;
+
+const createDefaultSettings = async (): Promise<SettingsDto> => {
+  const darkMode = await window.electronApi.theme.darkMode();
+  return new SettingsDto(darkMode);
+};
 
 const Settings = () => {
   const { dispatch } = useContext(SettingsContext);
-  const snackbarDispatch = useContext(SnackbarContext);
   const [settings, setSettings] = useState<SettingsDto | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const defaultsApplied = useRef(false);
+
+  const activeTab = resolveSettingsTab(searchParams.get(SETTINGS_TAB_QUERY_KEY));
 
   useIpcRendererCallback<SettingsDto | null>(
     Channels.SETTINGS_GET_SUCCESS,
     () => window.settingsService.get(),
     (data) => {
-      setSettings(data);
+      if (data) {
+        setSettings(data);
+        return;
+      }
+      if (defaultsApplied.current) {
+        return;
+      }
+      defaultsApplied.current = true;
+      void createDefaultSettings()
+        .then(setSettings)
+        .catch(() => setSettings(new SettingsDto(false)));
     }
   );
 
-  const onSubmit = (data: SettingsDto) => {
-    window.settingsService.upsert(data);
-    dispatch({
-      type: "init",
-      payload: data,
-    });
-    setSettings(data);
+  const handleTabChange = (_event: React.SyntheticEvent, tab: SettingsTab) => {
+    setSearchParams({ [SETTINGS_TAB_QUERY_KEY]: tab }, { replace: true });
   };
 
-  const onClearTokens = () => {
-    window.settingsService.clearTokens();
-    snackbarDispatch({
-      type: "show_message",
-      payload: "Tokens cleared successfully.",
-    });
+  const onSubmit = (values: SettingsDto, helpers: FormikHelpers<SettingsDto>) => {
+    window.settingsService.upsert(values);
+    dispatch({ type: "init", payload: values });
+    setSettings(values);
+    helpers.setSubmitting(false);
   };
 
-  const onDeleteAllGames = () => {
-    window.gameService.deleteAll();
-  };
-
-  const handleDeleteAllSuccess = () => {
-    snackbarDispatch({
-      type: "show_message",
-      payload: "All games deleted successfully.",
-    });
-  };
-
-  useIpcRendererCallback(
-    Channels.GAMES_DELETE_ALL_SUCCESS,
-    null,
-    handleDeleteAllSuccess
-  );
-
-  const onOpenDatabaseFolder = () => {
-    window.settingsService.openDatabaseFolder();
-  };
-
-  const handleOpenDatabaseFolderError = (data: { error: string }) => {
-    snackbarDispatch({
-      type: "show_message",
-      payload: `Could not open database folder: ${data.error}`,
-    });
-  };
-
-  useIpcRendererCallback(
-    Channels.OPEN_DATABASE_FOLDER_ERROR,
-    null,
-    handleOpenDatabaseFolderError
-  );
+  if (settings === null) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <Spinner />
+      </Box>
+    );
+  }
 
   return (
-    <Box>
-      <SettingsForm value={settings} onSubmit={onSubmit} onClearTokens={onClearTokens} onDeleteAllGames={onDeleteAllGames} onOpenDatabaseFolder={onOpenDatabaseFolder} />
-      <Divider sx={{ my: 4 }} />
-      <AiModelManager />
-    </Box>
+    <Formik<SettingsDto>
+      enableReinitialize
+      validationSchema={settingsValidationSchema}
+      initialValues={settings}
+      onSubmit={onSubmit}
+    >
+      <Box>
+        <Tabs value={activeTab} onChange={handleTabChange}>
+          {SETTINGS_TAB_ORDER.map((tab) => (
+            <Tab key={tab} value={tab} label={SETTINGS_TAB_LABELS[tab]} />
+          ))}
+        </Tabs>
+
+        {SETTINGS_TAB_ORDER.map((tab) => (
+          <TabPanel key={tab} tab={tab} activeTab={activeTab}>
+            {PANELS[tab]}
+          </TabPanel>
+        ))}
+      </Box>
+    </Formik>
   );
 };
 

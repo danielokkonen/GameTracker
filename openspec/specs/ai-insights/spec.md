@@ -108,7 +108,7 @@ The system SHALL NOT attempt generation when no local model is installed. The qu
 #### Scenario: Setup action reveals the AI section directly
 
 - **WHEN** the user activates the setup action from the dashboard
-- **THEN** Settings opens already scrolled to the AI Insights section, without requiring the user to scroll
+- **THEN** Settings opens with the AI features section already selected, without requiring the user to switch sections or scroll
 
 ### Requirement: Model hardware compatibility is communicated
 
