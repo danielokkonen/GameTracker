@@ -33,7 +33,6 @@ const createWindow = () => {
     backgroundColor: nativeTheme.shouldUseDarkColors ? "#121212" : "#FFF",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      nodeIntegration: true,
     },
   });
 
