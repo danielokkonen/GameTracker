@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import dayjs from "dayjs";
 import { Database } from "../database/database";
 import InferenceEngine from "./inference-engine";
-import ModelManager, { type DownloadProgressCallback, type ModelStatus } from "./model-manager";
+import ModelManager from "./model-manager";
+import type { DownloadProgressCallback, ModelStatus } from "../types/ai-model";
 import {
   AI_INSIGHT_ACTIVITY_DAYS,
   AI_INSIGHT_CANDIDATE_LIMIT,
@@ -14,17 +15,7 @@ import {
 } from "../constants/ai-engine";
 import type { GameStatus } from "../constants/gameStatuses";
 import type { DbGame } from "../types/db";
-
-export interface AiInsightState {
-  text: string;
-}
-
-export interface AiStatus {
-  modelInstalled: boolean;
-  selectedModelId: string | null;
-  generating: boolean;
-  insight: AiInsightState | null;
-}
+import type { AiStatus } from "../types/ai-insight";
 
 interface InsightPlayingEntry {
   name: string;

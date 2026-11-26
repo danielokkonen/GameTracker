@@ -7,7 +7,8 @@ import {
   AI_MAX_OUTPUT_TOKENS,
   AI_TEMPERATURE,
 } from "../constants/ai-engine";
-import ModelManager, { type ResolvedModel } from "./model-manager";
+import ModelManager from "./model-manager";
+import type { ResolvedModel } from "../types/ai-model";
 
 export interface GenerationParams {
   systemPrompt: string;

@@ -24,7 +24,7 @@ import Spinner from "../common/Spinner";
 import { Channels } from "../../constants/channels";
 import useIpcRendererCallback from "../../hooks/UseIpcRendererCallback";
 import SnackbarContext from "../../context/SnackbarContext";
-import type { ModelStatus, DownloadProgress } from "../../../backend/services/model-manager";
+import type { DownloadProgress, ModelStatus } from "../../../backend/types/ai-model";
 import { AI_MAX_MODEL_SIZE_BYTES } from "../../constants/ai-models";
 import { formatBytes } from "../../utils/formatUtils";
 

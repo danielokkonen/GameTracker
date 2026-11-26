@@ -5,7 +5,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { Channels } from "../../constants/channels";
 import { stripHtmlTags, stripMarkdown, stripThinkTags } from "../../utils/formatUtils";
 import useIpcRendererCallback from "../../hooks/UseIpcRendererCallback";
-import type { AiStatus } from "../../../backend/services/ai-service";
+import type { AiStatus } from "../../../backend/types/ai-insight";
 import { useNavigate } from "react-router-dom";
 
 const AiInsightCard = () => {
