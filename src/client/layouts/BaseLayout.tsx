@@ -1,4 +1,4 @@
-import { useContext, useMemo } from "react";
+import { useContext, useEffect, useState } from "react";
 import Navigation from "../components/common/Navigation";
 import { Outlet } from "react-router-dom";
 import {
@@ -48,13 +48,18 @@ const BaseLayout = () => {
     }
   );
 
-  const shouldUseDarkMode = useMemo(() => {
-    if (state.darkMode === undefined || state.darkMode === null) {
-      return window.electronApi.theme.darkMode();
-    }
+  const [systemDarkMode, setSystemDarkMode] = useState(
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
 
-    return state.darkMode;
-  }, [state]);
+  useEffect(() => {
+    const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = (event: MediaQueryListEvent) => setSystemDarkMode(event.matches);
+    darkModeQuery.addEventListener("change", onChange);
+    return () => darkModeQuery.removeEventListener("change", onChange);
+  }, []);
+
+  const shouldUseDarkMode = state.darkMode ?? systemDarkMode;
 
   return (
     <ThemeProvider theme={shouldUseDarkMode ? darkTheme : lightTheme}>
