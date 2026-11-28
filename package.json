@@ -16,6 +16,7 @@
     "@electron-forge/cli": "^8.0.1",
     "@electron-forge/maker-deb": "^8.0.1",
     "@electron-forge/maker-rpm": "^8.0.1",
+    "@electron-forge/maker-squirrel": "^8.0.1",
     "@electron-forge/maker-zip": "^8.0.1",
     "@electron-forge/plugin-auto-unpack-natives": "^8.0.1",
     "@electron-forge/plugin-fuses": "^8.0.1",
@@ -59,6 +60,7 @@
     "yup": "^1.7.1"
   },
   "allowScripts": {
-    "electron@45.5.0": true
+    "electron@45.5.0": true,
+    "electron-winstaller@5.4.4": true
   }
 }

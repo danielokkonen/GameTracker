@@ -2,6 +2,7 @@ import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ForgeConfig } from '@electron-forge/shared-types';
+import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import { MakerDeb } from '@electron-forge/maker-deb';
 import { VitePlugin } from '@electron-forge/plugin-vite';
@@ -103,6 +104,7 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
+    ...(process.platform === 'win32' ? [new MakerSquirrel({})] : []),
     ...(process.platform === 'darwin' ? [new MakerZIP({}, ['darwin'])] : []),
     ...(process.platform === 'linux' ? [new MakerDeb({})] : []),
   ],
