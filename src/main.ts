@@ -10,8 +10,18 @@ import SettingsDto from "./backend/dtos/settings";
 import SteamService from "./backend/services/steam-service";
 import AiService from "./backend/services/ai-service";
 import { DownloadCancelledError } from "./backend/services/model-manager";
+import SquirrelStartupService from "./backend/services/squirrel-startup-service";
 
 const dialog = require("electron").dialog;
+
+const squirrelStartupService = new SquirrelStartupService();
+
+// The installer drives the app through Squirrel events to create/remove shortcuts and waits for it to exit,
+// so this has to terminate the process before any window, database or IPC setup runs.
+const squirrelExitCode = squirrelStartupService.handleStartupEvent();
+if (squirrelExitCode !== undefined) {
+  process.exit(squirrelExitCode);
+}
 
 const DARK_WINDOW_BACKGROUND = "#121212";
 const LIGHT_WINDOW_BACKGROUND = "#FFFFFF";
