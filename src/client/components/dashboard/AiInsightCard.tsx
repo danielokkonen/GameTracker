@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Alert, Box, Button, CircularProgress, Skeleton, Stack, Typography } from "@mui/material";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -120,7 +120,7 @@ const AiInsightCard = () => {
       </Box>
 
       {noModel && (
-        <Typography color="text.secondary" sx={{ mt: 1 }}>
+        <Typography sx={{ mt: 1 }}>
           Get a short analysis of your library, generated entirely on this device. No cloud, no API keys.
         </Typography>
       )}

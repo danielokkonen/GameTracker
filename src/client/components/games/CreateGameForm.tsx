@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { Autocomplete, Box, Button, MenuItem, Select, Stack, TextField } from "@mui/material";
 import GameDto from "../../../backend/dtos/game";
 import SaveIcon from "@mui/icons-material/Save";
@@ -7,6 +7,7 @@ import { useFormik } from "formik";
 import { array, date, number, object, string } from "yup";
 import { GAME_STATUSES } from "../../../client/constants/gameStatuses";
 import SettingsContext from "../../../client/context/SettingsContext";
+import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 
 interface CreateGameFormProps {
@@ -97,31 +98,41 @@ const CreateGameForm = ({
           />
         )}
       />
-      <TextField
-        type="date"
+      <DatePicker
         name="started"
         label="Started"
-        value={
-          formik.values.started
-            ? dayjs(formik.values.started).format("YYYY-MM-DD")
-            : " "
+        value={formik.values.started ? dayjs(formik.values.started) : null}
+        onChange={(value) =>
+          formik.setFieldValue(
+            "started",
+            value ? value.format("YYYY-MM-DD") : null
+          )
         }
-        onChange={formik.handleChange}
-        helperText={formik.touched.started && <>{formik.errors.started}</>}
-        error={formik.touched.started && !!formik.errors.started}
+        slotProps={{
+          textField: {
+            helperText: formik.touched.started && formik.errors.started,
+            error: formik.touched.started && !!formik.errors.started,
+          },
+        }}
       />
-      <TextField
-        type="date"
+      <DatePicker
         name="completed"
         label="Completed"
         value={
-          formik.values.completed
-            ? dayjs(formik.values.completed).format("YYYY-MM-DD")
-            : " "
+          formik.values.completed ? dayjs(formik.values.completed) : null
         }
-        onChange={formik.handleChange}
-        helperText={formik.touched.completed && <>{formik.errors.completed}</>}
-        error={formik.touched.completed && !!formik.errors.completed}
+        onChange={(value) =>
+          formik.setFieldValue(
+            "completed",
+            value ? value.format("YYYY-MM-DD") : null
+          )
+        }
+        slotProps={{
+          textField: {
+            helperText: formik.touched.completed && formik.errors.completed,
+            error: formik.touched.completed && !!formik.errors.completed,
+          },
+        }}
       />
       <Select
         name="status"
@@ -135,7 +146,7 @@ const CreateGameForm = ({
           </MenuItem>
         ))}
       </Select>
-      <Stack direction="row" justifyContent="flex-end" spacing={2}>
+      <Stack direction="row" spacing={2} sx={{ justifyContent: "flex-end" }}>
         <Button variant="outlined" onClick={onClose}>
           Close
         </Button>

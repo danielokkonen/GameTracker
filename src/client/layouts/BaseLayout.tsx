@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from "react";
+import { useContext, useEffect, useState } from "react";
 import Navigation from "../components/common/Navigation";
 import { Outlet } from "react-router-dom";
 import {
@@ -12,6 +12,8 @@ import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
 import { Channels } from "../constants/channels";
 import SettingsContext from "../context/SettingsContext";
 import SettingsDto from "../../backend/dtos/settings";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
 const darkTheme = createTheme({
   palette: {
@@ -46,21 +48,28 @@ const BaseLayout = () => {
     }
   );
 
-  const shouldUseDarkMode = useMemo(() => {
-    if (state.darkMode === undefined || state.darkMode === null) {
-      return window.electronApi.theme.darkMode();
-    }
+  const [systemDarkMode, setSystemDarkMode] = useState(
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
 
-    return state.darkMode;
-  }, [state]);
+  useEffect(() => {
+    const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = (event: MediaQueryListEvent) => setSystemDarkMode(event.matches);
+    darkModeQuery.addEventListener("change", onChange);
+    return () => darkModeQuery.removeEventListener("change", onChange);
+  }, []);
+
+  const shouldUseDarkMode = state.darkMode ?? systemDarkMode;
 
   return (
     <ThemeProvider theme={shouldUseDarkMode ? darkTheme : lightTheme}>
-      <CssBaseline />
-      <Navigation open={true} />
-      <Container maxWidth="xl">
-        <Outlet />
-      </Container>
+      <CssBaseline enableColorScheme />
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Navigation open={true} />
+        <Container maxWidth="xl">
+          <Outlet />
+        </Container>
+      </LocalizationProvider>
     </ThemeProvider>
   );
 };

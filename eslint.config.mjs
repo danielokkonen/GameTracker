@@ -27,7 +27,7 @@ export default defineConfig([{
 },
 {
   files: [
-    "*.ts"
+    "*.{ts,mts}"
   ],
 
   extends: [

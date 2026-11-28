@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { Box, Button, Checkbox, FormControlLabel, Stack, Typography } from "@mui/material";
 import { useFormikContext } from "formik";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -71,7 +71,7 @@ const DebugSettingsPanel = () => {
         )}
 
         <Typography variant="h6">Storage</Typography>
-        <Stack direction="row" spacing={SETTINGS_PANEL_SPACING} flexWrap="wrap">
+        <Stack direction="row" spacing={SETTINGS_PANEL_SPACING} sx={{ flexWrap: "wrap" }}>
           <ConfirmActionButton
             label="Clear Tokens"
             icon={DeleteIcon}

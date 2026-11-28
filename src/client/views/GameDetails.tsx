@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import GameDto from "../../backend/dtos/game";
 import { useNavigate, useParams } from "react-router-dom";
 import { Channels } from "../constants/channels";
@@ -164,8 +164,8 @@ const GameDetails = () => {
       >
         <Container maxWidth="xl" sx={{ pt: 2 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-            <Box display="flex" alignItems="center">
-              <Typography variant="h5" display="inline-block" mr={2}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Typography variant="h5" sx={{ display: "inline-block", mr: 2 }}>
                 {game.name}
               </Typography>
               <Select
@@ -200,12 +200,14 @@ const GameDetails = () => {
               "& h6:not(:first-of-type)": { mt: 2 },
             }}
           >
-            <Box flex={1} mr={2}>
+            <Box sx={{ flex: 1, mr: 2 }}>
               <Typography variant="h6">Progress</Typography>
               <Box
-                display="flex"
-                flexDirection="row"
-                justifyContent="space-between"
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
               >
                 <TextField
                   variant="standard"
@@ -213,8 +215,9 @@ const GameDetails = () => {
                   name="started"
                   label="Started"
                   value={
-                    game.started ? dayjs(game.started).format("YYYY-MM-DD") : " "
+                    game.started ? dayjs(game.started).format("YYYY-MM-DD") : ""
                   }
+                  slotProps={{ inputLabel: { shrink: true } }}
                   fullWidth
                   disabled
                 />
@@ -226,14 +229,15 @@ const GameDetails = () => {
                   value={
                     game.completed
                       ? dayjs(game.completed).format("YYYY-MM-DD")
-                      : " "
+                      : ""
                   }
+                  slotProps={{ inputLabel: { shrink: true } }}
                   fullWidth
                   disabled
                 />
               </Box>
-              <Grid container mt={2}>
-                <Grid item xs={6}>
+              <Grid container sx={{ mt: 2 }}>
+                <Grid size={{ xs: 6 }}>
                   <Typography variant="h6">Developer</Typography>
                   <Typography>
                     {gameDetailsLoading ? (
@@ -243,7 +247,7 @@ const GameDetails = () => {
                     )}
                   </Typography>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <Typography variant="h6">Publisher</Typography>
                   <Typography>
                     {gameDetailsLoading ? (
@@ -263,7 +267,7 @@ const GameDetails = () => {
                 )}
               </Typography>
               <Typography variant="h6">Genres</Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap">
+              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
                 {gameDetailsLoading ? (
                   <Skeleton height={32} width={100} />
                 ) : (
@@ -273,7 +277,7 @@ const GameDetails = () => {
                 )}
               </Stack>
               <Typography variant="h6">Platforms</Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap">
+              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
                 {gameDetailsLoading ? (
                   <Skeleton height={32} width={100} />
                 ) : (
@@ -283,7 +287,7 @@ const GameDetails = () => {
                 )}
               </Stack>
             </Box>
-            <Box display="flex" flexDirection="column" alignItems="center">
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               {gameDetailsLoading ? (
                 <Skeleton variant="rectangular" width={400} height={500} />
               ) : (
@@ -295,7 +299,7 @@ const GameDetails = () => {
                   elevation={3}
                 ></Paper>
               )}
-              <Stack direction="row" spacing={2} mt={2}>
+              <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
                 <Button
                   variant="contained"
                   disabled={!gameDetails.length}

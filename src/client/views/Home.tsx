@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, Grid, Typography, Box, Button, ButtonGroup, Tooltip, IconButton } from "@mui/material";
 import DashboardDto from "../../backend/dtos/dashboard";
 import { Channels } from "../constants/channels";
@@ -51,22 +51,22 @@ const Home = () => {
   return (
     <Box>
       <Grid container spacing={3}>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Completion Rate
               </Typography>
-              <Typography variant="h4" color="success.main">
+              <Typography variant="h4">
                 {dashboard?.completionRate ?? 0}%
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Total Games
               </Typography>
               <Typography variant="h4">
@@ -75,10 +75,10 @@ const Home = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Total Playtime
                 <Tooltip title="Playtime is only fetched from Steam during import and may be out of date.">
                   <IconButton size="small" sx={{ ml: 0.5, verticalAlign: "middle" }}>
@@ -92,10 +92,10 @@ const Home = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} md={3}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                 Avg. Playtime
                 <Tooltip title="Playtime is only fetched from Steam during import and may be out of date.">
                   <IconButton size="small" sx={{ ml: 0.5, verticalAlign: "middle" }}>

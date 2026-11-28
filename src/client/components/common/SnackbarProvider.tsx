@@ -54,7 +54,7 @@ const SnackbarProvider = ({ children }: ISnackbarProviderProps) => {
         autoHideDuration={5000}
         onClose={onClose}
         message={state.message}
-        ClickAwayListenerProps={{ onClickAway: () => null }}
+        slotProps={{ clickAwayListener: { onClickAway: () => null } }}
       />
       {children}
     </SnackbarContext.Provider>

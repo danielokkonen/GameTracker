@@ -1,4 +1,3 @@
-import React from "react";
 import { RouterProvider } from "react-router-dom";
 import router from "./client/router";
 import SnackbarProvider from "./client/components/common/SnackbarProvider";

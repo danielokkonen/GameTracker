@@ -10,30 +10,47 @@ import SettingsDto from "./backend/dtos/settings";
 import SteamService from "./backend/services/steam-service";
 import AiService from "./backend/services/ai-service";
 import { DownloadCancelledError } from "./backend/services/model-manager";
+import SquirrelStartupService from "./backend/services/squirrel-startup-service";
 
 const dialog = require("electron").dialog;
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (process.platform === "win32") {
-  try {
-    if (require("electron-squirrel-startup")) {
-      app.quit();
-    }
-  } catch {
-    // electron-squirrel-startup not available
-  }
+const squirrelStartupService = new SquirrelStartupService();
+
+// The installer drives the app through Squirrel events to create/remove shortcuts and waits for it to exit,
+// so this has to terminate the process before any window, database or IPC setup runs.
+const squirrelExitCode = squirrelStartupService.handleStartupEvent();
+if (squirrelExitCode !== undefined) {
+  process.exit(squirrelExitCode);
 }
 
-const createWindow = () => {
+const DARK_WINDOW_BACKGROUND = "#121212";
+const LIGHT_WINDOW_BACKGROUND = "#FFFFFF";
+
+const applyThemeSource = (darkMode?: boolean | null) => {
+  if (darkMode === null || darkMode === undefined) {
+    return;
+  }
+  nativeTheme.themeSource = darkMode ? "dark" : "light";
+  for (const win of BrowserWindow.getAllWindows()) {
+    win.setBackgroundColor(darkMode ? DARK_WINDOW_BACKGROUND : LIGHT_WINDOW_BACKGROUND);
+  }
+};
+
+const createWindow = async () => {
+  try {
+    applyThemeSource((await settingService.get())?.darkMode);
+  } catch {
+    // A broken Settings row must never block the window; fall back to the system theme.
+  }
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     show: false,
     width: 1400,
     height: 900,
-    backgroundColor: nativeTheme.shouldUseDarkColors ? "#121212" : "#FFF",
+    backgroundColor: nativeTheme.shouldUseDarkColors ? DARK_WINDOW_BACKGROUND : LIGHT_WINDOW_BACKGROUND,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      nodeIntegration: true,
     },
   });
 
@@ -54,6 +71,16 @@ const createWindow = () => {
       shell.openExternal(url);
     }
     return { action: "deny" };
+  });
+
+  // Keeps the renderer on the document that carries our CSP meta tag; hash-router
+  // navigations share the same base URL and stay allowed.
+  mainWindow.webContents.on("will-navigate", (event, url) => {
+    const [targetBase] = url.split("#");
+    const [currentBase] = mainWindow.webContents.getURL().split("#");
+    if (targetBase !== currentBase) {
+      event.preventDefault();
+    }
   });
 
   mainWindow.once("ready-to-show", () => {
@@ -176,6 +203,7 @@ ipcMain.on("get-settings", async (event) => {
 
 ipcMain.on("upsert-settings", async (event, payload: SettingsDto) => {
   await settingService.upsert(payload);
+  applyThemeSource(payload.darkMode);
   event.reply("upsert-settings-success");
 });
 

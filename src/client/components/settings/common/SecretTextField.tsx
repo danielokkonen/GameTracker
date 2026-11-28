@@ -37,14 +37,16 @@ const SecretTextField = ({
       error={error}
       helperText={helperText}
       placeholder={placeholder}
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton edge="end" onClick={() => setRevealed((prev) => !prev)}>
-              {revealed ? <VisibilityOffIcon /> : <VisibilityIcon />}
-            </IconButton>
-          </InputAdornment>
-        ),
+      slotProps={{
+        input: {
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton edge="end" onClick={() => setRevealed((prev) => !prev)}>
+                {revealed ? <VisibilityOffIcon /> : <VisibilityIcon />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        },
       }}
     />
   );

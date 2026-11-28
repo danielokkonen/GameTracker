@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 
 interface StartedGame {
@@ -53,7 +52,7 @@ const NowPlayingCard = ({ game, onClick }: NowPlayingCardProps) => {
             bgcolor: "#2a2a3e",
           }}
         >
-          <Typography variant="h6" color="text.secondary">
+          <Typography variant="h6">
             No Cover
           </Typography>
         </Box>
