@@ -7,6 +7,7 @@ import { useFormik } from "formik";
 import { array, date, number, object, string } from "yup";
 import { GAME_STATUSES } from "../../../client/constants/gameStatuses";
 import SettingsContext from "../../../client/context/SettingsContext";
+import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 
 interface CreateGameFormProps {
@@ -97,33 +98,41 @@ const CreateGameForm = ({
           />
         )}
       />
-      <TextField
-        type="date"
+      <DatePicker
         name="started"
         label="Started"
-        value={
-          formik.values.started
-            ? dayjs(formik.values.started).format("YYYY-MM-DD")
-            : ""
+        value={formik.values.started ? dayjs(formik.values.started) : null}
+        onChange={(value) =>
+          formik.setFieldValue(
+            "started",
+            value ? value.format("YYYY-MM-DD") : null
+          )
         }
-        slotProps={{ inputLabel: { shrink: true } }}
-        onChange={formik.handleChange}
-        helperText={formik.touched.started && <>{formik.errors.started}</>}
-        error={formik.touched.started && !!formik.errors.started}
+        slotProps={{
+          textField: {
+            helperText: formik.touched.started && formik.errors.started,
+            error: formik.touched.started && !!formik.errors.started,
+          },
+        }}
       />
-      <TextField
-        type="date"
+      <DatePicker
         name="completed"
         label="Completed"
         value={
-          formik.values.completed
-            ? dayjs(formik.values.completed).format("YYYY-MM-DD")
-            : ""
+          formik.values.completed ? dayjs(formik.values.completed) : null
         }
-        slotProps={{ inputLabel: { shrink: true } }}
-        onChange={formik.handleChange}
-        helperText={formik.touched.completed && <>{formik.errors.completed}</>}
-        error={formik.touched.completed && !!formik.errors.completed}
+        onChange={(value) =>
+          formik.setFieldValue(
+            "completed",
+            value ? value.format("YYYY-MM-DD") : null
+          )
+        }
+        slotProps={{
+          textField: {
+            helperText: formik.touched.completed && formik.errors.completed,
+            error: formik.touched.completed && !!formik.errors.completed,
+          },
+        }}
       />
       <Select
         name="status"

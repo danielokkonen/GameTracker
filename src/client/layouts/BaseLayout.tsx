@@ -12,6 +12,8 @@ import useIpcRendererCallback from "../hooks/UseIpcRendererCallback";
 import { Channels } from "../constants/channels";
 import SettingsContext from "../context/SettingsContext";
 import SettingsDto from "../../backend/dtos/settings";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
 const darkTheme = createTheme({
   palette: {
@@ -57,10 +59,12 @@ const BaseLayout = () => {
   return (
     <ThemeProvider theme={shouldUseDarkMode ? darkTheme : lightTheme}>
       <CssBaseline enableColorScheme />
-      <Navigation open={true} />
-      <Container maxWidth="xl">
-        <Outlet />
-      </Container>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Navigation open={true} />
+        <Container maxWidth="xl">
+          <Outlet />
+        </Container>
+      </LocalizationProvider>
     </ThemeProvider>
   );
 };
