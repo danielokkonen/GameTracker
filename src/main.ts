@@ -37,7 +37,11 @@ const applyThemeSource = (darkMode?: boolean | null) => {
 };
 
 const createWindow = async () => {
-  applyThemeSource((await settingService.get())?.darkMode);
+  try {
+    applyThemeSource((await settingService.get())?.darkMode);
+  } catch {
+    // A broken Settings row must never block the window; fall back to the system theme.
+  }
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({
