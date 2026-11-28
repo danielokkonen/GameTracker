@@ -204,14 +204,14 @@ const SteamImport = () => {
           <Typography variant="h5" gutterBottom>
             Import from Steam
           </Typography>
-          <Typography variant="body2">
+          <Typography variant="body2" color="textSecondary">
             Browse your Steam library and import games to your collection.
           </Typography>
         </Box>
 
         <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="subtitle2">
+            <Typography variant="subtitle2" color="textSecondary">
               Steam library: {steamGames ? steamGames.length : "—"} games
             </Typography>
           </Box>
