@@ -1,16 +1,8 @@
 import { spawnSync } from "node:child_process";
 import path from "path";
-import {
-  SQUIRREL_CREATE_SHORTCUT_FLAG,
-  SQUIRREL_EVENTS,
-  SQUIRREL_OBSOLETE_EVENT,
-  SQUIRREL_REMOVE_SHORTCUT_FLAG,
-  SQUIRREL_UNINSTALL_EVENT,
-  SQUIRREL_UPDATE_EXE,
-  SQUIRREL_UPDATE_EXE_FAILURE,
-} from "../constants/squirrel";
 
-const UPDATE_EXE_DIRECTORY = "..";
+// `--squirrel-firstrun` is deliberately absent: that launch is a normal app start, not an install-time command.
+const SQUIRREL_EVENTS = ["--squirrel-install", "--squirrel-updated", "--squirrel-uninstall", "--squirrel-obsolete"];
 
 export default class SquirrelStartupService {
   // Squirrel.Windows launches the app itself to run install-time work and waits for it to exit.
@@ -21,21 +13,20 @@ export default class SquirrelStartupService {
       return undefined;
     }
 
-    if (event === SQUIRREL_OBSOLETE_EVENT) {
+    if (event === "--squirrel-obsolete") {
       return 0;
     }
 
-    const shortcutFlag =
-      event === SQUIRREL_UNINSTALL_EVENT ? SQUIRREL_REMOVE_SHORTCUT_FLAG : SQUIRREL_CREATE_SHORTCUT_FLAG;
-    return this.runUpdateExe(shortcutFlag);
+    const uninstall = event === "--squirrel-uninstall";
+    return this.runUpdateExe(uninstall ? "--removeShortcut=" : "--createShortcut=");
   };
 
   private detectEvent = (): string | undefined =>
     process.platform === "win32" ? process.argv.find((arg) => SQUIRREL_EVENTS.includes(arg)) : undefined;
 
   private runUpdateExe = (shortcutFlag: string): number => {
-    const updateExe = path.resolve(path.dirname(process.execPath), UPDATE_EXE_DIRECTORY, SQUIRREL_UPDATE_EXE);
+    const updateExe = path.resolve(path.dirname(process.execPath), "..", "Update.exe");
     const result = spawnSync(updateExe, [`${shortcutFlag}${path.basename(process.execPath)}`]);
-    return result.error ? SQUIRREL_UPDATE_EXE_FAILURE : result.status ?? SQUIRREL_UPDATE_EXE_FAILURE;
+    return result.error ? 1 : result.status ?? 1;
   };
 }
